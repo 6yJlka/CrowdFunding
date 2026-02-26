@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16
+    container_name: crowdfunding-db
+    environment:
+      POSTGRES_DB: crowdfunding
+      POSTGRES_USER: crowdfunding
+      POSTGRES_PASSWORD: crowdfunding
+    ports:
+      - "5433:5432"
+    volumes:
+      - crowdfunding_pgdata:/var/lib/postgresql/data
+
+volumes:
+  crowdfunding_pgdata:
