@@ -20,3 +20,9 @@ logging:
   level:
     org.flywaydb.core: info
     org.hibernate.SQL: debug
+
+app:
+  security:
+    jwt:
+      secret: "CHANGE_ME_TO_LONG_RANDOM_SECRET_CHANGE_ME_TO_LONG_RANDOM_SECRET"
+      ttl-minutes: 120

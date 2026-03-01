@@ -5,12 +5,14 @@ import com.example.crowdfunding.api.dto.RejectProjectRequest;
 import com.example.crowdfunding.api.mapper.ProjectMapper;
 import com.example.crowdfunding.service.ProjectService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin/projects")
+@PreAuthorize("hasRole('ADMIN')")
 public class AdminProjectController {
 
     private final ProjectService projectService;
