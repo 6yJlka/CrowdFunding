@@ -28,6 +28,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
+                        // Публичный доступ к проектам и отзывам
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/{projectId}/reviews").permitAll()  // Открыть доступ для получения отзывов для конкретного проекта
+
+
                         // public read
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/**").permitAll()
 
