@@ -6,7 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,4 +39,13 @@ public interface DonationRepository extends JpaRepository<DonationEntity, UUID> 
             UUID projectId,
             DonationStatus status
     );
+
+    // Суммирование пожертвований для проекта с фильтрацией по статусу
+    @Query("SELECT SUM(d.amount) FROM DonationEntity d WHERE d.project.id = :projectId AND d.status = :status")
+    BigDecimal sumDonationsByProjectIdAndStatus(UUID projectId, DonationStatus status);
+
+    // Подсчёт уникальных доноров с фильтрацией по статусу
+    @Query("SELECT COUNT(DISTINCT d.sponsor.id) FROM DonationEntity d WHERE d.project.id = :projectId AND d.status = :status")
+    Integer countDistinctSponsorsByProjectIdAndStatus(UUID projectId, DonationStatus status);
+
 }

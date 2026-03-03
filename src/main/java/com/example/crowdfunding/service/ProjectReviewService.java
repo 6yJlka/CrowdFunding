@@ -7,6 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ProjectReviewService {
-    public ProjectReviewEntity create(UUID userId, UUID projectId, ProjectReviewRequest req);
-    public List<ProjectReviewEntity> getAllByProject(UUID projectId);
+    ProjectReviewEntity create(UUID userId, UUID projectId, ProjectReviewRequest req);
+    List<ProjectReviewEntity> getAllByProject(UUID projectId);
 }
