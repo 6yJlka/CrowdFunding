@@ -760,6 +760,11 @@ svg {
     align-items: start;
 }
 
+.admin-side-column {
+    display: grid;
+    gap: 24px;
+}
+
 .auth-hero,
 .auth-panel,
 .form-panel,
@@ -1211,6 +1216,15 @@ svg {
     margin-top: 10px;
 }
 
+.admin-toolbar-stack {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.admin-comments-panel {
+    align-self: start;
+}
+
 .admin-filter {
     min-width: 180px;
 }
@@ -1242,6 +1256,34 @@ svg {
     border-radius: 14px;
     background: white;
     padding: 12px 14px;
+}
+
+.admin-comments-list {
+    gap: 14px;
+}
+
+.admin-comment-card {
+    padding: 18px;
+    border-radius: 22px;
+}
+
+.admin-comment-card h4 {
+    margin-top: 8px;
+    font-size: 1rem;
+}
+
+.admin-comment-card p {
+    margin: 10px 0 0;
+    line-height: 1.5;
+}
+
+.admin-comment-card .project-meta {
+    margin-top: 14px;
+    align-items: center;
+}
+
+.admin-sidebar-pagination {
+    margin-top: 16px;
 }
 
 .catalog-page {
@@ -1373,6 +1415,9 @@ svg {
     .catalog-toolbar {
         flex-direction: column;
         align-items: stretch;
+    }
+    .admin-side-column {
+        gap: 18px;
     }
     .shell-header {
         flex-direction: column;

@@ -9,6 +9,8 @@ import com.example.crowdfunding.domain.repository.ProjectRepository;
 import com.example.crowdfunding.domain.repository.UserRepository;
 import com.example.crowdfunding.service.CommentService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +69,12 @@ public class CommentServiceImpl implements CommentService {
             throw new EntityNotFoundException("Project not found: " + projectId);
         }
         return commentRepository.findByProjectIdOrderByCreatedAtAsc(projectId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CommentEntity> listForAdmin(String q, Pageable pageable) {
+        return commentRepository.findAllForAdmin(q == null ? null : q.trim(), pageable);
     }
 
     @Override

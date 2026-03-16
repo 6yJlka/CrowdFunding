@@ -54,16 +54,42 @@
             <span class="catalog-pagination-copy" id="admin-users-pagination-copy">Page 1</span>
             <button class="ghost-btn" type="button" id="admin-users-next-btn">Next</button>
         </div>
+
     </section>
-    <aside class="panel tips-panel">
-        <p class="panel-kicker">Actions</p>
-        <h3>Moderation flow</h3>
-        <ul class="tips-list">
-            <li>Approve moves project to `ACTIVE`.</li>
-            <li>Reject moves project to `REJECTED`.</li>
-            <li>Queue shows projects in `MODERATION` by default.</li>
-            <li>User management lets admin change role and status.</li>
-        </ul>
+    <aside class="admin-side-column">
+        <section class="panel tips-panel">
+            <p class="panel-kicker">Actions</p>
+            <h3>Moderation flow</h3>
+            <ul class="tips-list">
+                <li>Approve moves project to `ACTIVE`.</li>
+                <li>Reject moves project to `REJECTED`.</li>
+                <li>Queue shows projects in `MODERATION` by default.</li>
+                <li>User management lets admin change role and status.</li>
+                <li>Content moderation lets admin review and remove comments.</li>
+            </ul>
+        </section>
+
+        <section class="panel tips-panel admin-comments-panel">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Comments</p>
+                    <h3>Content moderation</h3>
+                </div>
+            </div>
+            <div class="catalog-toolbar admin-toolbar admin-toolbar-stack">
+                <label class="compact-search">
+                    <input type="search" id="admin-comments-search" placeholder="Search by project, author or text">
+                </label>
+                <button class="dark-btn" type="button" id="admin-comments-search-btn">Search</button>
+            </div>
+            <div class="auth-status" id="admin-comments-status"></div>
+            <div class="author-projects admin-comments-list" id="admin-comments"></div>
+            <div class="catalog-pagination admin-sidebar-pagination">
+                <button class="ghost-btn" type="button" id="admin-comments-prev-btn">Previous</button>
+                <span class="catalog-pagination-copy" id="admin-comments-pagination-copy">Page 1</span>
+                <button class="ghost-btn" type="button" id="admin-comments-next-btn">Next</button>
+            </div>
+        </section>
     </aside>
 </main>
 <script src="/shell.js"></script>

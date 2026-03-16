@@ -6,6 +6,7 @@ import com.example.crowdfunding.api.mapper.ProjectReviewMapper;
 import com.example.crowdfunding.security.AppUserDetails;
 import com.example.crowdfunding.service.ProjectReviewService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,7 @@ public class ProjectReviewController {
     }
 
     // Создание отзыва (спонсор или автор проекта)
+    @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ProjectReviewResponse create(
             @AuthenticationPrincipal AppUserDetails user,

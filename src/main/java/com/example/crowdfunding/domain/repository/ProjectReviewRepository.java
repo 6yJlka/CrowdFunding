@@ -11,4 +11,6 @@ public interface ProjectReviewRepository extends JpaRepository<ProjectReviewEnti
 
     @EntityGraph(attributePaths = {"user"})  // Явная загрузка связи с пользователем
     List<ProjectReviewEntity> findByProjectIdOrderByCreatedAtDesc(UUID projectId);
+
+    boolean existsByProjectIdAndUserId(UUID projectId, UUID userId);
 }

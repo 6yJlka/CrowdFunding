@@ -39,6 +39,10 @@ public class ProjectReviewServiceImpl implements ProjectReviewService {
         ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
+        if (projectReviewRepository.existsByProjectIdAndUserId(projectId, userId)) {
+            throw new IllegalStateException("You have already posted a review for this project");
+        }
+
         ProjectReviewEntity review = new ProjectReviewEntity();
         review.setProject(project);
         review.setUser(user);

@@ -5,9 +5,13 @@ const adminUsersNode = document.getElementById("admin-users");
 const adminUsersStatusNode = document.getElementById("admin-users-status");
 const adminUsersSearchNode = document.getElementById("admin-users-search");
 const adminUsersStatusFilterNode = document.getElementById("admin-users-status-filter");
+const adminCommentsNode = document.getElementById("admin-comments");
+const adminCommentsStatusNode = document.getElementById("admin-comments-status");
+const adminCommentsSearchNode = document.getElementById("admin-comments-search");
 
-const moderationState = {page: 0, size: 4, totalPages: 0};
-const userState = {page: 0, size: 4, totalPages: 0, query: "", status: ""};
+const moderationState = {page: 0, size: 3, totalPages: 0};
+const userState = {page: 0, size: 3, totalPages: 0, query: "", status: ""};
+const commentState = {page: 0, size: 3, totalPages: 0, query: ""};
 
 if (!adminAuth?.accessToken) {
     window.location.href = "/auth.html";
@@ -16,6 +20,7 @@ if (!adminAuth?.accessToken) {
 wireAdminPagination();
 loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
 loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
+loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
 
 async function loadModerationQueue() {
     const url = new URL("/api/admin/projects", window.location.origin);
@@ -25,12 +30,7 @@ async function loadModerationQueue() {
     url.searchParams.append("sort", "createdAt,desc");
     url.searchParams.append("sort", "id,desc");
 
-    const response = await fetch(url, {
-        headers: {
-            "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`
-        }
-    });
-
+    const response = await authAdminFetch(url);
     if (!response.ok) {
         throw new Error("Could not load moderation queue");
     }
@@ -87,10 +87,7 @@ adminProjectsNode.addEventListener("click", async (event) => {
         action === "approve" ? `/api/admin/projects/${projectId}/approve` : `/api/admin/projects/${projectId}/reject`,
         {
             method: "POST",
-            headers: {
-                "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`,
-                "Content-Type": "application/json"
-            },
+            headers: buildAdminHeaders(true),
             body: rejectPayload
         }
     );
@@ -116,12 +113,7 @@ async function loadUsers() {
         url.searchParams.set("status", userState.status);
     }
 
-    const response = await fetch(url, {
-        headers: {
-            "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`
-        }
-    });
-
+    const response = await authAdminFetch(url);
     if (!response.ok) {
         throw new Error("Could not load users");
     }
@@ -183,10 +175,7 @@ adminUsersNode.addEventListener("click", async (event) => {
 
     const response = await fetch(`/api/admin/users/${userId}`, {
         method: "PUT",
-        headers: {
-            "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`,
-            "Content-Type": "application/json"
-        },
+        headers: buildAdminHeaders(true),
         body: JSON.stringify({role, status})
     });
 
@@ -200,13 +189,95 @@ adminUsersNode.addEventListener("click", async (event) => {
     await loadUsers();
 });
 
+async function loadComments() {
+    const url = new URL("/api/admin/comments", window.location.origin);
+    url.searchParams.set("size", `${commentState.size}`);
+    url.searchParams.set("page", `${commentState.page}`);
+    url.searchParams.append("sort", "createdAt,desc");
+    url.searchParams.append("sort", "id,desc");
+    if (commentState.query) {
+        url.searchParams.set("q", commentState.query);
+    }
+
+    const response = await authAdminFetch(url);
+    if (!response.ok) {
+        throw new Error("Could not load comments");
+    }
+
+    const payload = await response.json();
+    commentState.totalPages = payload.totalPages ?? 0;
+    renderComments(payload.content ?? []);
+    updatePagination("comments", commentState);
+}
+
+function renderComments(comments) {
+    if (!comments.length) {
+        adminCommentsNode.innerHTML = `<div class="empty-state">No comments found.</div>`;
+        return;
+    }
+
+    adminCommentsNode.innerHTML = comments.map((comment) => `
+        <article class="project-card admin-comment-card">
+            <div class="project-card-header">
+                <span class="status-badge">VISIBLE</span>
+                <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? "Project")}</span>
+            </div>
+            <h4>${escapeAdminHtml(comment.userDisplayName ?? "Anonymous")}</h4>
+            <p>${escapeAdminHtml(compactComment(comment.content))}</p>
+            <div class="project-meta">
+                <span>${formatAdminDateTime(comment.createdAt)}</span>
+                <a class="ghost-btn small-btn" href="/project.html?id=${comment.projectId}">Open project</a>
+            </div>
+            <div class="form-actions">
+                <button class="ghost-btn" type="button" data-comment-remove="${comment.id}">Delete comment</button>
+            </div>
+        </article>
+    `).join("");
+}
+
+adminCommentsNode.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-comment-remove]");
+    if (!button) {
+        return;
+    }
+
+    const commentId = button.getAttribute("data-comment-remove");
+    if (!commentId || !window.confirm("Delete this comment?")) {
+        return;
+    }
+
+    const response = await fetch(`/api/comments/${commentId}`, {
+        method: "DELETE",
+        headers: buildAdminHeaders(false)
+    });
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        setAdminCommentsStatus(body.message || body.error || "Could not delete comment", "error");
+        return;
+    }
+
+    setAdminCommentsStatus("Comment deleted", "success");
+    await loadComments();
+});
+
 document.getElementById("admin-users-search-btn").addEventListener("click", () => {
     applyUserFilters();
+});
+
+document.getElementById("admin-comments-search-btn").addEventListener("click", () => {
+    applyCommentFilters();
 });
 
 adminUsersSearchNode.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         applyUserFilters();
+    }
+});
+
+adminCommentsSearchNode.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        applyCommentFilters();
     }
 });
 
@@ -246,6 +317,22 @@ function wireAdminPagination() {
         userState.page += 1;
         loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
     });
+
+    document.getElementById("admin-comments-prev-btn").addEventListener("click", () => {
+        if (commentState.page <= 0) {
+            return;
+        }
+        commentState.page -= 1;
+        loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
+    });
+
+    document.getElementById("admin-comments-next-btn").addEventListener("click", () => {
+        if (commentState.page >= Math.max(commentState.totalPages - 1, 0)) {
+            return;
+        }
+        commentState.page += 1;
+        loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
+    });
 }
 
 function updatePagination(prefix, state) {
@@ -261,6 +348,25 @@ function applyUserFilters() {
     userState.status = adminUsersStatusFilterNode.value;
     userState.page = 0;
     loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
+}
+
+function applyCommentFilters() {
+    commentState.query = adminCommentsSearchNode.value.trim();
+    commentState.page = 0;
+    loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
+}
+
+function authAdminFetch(url) {
+    return fetch(url, {
+        headers: buildAdminHeaders(false)
+    });
+}
+
+function buildAdminHeaders(includeJson) {
+    return {
+        "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`,
+        ...(includeJson ? {"Content-Type": "application/json"} : {})
+    };
 }
 
 function readAdminAuth() {
@@ -279,6 +385,32 @@ function setAdminStatus(message, type = "") {
 function setAdminUsersStatus(message, type = "") {
     adminUsersStatusNode.textContent = message;
     adminUsersStatusNode.className = `auth-status ${type}`.trim();
+}
+
+function setAdminCommentsStatus(message, type = "") {
+    adminCommentsStatusNode.textContent = message;
+    adminCommentsStatusNode.className = `auth-status ${type}`.trim();
+}
+
+function formatAdminDateTime(value) {
+    if (!value) {
+        return "Recently";
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    }).format(new Date(value));
+}
+
+function compactComment(value) {
+    const text = String(value ?? "").trim();
+    if (text.length <= 160) {
+        return text || "Empty comment";
+    }
+    return `${text.slice(0, 157)}...`;
 }
 
 function escapeAdminHtml(value) {

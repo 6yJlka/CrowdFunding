@@ -16,6 +16,7 @@ const reviewNoteNode = document.getElementById("review-note");
 const commentForm = document.getElementById("comment-form");
 const commentStatusNode = document.getElementById("comment-status");
 const commentNoteNode = document.getElementById("comment-note");
+const commentsNode = document.getElementById("project-comments");
 
 const projectPageState = {
     currentUser: null,
@@ -29,6 +30,44 @@ if (!projectId) {
         document.getElementById("project-title").textContent = "Project unavailable";
     });
 }
+
+commentsNode.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-comment-delete]");
+    if (!button) {
+        return;
+    }
+
+    if (!projectAuth?.accessToken) {
+        setCommentStatus("Log in to manage comments", "error");
+        return;
+    }
+
+    const commentId = button.getAttribute("data-comment-delete");
+    if (!commentId || !window.confirm("Delete this comment?")) {
+        return;
+    }
+
+    setCommentStatus("Deleting comment...", "info");
+
+    try {
+        const response = await fetch(`/api/comments/${commentId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `${projectAuth.tokenType || "Bearer"} ${projectAuth.accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            const body = await response.json().catch(() => ({}));
+            throw new Error(body.message || body.error || "Could not delete comment");
+        }
+
+        setCommentStatus("Comment deleted", "success");
+        await refreshComments();
+    } catch (error) {
+        setCommentStatus(error.message, "error");
+    }
+});
 
 async function bootstrapProjectPage() {
     await hydrateCurrentUser();
@@ -85,7 +124,7 @@ async function loadProjectPage(id) {
 }
 
 function renderProjectPage(project, stats, reviews, donations, updates, comments) {
-    const progress = Math.round(Number((stats?.progress ?? 0) * 100));
+    const progress = resolveProjectProgress(project, stats);
     document.getElementById("project-category").textContent = project.categoryTitle ?? "Project";
     document.getElementById("project-title").textContent = project.title;
     document.getElementById("project-description").textContent = project.description || project.shortDescription || "";
@@ -121,6 +160,16 @@ function renderDonations(donations) {
 
 function renderReviews(reviews) {
     const reviewsNode = document.getElementById("project-reviews");
+    const currentUserId = projectPageState.currentUser?.id;
+    const hasOwnReview = Boolean(currentUserId && reviews.some((review) => review.userId === currentUserId));
+
+    if (currentUserId) {
+        reviewForm.classList.toggle("hidden", hasOwnReview);
+        reviewNoteNode.textContent = hasOwnReview
+            ? "You have already posted a review for this project."
+            : "Rate this project and share feedback.";
+    }
+
     reviewsNode.innerHTML = reviews.length
         ? reviews.map((review) => `
             <article class="review-card">
@@ -151,7 +200,6 @@ function renderUpdates(updates) {
 }
 
 function renderComments(comments) {
-    const commentsNode = document.getElementById("project-comments");
     commentsNode.innerHTML = comments.length
         ? comments.map((comment) => `
             <article class="review-card comment-card${comment.deleted ? " comment-card-deleted" : ""}">
@@ -160,6 +208,11 @@ function renderComments(comments) {
                     <span>${formatDateTime(comment.createdAt)}</span>
                 </div>
                 <p>${escapeHtml(comment.content ?? "")}</p>
+                ${canDeleteComment(comment) ? `
+                    <div class="form-actions">
+                        <button class="ghost-btn small-btn" type="button" data-comment-delete="${comment.id}">Delete comment</button>
+                    </div>
+                ` : ""}
             </article>
         `).join("")
         : `<div class="empty-state">No comments yet.</div>`;
@@ -402,6 +455,21 @@ function formatMoney(value) {
     }).format(Number(value ?? 0));
 }
 
+function resolveProjectProgress(project, stats) {
+    const statsProgress = Number(stats?.progress);
+    if (Number.isFinite(statsProgress) && statsProgress >= 0) {
+        return Math.max(0, Math.round(statsProgress));
+    }
+
+    const raised = Number(stats?.totalAmount ?? project?.collectedAmount ?? 0);
+    const goal = Number(stats?.goalAmount ?? project?.goalAmount ?? 0);
+    if (!Number.isFinite(raised) || !Number.isFinite(goal) || goal <= 0) {
+        return 0;
+    }
+
+    return Math.max(0, Math.round((raised / goal) * 100));
+}
+
 function formatDateTime(value) {
     if (!value) {
         return "Recently";
@@ -454,4 +522,13 @@ function setUpdateStatus(message, type = "") {
 function setReviewStatus(message, type = "") {
     reviewStatusNode.textContent = message;
     reviewStatusNode.className = `auth-status ${type}`.trim();
+}
+
+function canDeleteComment(comment) {
+    const user = projectPageState.currentUser;
+    if (!user || comment?.deleted) {
+        return false;
+    }
+
+    return comment.userId === user.id || user.roles.includes("ADMIN");
 }

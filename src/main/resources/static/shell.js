@@ -42,13 +42,13 @@ async function mountShell() {
     const normalizedRoles = normalizeRoles(user.roles);
     const displayName = (user.email || "authorized").split("@")[0];
     const roleLabel = normalizedRoles.length ? normalizedRoles.map(prettyRole).join(", ") : "User";
-    const isAdmin = normalizedRoles.includes("ADMIN");
+    const hideProfileLink = normalizedRoles.includes("ADMIN") || normalizedRoles.includes("SPONSOR");
     const profileHref = resolveProfileHref(normalizedRoles);
     const primaryNav = resolvePrimaryNav(normalizedRoles);
 
     host.innerHTML = buildShellMarkup({
         loggedIn: true,
-        isAdmin,
+        hideProfileLink,
         displayName,
         roleLabel,
         profileHref,
@@ -63,7 +63,7 @@ async function mountShell() {
         localStorage.removeItem(SHELL_AUTH_KEY);
         host.innerHTML = buildShellMarkup({
             loggedIn: false,
-            isAdmin: false,
+            hideProfileLink: false,
             displayName: "Guest",
             roleLabel: "Sign in to continue",
             profileHref: "/auth.html",
@@ -76,16 +76,16 @@ async function mountShell() {
     }
 }
 
-function buildShellMarkup({loggedIn, isAdmin = false, displayName, roleLabel, profileHref, primaryHref, primaryLabel}) {
+function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleLabel, profileHref, primaryHref, primaryLabel}) {
     const navLinks = [
         shellLink("/", "Dashboard"),
-        loggedIn ? (isAdmin ? "" : shellLink(profileHref, "Profile")) : shellLink(profileHref, "Login"),
+        loggedIn ? (hideProfileLink ? "" : shellLink(profileHref, "Profile")) : shellLink(profileHref, "Login"),
         loggedIn ? shellLink(primaryHref, primaryLabel) : ""
     ].join("");
 
     const dropdownLinks = [
         shellMenuLink("/", "Dashboard"),
-        loggedIn ? (isAdmin ? "" : shellMenuLink(profileHref, "Profile")) : shellMenuLink(profileHref, "Profile"),
+        loggedIn ? (hideProfileLink ? "" : shellMenuLink(profileHref, "Profile")) : shellMenuLink(profileHref, "Profile"),
         loggedIn ? shellMenuLink(primaryHref, primaryLabel) : "",
         loggedIn
             ? `<button class="shell-menu-btn shell-menu-danger" type="button" id="shell-logout-btn">Logout</button>`
