@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrowdFunding Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">
+                <span></span>
+                <span></span>
+            </div>
+            <div>
+                <strong>CrowdFunding</strong>
+                <p>impact dashboard</p>
+            </div>
+        </div>
+
+        <nav class="menu">
+            <p class="menu-label">Menu</p>
+            <a class="menu-item active" href="/"><span>Dashboard</span><strong>01</strong></a>
+            <a class="menu-item" href="#active-campaigns"><span>Projects</span><strong>24</strong></a>
+            <a class="menu-item" href="#new-founders"><span>Backers</span><strong>58</strong></a>
+            <a class="menu-item" href="#top-campaigns"><span>Reviews</span><strong>12</strong></a>
+            <a class="menu-item" href="/author-dashboard.html"><span>Analytics</span></a>
+            <a class="menu-item" href="/create-project.html"><span>Updates</span></a>
+        </nav>
+
+        <div class="menu tools">
+            <p class="menu-label">Tools</p>
+            <a class="menu-item" href="/auth.html"><span>Support</span></a>
+            <a class="menu-item" href="/author-dashboard.html"><span>Settings</span></a>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>Version 1.0.0</p>
+            <small>&copy; CrowdFunding 2026</small>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <label class="search">
+                <input type="search" id="global-search" placeholder="Search campaigns, founders, categories">
+            </label>
+        </header>
+
+        <section class="hero">
+            <div>
+                <p class="eyebrow">Overview</p>
+                <h1>Fundraising performance at a glance</h1>
+            </div>
+            <a class="primary-btn" id="create-campaign-link" href="/auth.html">Create Campaign</a>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card accent-green">
+                <div class="stat-head">
+                    <span class="stat-icon stat-icon-soft">$</span>
+                    <span class="stat-link stat-link-static">LIVE</span>
+                </div>
+                <div class="stat-copy">
+                    <h2 id="total-raised">$0</h2>
+                    <p>Total raised</p>
+                </div>
+                <div class="mini-bars mini-bars-soft">
+                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </article>
+
+            <article class="stat-card accent-violet clickable-card" data-nav="/projects.html">
+                <div class="stat-head">
+                    <span class="stat-icon stat-icon-soft">#</span>
+                    <button class="stat-link" type="button" data-nav="/projects.html" aria-label="Open all active campaigns">GO</button>
+                </div>
+                <div class="stat-copy">
+                    <h2 id="active-projects">0</h2>
+                    <p>Active campaigns</p>
+                </div>
+                <div class="token-row" id="category-tags">
+                    <span>Loading</span>
+                </div>
+            </article>
+
+            <article class="stat-card accent-orange clickable-card" data-scroll-target="new-founders">
+                <div class="stat-head">
+                    <span class="stat-icon stat-icon-soft">@</span>
+                    <button class="stat-link" type="button" data-scroll-target="new-founders" aria-label="Go to new founders">GO</button>
+                </div>
+                <div class="stat-copy">
+                    <h2 id="total-backers">0</h2>
+                    <p>Monthly backers</p>
+                </div>
+                <div class="avatar-stack" id="founder-avatars">
+                    <span>..</span>
+                </div>
+            </article>
+
+            <article class="stat-card accent-cyan clickable-card" data-nav="/funded-projects.html">
+                <div class="stat-head">
+                    <span class="stat-icon stat-icon-soft">+</span>
+                    <button class="stat-link" type="button" data-nav="/funded-projects.html" aria-label="Open funded projects">GO</button>
+                </div>
+                <div class="stat-copy">
+                    <h2 id="funded-projects">0</h2>
+                    <p>Funded projects</p>
+                </div>
+                <div class="partner-pills">
+                    <span>Public API</span><span>Live data</span><span>Dashboard</span>
+                </div>
+            </article>
+        </section>
+
+        <section class="content-grid">
+            <div class="panel chart-panel" id="overview-chart">
+                <div class="panel-header">
+                    <div>
+                        <p class="panel-kicker">Statistics</p>
+                        <h3>Investment Rate</h3>
+                    </div>
+                    <select>
+                        <option>2026</option>
+                        <option>2025</option>
+                    </select>
+                </div>
+
+                <div class="chart-area">
+                    <div class="y-axis">
+                        <span id="axis-max">$0</span>
+                        <span id="axis-75">$0</span>
+                        <span id="axis-50">$0</span>
+                        <span id="axis-25">$0</span>
+                        <span>$0</span>
+                    </div>
+                    <div class="chart">
+                        <div class="grid-lines"></div>
+                        <svg viewBox="0 0 800 320" preserveAspectRatio="none" aria-label="Investment rate chart">
+                            <defs>
+                                <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffcb66" stop-opacity="0.34"/>
+                                    <stop offset="100%" stop-color="#ffcb66" stop-opacity="0"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="area-path" id="chart-area-path" d=""></path>
+                            <path class="line-path" id="chart-line-path" d=""></path>
+                            <circle class="point" id="chart-point" cx="0" cy="0" r="8"></circle>
+                        </svg>
+                        <div class="callout" id="chart-callout">$0</div>
+                    </div>
+                </div>
+
+                <div class="months" id="chart-months">
+                    <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                    <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+                </div>
+            </div>
+
+            <aside class="panel leaderboard" id="top-campaigns">
+                <div class="panel-header search-header">
+                    <label class="compact-search">
+                        <input type="search" id="leaderboard-search" placeholder="Search by serial or name">
+                    </label>
+                    <button class="dark-btn" type="button" id="leaderboard-search-btn">Search</button>
+                </div>
+
+                <div class="leaderboard-head">
+                    <h3>Top campaigns</h3>
+                    <div class="filters">
+                        <button type="button" data-filter="top">Top 50</button>
+                        <button type="button" data-filter="month">This month</button>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Pos</th>
+                        <th>Campaign</th>
+                        <th>Owner</th>
+                    </tr>
+                    </thead>
+                    <tbody id="top-projects-table"></tbody>
+                </table>
+            </aside>
+        </section>
+
+        <section class="panel investors-panel" id="new-founders">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Community</p>
+                    <h3>New founders</h3>
+                </div>
+                <a href="/author-dashboard.html">See more</a>
+            </div>
+            <div class="investors-grid" id="founders-grid"></div>
+        </section>
+
+        <section class="panel catalog-panel" id="active-campaigns">
+            <div class="panel-header catalog-header">
+                <div>
+                    <p class="panel-kicker">Discover</p>
+                    <h3>Active campaigns</h3>
+                </div>
+                <div class="catalog-controls">
+                    <label class="compact-search">
+                        <input type="search" id="catalog-search" placeholder="Find project by title">
+                    </label>
+                    <button class="dark-btn" type="button" id="catalog-search-btn">Search</button>
+                </div>
+            </div>
+            <div class="project-grid" id="project-grid"></div>
+        </section>
+    </main>
+</div>
+
+<div class="modal hidden" id="project-modal">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <section class="modal-card">
+        <button class="modal-close" type="button" id="modal-close" aria-label="Close">x</button>
+        <div class="modal-body" id="modal-body">
+            <p class="panel-kicker">Project</p>
+            <h3>Select a campaign</h3>
+            <p>Details will appear here.</p>
+        </div>
+    </section>
+</div>
+<script src="/shell.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>

@@ -22,6 +22,15 @@ public class ProjectDonationController {
         this.donationHistoryService = donationHistoryService;
     }
 
+    @GetMapping("/public")
+    public Page<ProjectDonationResponse> publicProjectDonations(
+            @PathVariable UUID projectId,
+            Pageable pageable
+    ) {
+        return donationHistoryService.publicProjectDonations(projectId, pageable)
+                .map(DonationHistoryMapper::toProject);
+    }
+
     @PreAuthorize("isAuthenticated()")
     @GetMapping
     public Page<ProjectDonationResponse> projectDonations(

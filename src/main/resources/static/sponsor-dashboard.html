@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor Dashboard | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="create-layout">
+    <section class="panel form-panel">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Sponsor Area</p>
+                <h3>Your sponsored projects</h3>
+            </div>
+            <a class="ghost-btn" href="/">Dashboard</a>
+        </div>
+        <div class="auth-status" id="sponsor-status"></div>
+        <div class="author-projects" id="sponsor-projects"></div>
+    </section>
+    <aside class="panel tips-panel">
+        <p class="panel-kicker">History</p>
+        <h3>What you can review here</h3>
+        <ul class="tips-list">
+            <li>All projects you donated to.</li>
+            <li>Donation amount and payment status.</li>
+            <li>Quick transition to the public project page.</li>
+        </ul>
+    </aside>
+</main>
+<script src="/shell.js"></script>
+<script src="/sponsor-dashboard-app.js"></script>
+</body>
+</html>

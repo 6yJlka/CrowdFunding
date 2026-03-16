@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -39,11 +40,11 @@ public class ProjectServiceImpl implements ProjectService {
         UserEntity author = userRepository.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + authorId));
 
-        ProjectEntity p = new ProjectEntity();
-        p.setAuthor(author);
+        ProjectEntity project = new ProjectEntity();
+        project.setAuthor(author);
 
         applyCreateOrUpdate(
-                p,
+                project,
                 req.getCategoryId(),
                 req.getTitle(),
                 req.getShortDescription(),
@@ -54,29 +55,29 @@ public class ProjectServiceImpl implements ProjectService {
                 req.getEndAt()
         );
 
-        p.setStatus(ProjectStatus.DRAFT);
+        project.setStatus(ProjectStatus.DRAFT);
+        project.setRejectionReason(null);
 
-        ProjectEntity saved = projectRepository.save(p);
+        ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
     }
 
     @Override
     @Transactional
     public ProjectEntity update(UUID authorId, UUID projectId, ProjectUpdateRequest req) {
-        ProjectEntity p = projectRepository.findById(projectId)
+        ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
-        // ВНИМАНИЕ: p.getAuthor() может быть LAZY, но мы внутри транзакции -> это безопасно
-        if (!p.getAuthor().getId().equals(authorId)) {
+        if (!project.getAuthor().getId().equals(authorId)) {
             throw new IllegalStateException("Only author can update this project");
         }
 
-        if (p.getStatus() != ProjectStatus.DRAFT && p.getStatus() != ProjectStatus.REJECTED) {
+        if (project.getStatus() != ProjectStatus.DRAFT && project.getStatus() != ProjectStatus.REJECTED) {
             throw new IllegalStateException("Project can be edited only in DRAFT or REJECTED");
         }
 
         applyCreateOrUpdate(
-                p,
+                project,
                 req.getCategoryId(),
                 req.getTitle(),
                 req.getShortDescription(),
@@ -86,28 +87,30 @@ public class ProjectServiceImpl implements ProjectService {
                 req.getStartAt(),
                 req.getEndAt()
         );
+        project.setRejectionReason(null);
 
-        ProjectEntity saved = projectRepository.save(p);
+        ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
     }
 
     @Override
     @Transactional
     public ProjectEntity submitToModeration(UUID authorId, UUID projectId) {
-        ProjectEntity p = projectRepository.findById(projectId)
+        ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
-        if (!p.getAuthor().getId().equals(authorId)) {
+        if (!project.getAuthor().getId().equals(authorId)) {
             throw new IllegalStateException("Only author can submit this project");
         }
 
-        if (p.getStatus() != ProjectStatus.DRAFT && p.getStatus() != ProjectStatus.REJECTED) {
+        if (project.getStatus() != ProjectStatus.DRAFT && project.getStatus() != ProjectStatus.REJECTED) {
             throw new IllegalStateException("Project can be submitted only from DRAFT or REJECTED");
         }
 
-        p.setStatus(ProjectStatus.MODERATION);
+        project.setStatus(ProjectStatus.MODERATION);
+        project.setRejectionReason(null);
 
-        ProjectEntity saved = projectRepository.save(p);
+        ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
     }
 
@@ -120,11 +123,29 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProjectEntity> getCatalog(String q, Pageable pageable) {
-        // После добавления @EntityGraph в репозиторий тут уже будут подгружены author/category
         if (q == null || q.isBlank()) {
             return projectRepository.findByStatus(ProjectStatus.ACTIVE, pageable);
         }
         return projectRepository.findByStatusAndTitleContainingIgnoreCase(ProjectStatus.ACTIVE, q.trim(), pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectEntity> getCatalog(String q, Long categoryId, ProjectStatus status, Pageable pageable) {
+        ProjectStatus publicStatus = status == ProjectStatus.FUNDED ? ProjectStatus.FUNDED : ProjectStatus.ACTIVE;
+        return projectRepository.findPublicCatalog(List.of(publicStatus), q == null ? null : q.trim(), categoryId, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectEntity> getAuthorProjects(UUID authorId, Pageable pageable) {
+        return projectRepository.findByAuthorIdOrderByCreatedAtDesc(authorId, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectEntity> getProjectsByStatus(ProjectStatus status, Pageable pageable) {
+        return projectRepository.findByStatus(status, pageable);
     }
 
     private ProjectEntity loadForResponse(UUID projectId) {
@@ -132,7 +153,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
     }
 
-    private void applyCreateOrUpdate(ProjectEntity p,
+    private void applyCreateOrUpdate(ProjectEntity project,
                                      Long categoryId,
                                      String title,
                                      String shortDescription,
@@ -142,23 +163,23 @@ public class ProjectServiceImpl implements ProjectService {
                                      java.time.OffsetDateTime startAt,
                                      java.time.OffsetDateTime endAt) {
 
-        p.setTitle(title);
-        p.setShortDescription(shortDescription);
-        p.setDescription(description);
-        p.setGoalAmount(goalAmount);
-        p.setCurrency(currency);
-        p.setStartAt(startAt);
-        p.setEndAt(endAt);
+        project.setTitle(title);
+        project.setShortDescription(shortDescription);
+        project.setDescription(description);
+        project.setGoalAmount(goalAmount);
+        project.setCurrency(currency);
+        project.setStartAt(startAt);
+        project.setEndAt(endAt);
 
         if (categoryId == null) {
-            p.setCategory(null);
+            project.setCategory(null);
         } else {
-            CategoryEntity cat = categoryRepository.findById(categoryId)
+            CategoryEntity category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new EntityNotFoundException("Category not found: " + categoryId));
-            p.setCategory(cat);
+            project.setCategory(category);
         }
 
-        if (p.getStartAt() != null && p.getEndAt() != null && !p.getEndAt().isAfter(p.getStartAt())) {
+        if (project.getStartAt() != null && project.getEndAt() != null && !project.getEndAt().isAfter(project.getStartAt())) {
             throw new IllegalArgumentException("endAt must be after startAt");
         }
     }
@@ -166,33 +187,33 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public ProjectEntity approve(UUID projectId) {
-        ProjectEntity p = projectRepository.findById(projectId)
+        ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
-        if (p.getStatus() != ProjectStatus.MODERATION) {
+        if (project.getStatus() != ProjectStatus.MODERATION) {
             throw new IllegalStateException("Project can be approved only from MODERATION");
         }
 
-        p.setStatus(ProjectStatus.ACTIVE);
-        ProjectEntity saved = projectRepository.save(p);
+        project.setStatus(ProjectStatus.ACTIVE);
+        project.setRejectionReason(null);
+        ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
     }
 
     @Override
     @Transactional
     public ProjectEntity reject(UUID projectId, String reason) {
-        ProjectEntity p = projectRepository.findById(projectId)
+        ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
-        if (p.getStatus() != ProjectStatus.MODERATION) {
+        if (project.getStatus() != ProjectStatus.MODERATION) {
             throw new IllegalStateException("Project can be rejected only from MODERATION");
         }
 
-        // Причину пока никуда не пишем (нет поля/таблицы) — оставим на будущее.
-        // Можно залогировать или добавить таблицу project_moderation_log позже.
-        p.setStatus(ProjectStatus.REJECTED);
+        project.setStatus(ProjectStatus.REJECTED);
+        project.setRejectionReason(reason == null ? null : reason.trim());
 
-        ProjectEntity saved = projectRepository.save(p);
+        ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
     }
 }

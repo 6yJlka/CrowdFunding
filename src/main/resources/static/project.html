@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="project-page">
+    <section class="panel project-page-main">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker" id="project-category">Project</p>
+                <h1 id="project-title">Loading...</h1>
+            </div>
+            <a class="ghost-btn" href="/">Back</a>
+        </div>
+        <p class="modal-copy" id="project-description"></p>
+        <div class="modal-metrics" id="project-metrics"></div>
+        <div class="project-progress">
+            <div class="project-progress-head">
+                <span>Funding status</span>
+                <span id="project-progress-value">0%</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-value" id="project-progress-bar" style="width:0%"></div>
+            </div>
+        </div>
+        <div class="auth-status" id="project-page-status"></div>
+
+        <section class="project-section">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Updates</p>
+                    <h3>Author updates</h3>
+                </div>
+            </div>
+            <div class="auth-status" id="update-status"></div>
+            <form class="project-form hidden" id="update-form">
+                <label>
+                    <span>Update title</span>
+                    <input type="text" name="title" maxlength="180" placeholder="Milestone reached" required>
+                </label>
+                <label>
+                    <span>Content</span>
+                    <textarea name="content" rows="5" maxlength="10000" placeholder="Share progress with your backers" required></textarea>
+                </label>
+                <div class="form-actions">
+                    <button class="primary-btn small-btn" type="submit">Publish update</button>
+                </div>
+            </form>
+            <div class="project-side-note hidden" id="update-note"></div>
+            <div class="timeline-list" id="project-updates"></div>
+        </section>
+    </section>
+    <aside class="panel project-page-side">
+        <p class="panel-kicker">Support</p>
+        <h3>Back this project</h3>
+        <div class="auth-status" id="donation-status"></div>
+        <form class="project-form hidden" id="donation-form">
+            <label>
+                <span>Donation amount</span>
+                <input type="number" id="donation-amount" name="amount" min="1" step="1" placeholder="100" required>
+            </label>
+            <div class="form-actions">
+                <button class="primary-btn auth-submit" type="submit" id="donation-submit">Donate</button>
+            </div>
+        </form>
+        <div class="project-side-note" id="donation-note">Log in as sponsor to support this campaign.</div>
+
+        <p class="panel-kicker">Backers</p>
+        <h3>Latest donations</h3>
+        <div class="review-list" id="project-donations"></div>
+
+        <p class="panel-kicker">Reviews</p>
+        <h3>Community feedback</h3>
+        <div class="auth-status" id="review-status"></div>
+        <form class="project-form hidden" id="review-form">
+            <label>
+                <span>Rating</span>
+                <select name="rating" required>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Normal</option>
+                    <option value="2">2 - Weak</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+            </label>
+            <label>
+                <span>Your review</span>
+                <textarea name="reviewText" rows="4" maxlength="10000" placeholder="Share your experience with this project" required></textarea>
+            </label>
+            <div class="form-actions">
+                <button class="primary-btn small-btn" type="submit">Post review</button>
+            </div>
+        </form>
+        <div class="project-side-note" id="review-note">Log in to leave a review.</div>
+        <div class="review-list" id="project-reviews"></div>
+
+        <p class="panel-kicker">Comments</p>
+        <h3>Discussion</h3>
+        <div class="auth-status" id="comment-status"></div>
+        <form class="project-form hidden" id="comment-form">
+            <label>
+                <span>Leave a comment</span>
+                <textarea name="content" rows="4" maxlength="5000" placeholder="Ask a question or leave feedback" required></textarea>
+            </label>
+            <div class="form-actions">
+                <button class="primary-btn small-btn" type="submit">Post comment</button>
+            </div>
+        </form>
+        <div class="project-side-note" id="comment-note">Log in to join the discussion.</div>
+        <div class="review-list" id="project-comments"></div>
+    </aside>
+</main>
+<script src="/shell.js"></script>
+<script src="/project-app.js"></script>
+</body>
+</html>

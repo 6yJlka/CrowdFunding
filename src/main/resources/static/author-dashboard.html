@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author Dashboard | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="create-layout">
+    <section class="panel form-panel">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker">Author Area</p>
+                <h3>Your projects</h3>
+            </div>
+            <div class="form-actions">
+                <a class="ghost-btn" href="/">Dashboard</a>
+                <a class="primary-btn primary-btn-light" href="/create-project.html">New project</a>
+            </div>
+        </div>
+        <div class="auth-status" id="author-status"></div>
+        <div class="author-projects" id="author-projects"></div>
+    </section>
+    <aside class="panel tips-panel">
+        <p class="panel-kicker">Flow</p>
+        <h3>Status guide</h3>
+        <ul class="tips-list">
+            <li>`DRAFT` means the campaign is still private.</li>
+            <li>`MODERATION` means it is waiting for admin review.</li>
+            <li>`ACTIVE` is visible in the public catalog.</li>
+            <li>`FUNDED` and `CLOSED` are final states.</li>
+        </ul>
+    </aside>
+</main>
+<script src="/shell.js"></script>
+<script src="/author-dashboard-app.js"></script>
+</body>
+</html>

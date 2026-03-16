@@ -25,22 +25,40 @@ public class SecurityConfig {
                         .accessDeniedHandler((req, res, ex) -> res.sendError(HttpStatus.FORBIDDEN.value()))
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/auth.html",
+                                "/admin-dashboard.html",
+                                "/author-dashboard.html",
+                                "/create-project.html",
+                                "/edit-project.html",
+                                "/funded-projects.html",
+                                "/pay.html",
+                                "/project.html",
+                                "/projects.html",
+                                "/sponsor-dashboard.html",
+                                "/styles.css",
+                                "/shell.js",
+                                "/app.js",
+                                "/admin-dashboard-app.js",
+                                "/auth-app.js",
+                                "/catalog-browser-app.js",
+                                "/pay-app.js",
+                                "/sponsor-dashboard-app.js",
+                                "/create-project-app.js",
+                                "/edit-project-app.js",
+                                "/author-dashboard-app.js",
+                                "/project-app.js"
+                        ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/categories").permitAll()
+                        .requestMatchers("/api/dashboard").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-
-                        // Публичный доступ к проектам и отзывам
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/{projectId}/reviews").permitAll()  // Открыть доступ для получения отзывов для конкретного проекта
-
-
-                        // public read
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/{projectId}/reviews").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/**").permitAll()
-
-                        // payment webhook (must be public)
                         .requestMatchers("/api/payments/webhook/**").permitAll()
-
-                        // optional fake payment page
                         .requestMatchers("/pay/**").permitAll()
-
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthFilter(jwtService), UsernamePasswordAuthenticationFilter.class)

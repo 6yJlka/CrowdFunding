@@ -1,6 +1,7 @@
 package com.example.crowdfunding.service.impl;
 
 import com.example.crowdfunding.domain.entity.ProjectEntity;
+import com.example.crowdfunding.domain.enums.DonationStatus;
 import com.example.crowdfunding.domain.repository.DonationRepository;
 import com.example.crowdfunding.domain.repository.ProjectRepository;
 import com.example.crowdfunding.service.DonationHistoryService;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -28,6 +30,18 @@ public class DonationHistoryServiceImpl implements DonationHistoryService {
     @Transactional(readOnly = true)
     public Page<com.example.crowdfunding.domain.entity.DonationEntity> myDonations(UUID sponsorId, Pageable pageable) {
         return donationRepository.findBySponsorIdOrderByCreatedAtDesc(sponsorId, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<com.example.crowdfunding.domain.entity.DonationEntity> myDonation(UUID sponsorId, UUID donationId) {
+        return donationRepository.findByIdAndSponsorId(donationId, sponsorId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<com.example.crowdfunding.domain.entity.DonationEntity> publicProjectDonations(UUID projectId, Pageable pageable) {
+        return donationRepository.findByProjectIdAndStatusOrderByCreatedAtDesc(projectId, DonationStatus.SUCCEEDED, pageable);
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.example.crowdfunding.api.dto.ProjectCreateRequest;
 import com.example.crowdfunding.api.dto.ProjectResponse;
 import com.example.crowdfunding.api.dto.ProjectUpdateRequest;
 import com.example.crowdfunding.api.mapper.ProjectMapper;
+import com.example.crowdfunding.domain.enums.ProjectStatus;
 import com.example.crowdfunding.security.AppUserDetails;
 import com.example.crowdfunding.service.ProjectService;
 import jakarta.validation.Valid;
@@ -60,9 +61,14 @@ public class ProjectController {
     @GetMapping
     public Page<ProjectResponse> catalog(
             @RequestParam(name = "q", required = false) String q,
+            @RequestParam(name = "categoryId", required = false) Long categoryId,
+            @RequestParam(name = "status", required = false) ProjectStatus status,
             Pageable pageable
     ) {
-        return projectService.getCatalog(q, pageable).map(ProjectMapper::toResponse);
+        if (categoryId == null && status == null) {
+            return projectService.getCatalog(q, pageable).map(ProjectMapper::toResponse);
+        }
+        return projectService.getCatalog(q, categoryId, status, pageable).map(ProjectMapper::toResponse);
     }
 
     // Карточка проекта (публично)

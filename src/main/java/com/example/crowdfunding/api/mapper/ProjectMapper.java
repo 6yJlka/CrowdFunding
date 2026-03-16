@@ -20,6 +20,7 @@ public final class ProjectMapper {
         dto.setCurrency(p.getCurrency());
 
         dto.setStatus(p.getStatus());
+        dto.setRejectionReason(p.getRejectionReason());
         dto.setStartAt(p.getStartAt());
         dto.setEndAt(p.getEndAt());
 

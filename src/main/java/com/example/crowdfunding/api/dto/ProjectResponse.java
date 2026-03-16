@@ -25,6 +25,7 @@ public class ProjectResponse {
     private String currency;
 
     private ProjectStatus status;
+    private String rejectionReason;
 
     private OffsetDateTime startAt;
     private OffsetDateTime endAt;
@@ -67,6 +68,9 @@ public class ProjectResponse {
 
     public ProjectStatus getStatus() { return status; }
     public void setStatus(ProjectStatus status) { this.status = status; }
+
+    public String getRejectionReason() { return rejectionReason; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 
     public OffsetDateTime getStartAt() { return startAt; }
     public void setStartAt(OffsetDateTime startAt) { this.startAt = startAt; }

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="auth-layout">
+    <section class="auth-hero">
+        <p class="eyebrow">CrowdFunding</p>
+        <h1>Launch projects and manage fundraising without Swagger.</h1>
+        <p class="modal-copy">Register as an author to create campaigns or as a sponsor to access donor flows later.</p>
+        <a class="ghost-btn" href="/">Back to dashboard</a>
+    </section>
+
+    <section class="auth-panel">
+        <div class="auth-tabs">
+            <button class="auth-tab active" type="button" data-tab="login">Login</button>
+            <button class="auth-tab" type="button" data-tab="register">Register</button>
+        </div>
+
+        <form class="auth-form" id="login-form">
+            <h2>Welcome back</h2>
+            <label>
+                <span>Email</span>
+                <input type="email" name="email" required>
+            </label>
+            <label>
+                <span>Password</span>
+                <input type="password" name="password" required>
+            </label>
+            <button class="primary-btn auth-submit" type="submit">Login</button>
+        </form>
+
+        <form class="auth-form hidden" id="register-form">
+            <h2>Create account</h2>
+            <label>
+                <span>Display name</span>
+                <input type="text" name="displayName" maxlength="120" required>
+            </label>
+            <label>
+                <span>Email</span>
+                <input type="email" name="email" required>
+            </label>
+            <label>
+                <span>Password</span>
+                <input type="password" name="password" minlength="6" required>
+            </label>
+            <label>
+                <span>Role</span>
+                <select name="role" required>
+                    <option value="AUTHOR">Author</option>
+                    <option value="SPONSOR">Sponsor</option>
+                </select>
+            </label>
+            <button class="primary-btn auth-submit" type="submit">Register</button>
+        </form>
+
+        <div class="auth-status" id="auth-status"></div>
+    </section>
+</main>
+<script src="/shell.js"></script>
+<script src="/auth-app.js"></script>
+</body>
+</html>

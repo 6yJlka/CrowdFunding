@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funded Projects | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-catalog-status="FUNDED" data-catalog-title="Funded projects" data-catalog-kicker="Success" data-catalog-empty="There are no fully funded projects yet.">
+<div id="site-shell"></div>
+<main class="catalog-page">
+    <section class="panel catalog-hero">
+        <div>
+            <p class="panel-kicker" id="catalog-kicker">Success</p>
+            <h1 id="catalog-title">Funded projects</h1>
+            <p class="catalog-subtitle">Browse campaigns that have already reached full funding and inspect their final metrics.</p>
+        </div>
+        <div class="catalog-hero-actions">
+            <a class="ghost-btn" href="/">Back to dashboard</a>
+            <a class="primary-btn" href="/projects.html">Explore active</a>
+        </div>
+    </section>
+
+    <section class="panel catalog-browser-panel">
+        <div class="catalog-toolbar">
+            <label class="compact-search">
+                <input type="search" id="catalog-page-search" placeholder="Search funded project">
+            </label>
+            <select id="catalog-category-filter">
+                <option value="">All categories</option>
+            </select>
+            <select id="catalog-sort-filter">
+                <option value="createdAt,desc">Newest first</option>
+                <option value="collectedAmount,desc">Most funded</option>
+                <option value="goalAmount,desc">Highest goal</option>
+                <option value="title,asc">Title A-Z</option>
+            </select>
+            <button class="dark-btn" type="button" id="catalog-page-search-btn">Search</button>
+        </div>
+        <div class="catalog-chip-row" id="catalog-chip-row"></div>
+        <div class="auth-status" id="catalog-page-status"></div>
+        <div class="project-grid" id="catalog-page-grid"></div>
+        <div class="catalog-pagination">
+            <button class="ghost-btn" type="button" id="catalog-prev-btn">Previous</button>
+            <span class="catalog-pagination-copy" id="catalog-pagination-copy">Page 1</span>
+            <button class="ghost-btn" type="button" id="catalog-next-btn">Next</button>
+        </div>
+    </section>
+</main>
+
+<div class="modal hidden" id="project-modal">
+    <div class="modal-backdrop" id="modal-backdrop"></div>
+    <section class="modal-card">
+        <button class="modal-close" type="button" id="modal-close" aria-label="Close">x</button>
+        <div class="modal-body" id="modal-body">
+            <p class="panel-kicker">Project</p>
+            <h3>Select a campaign</h3>
+            <p>Details will appear here.</p>
+        </div>
+    </section>
+</div>
+<script src="/shell.js"></script>
+<script src="/catalog-browser-app.js"></script>
+</body>
+</html>

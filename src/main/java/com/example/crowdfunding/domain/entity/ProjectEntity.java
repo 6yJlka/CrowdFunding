@@ -52,6 +52,9 @@ public class ProjectEntity {
     @Column(name = "status", nullable = false, length = 30)
     private ProjectStatus status = ProjectStatus.DRAFT;
 
+    @Column(name = "rejection_reason", length = 500)
+    private String rejectionReason;
+
     @Column(name = "start_at")
     private OffsetDateTime startAt;
 
