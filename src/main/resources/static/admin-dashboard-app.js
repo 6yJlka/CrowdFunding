@@ -8,10 +8,14 @@ const adminUsersStatusFilterNode = document.getElementById("admin-users-status-f
 const adminCommentsNode = document.getElementById("admin-comments");
 const adminCommentsStatusNode = document.getElementById("admin-comments-status");
 const adminCommentsSearchNode = document.getElementById("admin-comments-search");
+const adminI18n = window.AppI18n;
 
 const moderationState = {page: 0, size: 3, totalPages: 0};
 const userState = {page: 0, size: 3, totalPages: 0, query: "", status: ""};
 const commentState = {page: 0, size: 3, totalPages: 0, query: ""};
+document.addEventListener("app:lang-changed", () => {
+    window.location.reload();
+});
 
 if (!adminAuth?.accessToken) {
     window.location.href = "/auth.html";
@@ -32,7 +36,7 @@ async function loadModerationQueue() {
 
     const response = await authAdminFetch(url);
     if (!response.ok) {
-        throw new Error("Could not load moderation queue");
+        throw new Error(adminT("admin.error.loadQueue", "Could not load moderation queue"));
     }
 
     const payload = await response.json();
@@ -43,7 +47,7 @@ async function loadModerationQueue() {
 
 function renderModerationQueue(projects) {
     if (!projects.length) {
-        adminProjectsNode.innerHTML = `<div class="empty-state">Moderation queue is empty.</div>`;
+        adminProjectsNode.innerHTML = `<div class="empty-state">${adminT("admin.queue.empty", "Moderation queue is empty.")}</div>`;
         return;
     }
 
@@ -51,14 +55,14 @@ function renderModerationQueue(projects) {
         <article class="project-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeAdminHtml(project.status ?? "MODERATION")}</span>
-                <span class="meta-pill">${escapeAdminHtml(project.categoryTitle ?? "General")}</span>
+                <span class="meta-pill">${escapeAdminHtml(project.categoryTitle ?? adminT("app.general", "General"))}</span>
             </div>
             <h4>${escapeAdminHtml(project.title)}</h4>
             <p>${escapeAdminHtml(project.shortDescription ?? "")}</p>
             <div class="form-actions">
-                <button class="ghost-btn" type="button" data-admin-action="approve" data-project-id="${project.id}">Approve</button>
-                <button class="ghost-btn" type="button" data-admin-action="reject" data-project-id="${project.id}">Reject</button>
-                <a class="ghost-btn" href="/project.html?id=${project.id}">Open</a>
+                <button class="ghost-btn" type="button" data-admin-action="approve" data-project-id="${project.id}">${adminT("admin.approve", "Approve")}</button>
+                <button class="ghost-btn" type="button" data-admin-action="reject" data-project-id="${project.id}">${adminT("admin.reject", "Reject")}</button>
+                <a class="ghost-btn" href="/project.html?id=${project.id}">${adminT("admin.open", "Open")}</a>
             </div>
         </article>
     `).join("");
@@ -75,9 +79,9 @@ adminProjectsNode.addEventListener("click", async (event) => {
     let rejectPayload = null;
 
     if (action === "reject") {
-        const reason = window.prompt("Why are you rejecting this project?")?.trim();
+        const reason = window.prompt(adminT("admin.reject.prompt", "Why are you rejecting this project?"))?.trim();
         if (!reason) {
-            setAdminStatus("Reject reason is required", "error");
+            setAdminStatus(adminT("admin.reject.required", "Reject reason is required"), "error");
             return;
         }
         rejectPayload = JSON.stringify({reason});
@@ -93,11 +97,11 @@ adminProjectsNode.addEventListener("click", async (event) => {
     );
 
     if (!response.ok) {
-        setAdminStatus(`Could not ${action} project`, "error");
+        setAdminStatus(adminT("admin.action.error", "Could not process project action"), "error");
         return;
     }
 
-    setAdminStatus(`Project ${action}d`, "success");
+    setAdminStatus(action === "approve" ? adminT("admin.action.approved", "Project approved") : adminT("admin.action.rejected", "Project rejected"), "success");
     await loadModerationQueue();
 });
 
@@ -115,7 +119,7 @@ async function loadUsers() {
 
     const response = await authAdminFetch(url);
     if (!response.ok) {
-        throw new Error("Could not load users");
+        throw new Error(adminT("admin.error.loadUsers", "Could not load users"));
     }
 
     const payload = await response.json();
@@ -126,7 +130,7 @@ async function loadUsers() {
 
 function renderUsers(users) {
     if (!users.length) {
-        adminUsersNode.innerHTML = `<div class="empty-state">No users available.</div>`;
+        adminUsersNode.innerHTML = `<div class="empty-state">${adminT("admin.users.empty", "No users available.")}</div>`;
         return;
     }
 
@@ -136,11 +140,11 @@ function renderUsers(users) {
                 <span class="status-badge">${escapeAdminHtml(user.status ?? "ACTIVE")}</span>
                 <span class="meta-pill">${escapeAdminHtml(user.role ?? "USER")}</span>
             </div>
-            <h4>${escapeAdminHtml(user.displayName ?? user.email ?? "User")}</h4>
+            <h4>${escapeAdminHtml(user.displayName ?? user.email ?? adminT("admin.user", "User"))}</h4>
             <p>${escapeAdminHtml(user.email ?? "")}</p>
             <div class="admin-user-controls">
                 <label>
-                    <span>Role</span>
+                    <span>${adminT("admin.role", "Role")}</span>
                     <select data-user-role="${user.id}">
                         ${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => `
                             <option value="${role}" ${role === user.role ? "selected" : ""}>${role}</option>
@@ -148,7 +152,7 @@ function renderUsers(users) {
                     </select>
                 </label>
                 <label>
-                    <span>Status</span>
+                    <span>${adminT("admin.status", "Status")}</span>
                     <select data-user-status="${user.id}">
                         ${["ACTIVE", "BLOCKED", "DELETED"].map((status) => `
                             <option value="${status}" ${status === user.status ? "selected" : ""}>${status}</option>
@@ -157,7 +161,7 @@ function renderUsers(users) {
                 </label>
             </div>
             <div class="form-actions">
-                <button class="ghost-btn" type="button" data-user-save="${user.id}">Save user</button>
+                <button class="ghost-btn" type="button" data-user-save="${user.id}">${adminT("admin.user.save", "Save user")}</button>
             </div>
         </article>
     `).join("");
@@ -181,11 +185,11 @@ adminUsersNode.addEventListener("click", async (event) => {
 
     const body = await response.json().catch(() => ({}));
     if (!response.ok) {
-        setAdminUsersStatus(body.message || body.error || "Could not update user", "error");
+        setAdminUsersStatus(body.message || body.error || adminT("admin.user.updateError", "Could not update user"), "error");
         return;
     }
 
-    setAdminUsersStatus(`User ${body.email || userId} updated`, "success");
+    setAdminUsersStatus(adminT("admin.user.updated", "User updated"), "success");
     await loadUsers();
 });
 
@@ -201,7 +205,7 @@ async function loadComments() {
 
     const response = await authAdminFetch(url);
     if (!response.ok) {
-        throw new Error("Could not load comments");
+        throw new Error(adminT("admin.error.loadComments", "Could not load comments"));
     }
 
     const payload = await response.json();
@@ -212,7 +216,7 @@ async function loadComments() {
 
 function renderComments(comments) {
     if (!comments.length) {
-        adminCommentsNode.innerHTML = `<div class="empty-state">No comments found.</div>`;
+        adminCommentsNode.innerHTML = `<div class="empty-state">${adminT("admin.comments.empty", "No comments found.")}</div>`;
         return;
     }
 
@@ -220,16 +224,16 @@ function renderComments(comments) {
         <article class="project-card admin-comment-card">
             <div class="project-card-header">
                 <span class="status-badge">VISIBLE</span>
-                <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? "Project")}</span>
+                <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? adminT("app.project", "Project"))}</span>
             </div>
-            <h4>${escapeAdminHtml(comment.userDisplayName ?? "Anonymous")}</h4>
+            <h4>${escapeAdminHtml(comment.userDisplayName ?? adminT("app.anonymous", "Anonymous"))}</h4>
             <p>${escapeAdminHtml(compactComment(comment.content))}</p>
             <div class="project-meta">
                 <span>${formatAdminDateTime(comment.createdAt)}</span>
-                <a class="ghost-btn small-btn" href="/project.html?id=${comment.projectId}">Open project</a>
+                <a class="ghost-btn small-btn" href="/project.html?id=${comment.projectId}">${adminT("admin.openProject", "Open project")}</a>
             </div>
             <div class="form-actions">
-                <button class="ghost-btn" type="button" data-comment-remove="${comment.id}">Delete comment</button>
+                <button class="ghost-btn" type="button" data-comment-remove="${comment.id}">${adminT("project.comment.delete", "Delete comment")}</button>
             </div>
         </article>
     `).join("");
@@ -242,7 +246,7 @@ adminCommentsNode.addEventListener("click", async (event) => {
     }
 
     const commentId = button.getAttribute("data-comment-remove");
-    if (!commentId || !window.confirm("Delete this comment?")) {
+    if (!commentId || !window.confirm(adminT("project.comment.deleteConfirm", "Delete this comment?"))) {
         return;
     }
 
@@ -253,11 +257,11 @@ adminCommentsNode.addEventListener("click", async (event) => {
 
     if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        setAdminCommentsStatus(body.message || body.error || "Could not delete comment", "error");
+        setAdminCommentsStatus(body.message || body.error || adminT("admin.comment.deleteError", "Could not delete comment"), "error");
         return;
     }
 
-    setAdminCommentsStatus("Comment deleted", "success");
+    setAdminCommentsStatus(adminT("project.comment.deleted", "Comment deleted"), "success");
     await loadComments();
 });
 
@@ -349,7 +353,9 @@ function wireAdminPagination() {
 function updatePagination(prefix, state) {
     const currentPage = state.page + 1;
     const totalPages = Math.max(state.totalPages, 1);
-    document.getElementById(`admin-${prefix}-pagination-copy`).textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById(`admin-${prefix}-pagination-copy`).textContent = adminT("catalog.pageOf", "Page {page} of {total}")
+        .replace("{page}", `${currentPage}`)
+        .replace("{total}", `${totalPages}`);
     document.getElementById(`admin-${prefix}-prev-btn`).disabled = state.page <= 0;
     document.getElementById(`admin-${prefix}-next-btn`).disabled = state.page >= Math.max(state.totalPages - 1, 0);
 }
@@ -405,7 +411,7 @@ function setAdminCommentsStatus(message, type = "") {
 
 function formatAdminDateTime(value) {
     if (!value) {
-        return "Recently";
+        return adminT("common.recently", "Recently");
     }
 
     return new Intl.DateTimeFormat("en-US", {
@@ -419,7 +425,7 @@ function formatAdminDateTime(value) {
 function compactComment(value) {
     const text = String(value ?? "").trim();
     if (text.length <= 160) {
-        return text || "Empty comment";
+        return text || adminT("admin.comment.empty", "Empty comment");
     }
     return `${text.slice(0, 157)}...`;
 }
@@ -439,4 +445,8 @@ function debounce(callback, delayMs) {
         window.clearTimeout(timeoutId);
         timeoutId = window.setTimeout(() => callback(...args), delayMs);
     };
+}
+
+function adminT(key, fallback) {
+    return adminI18n?.t(key) ?? fallback;
 }

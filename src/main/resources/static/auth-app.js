@@ -3,6 +3,7 @@ const AUTH_STORAGE_KEY = "crowdfunding_auth";
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const statusBox = document.getElementById("auth-status");
+const authI18n = window.AppI18n;
 
 document.querySelectorAll(".auth-tab").forEach((button) => {
     button.addEventListener("click", () => switchTab(button.dataset.tab));
@@ -12,14 +13,14 @@ loginForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(loginForm);
     const payload = Object.fromEntries(formData.entries());
-    await submitAuth("/api/auth/login", payload, "Logged in. Redirecting...");
+    await submitAuth("/api/auth/login", payload, authT("auth.status.loginSuccess", "Logged in. Redirecting..."));
 });
 
 registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(registerForm);
     const payload = Object.fromEntries(formData.entries());
-    await submitAuth("/api/auth/register", payload, "Account created. Redirecting...");
+    await submitAuth("/api/auth/register", payload, authT("auth.status.registerSuccess", "Account created. Redirecting..."));
 });
 
 function switchTab(tab) {
@@ -33,7 +34,7 @@ function switchTab(tab) {
 }
 
 async function submitAuth(url, payload, successMessage) {
-    setStatus("Processing...", "info");
+    setStatus(authT("auth.status.processing", "Processing..."), "info");
     try {
         const response = await fetch(url, {
             method: "POST",
@@ -43,7 +44,7 @@ async function submitAuth(url, payload, successMessage) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Authentication failed");
+            throw new Error(body.message || body.error || authT("auth.status.failed", "Authentication failed"));
         }
 
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
@@ -105,4 +106,8 @@ async function resolvePostAuthRedirect(registerRole) {
 function setStatus(message, type = "") {
     statusBox.textContent = message;
     statusBox.className = `auth-status ${type}`.trim();
+}
+
+function authT(key, fallback) {
+    return authI18n?.t(key) ?? fallback;
 }

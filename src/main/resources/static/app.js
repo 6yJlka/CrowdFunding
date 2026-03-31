@@ -8,6 +8,7 @@ const compactNumberFormatter = new Intl.NumberFormat("en-US", {
     notation: "compact",
     maximumFractionDigits: 1
 });
+const appI18n = window.AppI18n;
 
 let catalogQuery = "";
 let currentTopProjects = [];
@@ -15,6 +16,9 @@ let currentFounders = [];
 
 wireStaticActions();
 loadDashboard();
+document.addEventListener("app:lang-changed", () => {
+    window.location.reload();
+});
 
 async function loadDashboard() {
     try {
@@ -51,7 +55,7 @@ function renderCategoryTags(topProjects) {
     const tags = [...new Set(topProjects.map((project) => project.categoryTitle).filter(Boolean))].slice(0, 2);
     container.innerHTML = tags.length
         ? tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
-        : "<span>No data</span>";
+        : `<span>${appT("app.noData", "No data")}</span>`;
 }
 
 function renderFounderAvatars(founders) {
@@ -70,7 +74,7 @@ function renderChart(points) {
     const point = document.getElementById("chart-point");
 
     if (!points.length) {
-        labelsContainer.innerHTML = "<span>No data</span>";
+        labelsContainer.innerHTML = `<span>${appT("app.noData", "No data")}</span>`;
         linePath.setAttribute("d", "");
         areaPath.setAttribute("d", "");
         point.setAttribute("cx", "0");
@@ -130,7 +134,7 @@ function renderTopProjects(projects) {
                 <td>${escapeHtml(project.authorDisplayName ?? "Unknown")}</td>
             </tr>
         `).join("")
-        : `<tr><td colspan="3">No campaigns available</td></tr>`;
+        : `<tr><td colspan="3">${appT("app.noCampaigns", "No campaigns available")}</td></tr>`;
 }
 
 function renderFounders(founders) {
@@ -139,13 +143,13 @@ function renderFounders(founders) {
 
     grid.innerHTML = founders.length
         ? founders.map((founder, index) => `
-            <a class="investor-card founder-link" href="/author-dashboard.html" title="${escapeHtml(founder.authorDisplayName ?? "Unknown")}">
+            <a class="investor-card founder-link" href="/author-dashboard.html" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
                 <span class="investor-avatar ${avatarThemes[index % avatarThemes.length]}">${getInitials(founder.authorDisplayName)}</span>
-                <strong>${escapeHtml(founder.authorDisplayName ?? "Unknown")}</strong>
-                <p>${escapeHtml(founder.projectTitle ?? "No project")}</p>
+                <strong>${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
+                <p>${escapeHtml(founder.projectTitle ?? appT("app.noProject", "No project"))}</p>
             </a>
         `).join("")
-        : `<article class="investor-card"><strong>No founders yet</strong><p>Create a project to populate this block.</p></article>`;
+        : `<article class="investor-card"><strong>${appT("app.noFounders", "No founders yet")}</strong><p>${appT("app.createProjectHint", "Create a project to populate this block.")}</p></article>`;
 }
 
 async function loadCatalog(query = catalogQuery) {
@@ -169,7 +173,7 @@ async function loadCatalog(query = catalogQuery) {
 function renderCatalog(projects) {
     const grid = document.getElementById("project-grid");
     if (!projects.length) {
-        grid.innerHTML = `<div class="empty-state">No active campaigns found for this query.</div>`;
+        grid.innerHTML = `<div class="empty-state">${appT("app.noActiveForQuery", "No active campaigns found for this query.")}</div>`;
         return;
     }
 
@@ -179,17 +183,17 @@ function renderCatalog(projects) {
             <article class="project-card">
                 <div class="project-card-header">
                     <span class="status-badge">${escapeHtml(project.status ?? "ACTIVE")}</span>
-                    <span class="meta-pill">${escapeHtml(project.categoryTitle ?? "General")}</span>
+                    <span class="meta-pill">${escapeHtml(project.categoryTitle ?? appT("app.general", "General"))}</span>
                 </div>
                 <h4>${escapeHtml(project.title)}</h4>
                 <p>${escapeHtml(project.shortDescription ?? "")}</p>
                 <div class="project-meta">
-                    <span>${escapeHtml(project.authorDisplayName ?? "Unknown author")}</span>
+                    <span>${escapeHtml(project.authorDisplayName ?? appT("app.unknownAuthor", "Unknown author"))}</span>
                     <span>${formatMoney(project.goalAmount)}</span>
                 </div>
                 <div class="project-progress">
                     <div class="project-progress-head">
-                        <span>${formatMoney(project.collectedAmount)} raised</span>
+                        <span>${formatMoney(project.collectedAmount)} ${appT("app.raised", "raised")}</span>
                         <span>${percent}%</span>
                     </div>
                     <div class="progress-bar">
@@ -199,8 +203,8 @@ function renderCatalog(projects) {
                 <div class="project-card-footer">
                     <strong>${escapeHtml(project.currency ?? "USD")}</strong>
                     <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${project.id}">Open page</a>
-                        <button class="ghost-btn" type="button" data-project-id="${project.id}">Quick view</button>
+                        <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
+                        <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
                     </div>
                 </div>
             </article>
@@ -213,7 +217,7 @@ async function openProjectModal(projectId) {
     const body = document.getElementById("modal-body");
     modal.classList.remove("hidden");
     document.body.classList.add("modal-open");
-    body.innerHTML = `<p class="panel-kicker">Project</p><h3>Loading...</h3><p class="modal-copy">Fetching project details.</p>`;
+    body.innerHTML = `<p class="panel-kicker">${appT("app.project", "Project")}</p><h3>${appT("app.loading", "Loading...")}</h3><p class="modal-copy">${appT("app.fetchingProject", "Fetching project details.")}</p>`;
 
     try {
         const [projectResponse, reviewsResponse] = await Promise.all([
@@ -229,7 +233,7 @@ async function openProjectModal(projectId) {
         const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
         renderProjectModal(project, reviews);
     } catch (error) {
-        body.innerHTML = `<p class="panel-kicker">Project</p><h3>Unavailable</h3><p class="modal-copy">Could not load this campaign.</p>`;
+        body.innerHTML = `<p class="panel-kicker">${appT("app.project", "Project")}</p><h3>${appT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${appT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
         console.error(error);
     }
 }
@@ -238,30 +242,30 @@ function renderProjectModal(project, reviews) {
     const percent = getProgress(project.collectedAmount, project.goalAmount);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <p class="panel-kicker">${escapeHtml(project.categoryTitle ?? "Project")}</p>
+        <p class="panel-kicker">${escapeHtml(project.categoryTitle ?? appT("app.project", "Project"))}</p>
         <h3>${escapeHtml(project.title)}</h3>
         <p class="modal-copy">${escapeHtml(project.description || project.shortDescription || "")}</p>
         <div class="modal-metrics">
             <div class="metric-box">
-                <span>Raised</span>
+                <span>${appT("app.raisedCap", "Raised")}</span>
                 <strong>${formatMoney(project.collectedAmount)}</strong>
             </div>
             <div class="metric-box">
-                <span>Goal</span>
+                <span>${appT("app.goal", "Goal")}</span>
                 <strong>${formatMoney(project.goalAmount)}</strong>
             </div>
             <div class="metric-box">
-                <span>Progress</span>
+                <span>${appT("app.progress", "Progress")}</span>
                 <strong>${percent}%</strong>
             </div>
             <div class="metric-box">
-                <span>Author</span>
-                <strong>${escapeHtml(project.authorDisplayName ?? "Unknown")}</strong>
+                <span>${appT("app.author", "Author")}</span>
+                <strong>${escapeHtml(project.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
             </div>
         </div>
         <div class="project-progress">
             <div class="project-progress-head">
-                <span>Funding status</span>
+                <span>${appT("app.fundingStatus", "Funding status")}</span>
                 <span>${percent}%</span>
             </div>
             <div class="progress-bar">
@@ -269,18 +273,18 @@ function renderProjectModal(project, reviews) {
             </div>
         </div>
         <div class="project-card-footer project-modal-actions">
-            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">Open full page</a>
+            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">${appT("app.openFullPage", "Open full page")}</a>
         </div>
         <div class="review-list">
             ${reviews.length ? reviews.map((review) => `
                 <article class="review-card">
                     <div class="review-head">
-                        <strong>${escapeHtml(review.userDisplayName ?? "Anonymous")}</strong>
+                        <strong>${escapeHtml(review.userDisplayName ?? appT("app.anonymous", "Anonymous"))}</strong>
                         <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
                     </div>
                     <p>${escapeHtml(review.reviewText ?? "")}</p>
                 </article>
-            `).join("") : `<div class="empty-state">No reviews yet for this campaign.</div>`}
+            `).join("") : `<div class="empty-state">${appT("app.noReviewsForCampaign", "No reviews yet for this campaign.")}</div>`}
         </div>
     `;
 }
@@ -293,7 +297,7 @@ function closeProjectModal() {
 
 function renderError(error) {
     console.error(error);
-    setText("total-raised", "Unavailable");
+    setText("total-raised", appT("app.unavailable", "Unavailable"));
     setText("active-projects", "-");
     setText("total-backers", "-");
     setText("funded-projects", "-");
@@ -495,4 +499,8 @@ function debounce(callback, delayMs) {
         window.clearTimeout(timeoutId);
         timeoutId = window.setTimeout(() => callback(...args), delayMs);
     };
+}
+
+function appT(key, fallback) {
+    return appI18n?.t(key) ?? fallback;
 }

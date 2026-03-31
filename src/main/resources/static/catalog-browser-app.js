@@ -19,10 +19,14 @@ const catalogChipRowNode = document.getElementById("catalog-chip-row");
 const catalogPrevNode = document.getElementById("catalog-prev-btn");
 const catalogNextNode = document.getElementById("catalog-next-btn");
 const catalogPaginationCopyNode = document.getElementById("catalog-pagination-copy");
+const catalogI18n = window.AppI18n;
 
 let catalogCategories = [];
 
 bootstrapCatalogPage().catch((error) => setCatalogPageStatus(error.message, "error"));
+document.addEventListener("app:lang-changed", () => {
+    window.location.reload();
+});
 
 async function bootstrapCatalogPage() {
     hydrateCatalogHeading();
@@ -139,12 +143,12 @@ function submitCatalogSearch() {
 async function loadCatalogCategories() {
     const response = await fetch("/api/categories");
     if (!response.ok) {
-        throw new Error("Could not load categories");
+        throw new Error(catalogT("catalog.error.categories", "Could not load categories"));
     }
 
     catalogCategories = await response.json();
     catalogCategoryNode.innerHTML = `
-        <option value="">All categories</option>
+        <option value="">${catalogT("projects.allCategories", "All categories")}</option>
         ${catalogCategories.map((category) => `<option value="${category.id}">${escapeCatalogHtml(category.title)}</option>`).join("")}
     `;
     catalogCategoryNode.value = catalogPageState.categoryId;
@@ -152,7 +156,7 @@ async function loadCatalogCategories() {
 }
 
 async function loadCatalogPageProjects() {
-    setCatalogPageStatus("Loading projects...", "info");
+    setCatalogPageStatus(catalogT("catalog.loading", "Loading projects..."), "info");
 
     const url = new URL("/api/projects", window.location.origin);
     url.searchParams.set("size", `${catalogPageState.size}`);
@@ -169,7 +173,7 @@ async function loadCatalogPageProjects() {
 
     const response = await fetch(url);
     if (!response.ok) {
-        throw new Error("Could not load project catalog");
+        throw new Error(catalogT("catalog.error.load", "Could not load project catalog"));
     }
 
     const payload = await response.json();
@@ -179,7 +183,7 @@ async function loadCatalogPageProjects() {
     renderCatalogPageProjects(payload.content ?? []);
     updateCatalogPagination();
     syncCatalogUrl();
-    setCatalogPageStatus(`${payload.totalElements ?? 0} project(s) found`, "success");
+    setCatalogPageStatus(catalogT("catalog.found", "{count} project(s) found").replace("{count}", `${payload.totalElements ?? 0}`), "success");
 }
 
 function renderCatalogPageProjects(projects) {
@@ -194,17 +198,17 @@ function renderCatalogPageProjects(projects) {
             <article class="project-card">
                 <div class="project-card-header">
                     <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
-                    <span class="meta-pill">${escapeCatalogHtml(project.categoryTitle ?? "General")}</span>
+                    <span class="meta-pill">${escapeCatalogHtml(project.categoryTitle ?? catalogT("app.general", "General"))}</span>
                 </div>
                 <h4>${escapeCatalogHtml(project.title)}</h4>
                 <p>${escapeCatalogHtml(project.shortDescription ?? "")}</p>
                 <div class="project-meta">
-                    <span>${escapeCatalogHtml(project.authorDisplayName ?? "Unknown author")}</span>
+                    <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
                     <span>${formatCatalogMoney(project.goalAmount)}</span>
                 </div>
                 <div class="project-progress">
                     <div class="project-progress-head">
-                        <span>${formatCatalogMoney(project.collectedAmount)} raised</span>
+                        <span>${formatCatalogMoney(project.collectedAmount)} ${catalogT("app.raised", "raised")}</span>
                         <span>${percent}%</span>
                     </div>
                     <div class="progress-bar">
@@ -214,8 +218,8 @@ function renderCatalogPageProjects(projects) {
                 <div class="project-card-footer">
                     <strong>${escapeCatalogHtml(project.currency ?? "USD")}</strong>
                     <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${project.id}">Open page</a>
-                        <button class="ghost-btn" type="button" data-project-id="${project.id}">Quick view</button>
+                        <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
+                        <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
                     </div>
                 </div>
             </article>
@@ -228,7 +232,7 @@ async function openCatalogProjectModal(projectId) {
     const body = document.getElementById("modal-body");
     modal.classList.remove("hidden");
     document.body.classList.add("modal-open");
-    body.innerHTML = `<p class="panel-kicker">Project</p><h3>Loading...</h3><p class="modal-copy">Fetching project details.</p>`;
+    body.innerHTML = `<p class="panel-kicker">${catalogT("app.project", "Project")}</p><h3>${catalogT("app.loading", "Loading...")}</h3><p class="modal-copy">${catalogT("app.fetchingProject", "Fetching project details.")}</p>`;
 
     try {
         const [projectResponse, reviewsResponse] = await Promise.all([
@@ -237,14 +241,14 @@ async function openCatalogProjectModal(projectId) {
         ]);
 
         if (!projectResponse.ok) {
-            throw new Error("Could not load project");
+            throw new Error(catalogT("catalog.error.project", "Could not load project"));
         }
 
         const project = await projectResponse.json();
         const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
         renderCatalogProjectModal(project, reviews);
     } catch (error) {
-        body.innerHTML = `<p class="panel-kicker">Project</p><h3>Unavailable</h3><p class="modal-copy">Could not load this campaign.</p>`;
+        body.innerHTML = `<p class="panel-kicker">${catalogT("app.project", "Project")}</p><h3>${catalogT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${catalogT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
         console.error(error);
     }
 }
@@ -252,30 +256,30 @@ async function openCatalogProjectModal(projectId) {
 function renderCatalogProjectModal(project, reviews) {
     const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
     document.getElementById("modal-body").innerHTML = `
-        <p class="panel-kicker">${escapeCatalogHtml(project.categoryTitle ?? "Project")}</p>
+        <p class="panel-kicker">${escapeCatalogHtml(project.categoryTitle ?? catalogT("app.project", "Project"))}</p>
         <h3>${escapeCatalogHtml(project.title)}</h3>
         <p class="modal-copy">${escapeCatalogHtml(project.description || project.shortDescription || "")}</p>
         <div class="modal-metrics">
             <div class="metric-box">
-                <span>Raised</span>
+                <span>${catalogT("app.raisedCap", "Raised")}</span>
                 <strong>${formatCatalogMoney(project.collectedAmount)}</strong>
             </div>
             <div class="metric-box">
-                <span>Goal</span>
+                <span>${catalogT("app.goal", "Goal")}</span>
                 <strong>${formatCatalogMoney(project.goalAmount)}</strong>
             </div>
             <div class="metric-box">
-                <span>Progress</span>
+                <span>${catalogT("app.progress", "Progress")}</span>
                 <strong>${percent}%</strong>
             </div>
             <div class="metric-box">
-                <span>Author</span>
-                <strong>${escapeCatalogHtml(project.authorDisplayName ?? "Unknown")}</strong>
+                <span>${catalogT("app.author", "Author")}</span>
+                <strong>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknown", "Unknown"))}</strong>
             </div>
         </div>
         <div class="project-progress">
             <div class="project-progress-head">
-                <span>Funding status</span>
+                <span>${catalogT("app.fundingStatus", "Funding status")}</span>
                 <span>${percent}%</span>
             </div>
             <div class="progress-bar">
@@ -283,18 +287,18 @@ function renderCatalogProjectModal(project, reviews) {
             </div>
         </div>
         <div class="project-card-footer project-modal-actions">
-            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">Open full page</a>
+            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">${catalogT("app.openFullPage", "Open full page")}</a>
         </div>
         <div class="review-list">
             ${reviews.length ? reviews.map((review) => `
                 <article class="review-card">
                     <div class="review-head">
-                        <strong>${escapeCatalogHtml(review.userDisplayName ?? "Anonymous")}</strong>
+                        <strong>${escapeCatalogHtml(review.userDisplayName ?? catalogT("app.anonymous", "Anonymous"))}</strong>
                         <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
                     </div>
                     <p>${escapeCatalogHtml(review.reviewText ?? "")}</p>
                 </article>
-            `).join("") : `<div class="empty-state">No reviews yet for this campaign.</div>`}
+            `).join("") : `<div class="empty-state">${catalogT("app.noReviewsForCampaign", "No reviews yet for this campaign.")}</div>`}
         </div>
     `;
 }
@@ -323,7 +327,9 @@ function renderCatalogChips() {
 function updateCatalogPagination() {
     const currentPage = catalogPageState.page + 1;
     const totalPages = Math.max(catalogPageState.totalPages, 1);
-    catalogPaginationCopyNode.textContent = `Page ${currentPage} of ${totalPages}`;
+    catalogPaginationCopyNode.textContent = catalogT("catalog.pageOf", "Page {page} of {total}")
+        .replace("{page}", `${currentPage}`)
+        .replace("{total}", `${totalPages}`);
     catalogPrevNode.disabled = catalogPageState.page <= 0;
     catalogNextNode.disabled = catalogPageState.page >= Math.max(catalogPageState.totalPages - 1, 0);
 }
@@ -396,4 +402,8 @@ function debounce(callback, delayMs) {
         window.clearTimeout(timeoutId);
         timeoutId = window.setTimeout(() => callback(...args), delayMs);
     };
+}
+
+function catalogT(key, fallback) {
+    return catalogI18n?.t(key) ?? fallback;
 }

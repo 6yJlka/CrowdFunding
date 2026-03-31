@@ -39,6 +39,7 @@ public class SecurityConfig {
                                 "/projects.html",
                                 "/sponsor-dashboard.html",
                                 "/styles.css",
+                                "/i18n.js",
                                 "/shell.js",
                                 "/app.js",
                                 "/admin-dashboard-app.js",

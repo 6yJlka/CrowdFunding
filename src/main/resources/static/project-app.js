@@ -2,6 +2,7 @@ const projectQuery = new URLSearchParams(window.location.search);
 const projectId = projectQuery.get("id");
 const paymentResult = projectQuery.get("payment");
 const projectAuth = readProjectAuth();
+const projectI18n = window.AppI18n;
 
 const donationForm = document.getElementById("donation-form");
 const donationStatusNode = document.getElementById("donation-status");
@@ -22,12 +23,15 @@ const projectPageState = {
     currentUser: null,
     currentProject: null
 };
+document.addEventListener("app:lang-changed", () => {
+    window.location.reload();
+});
 
 if (!projectId) {
-    document.getElementById("project-title").textContent = "Project id is missing";
+    document.getElementById("project-title").textContent = projectT("project.error.missingId", "Project id is missing");
 } else {
     bootstrapProjectPage().catch(() => {
-        document.getElementById("project-title").textContent = "Project unavailable";
+        document.getElementById("project-title").textContent = projectT("app.unavailable", "Project unavailable");
     });
 }
 
@@ -38,16 +42,16 @@ commentsNode.addEventListener("click", async (event) => {
     }
 
     if (!projectAuth?.accessToken) {
-        setCommentStatus("Log in to manage comments", "error");
+        setCommentStatus(projectT("project.comment.loginManage", "Log in to manage comments"), "error");
         return;
     }
 
     const commentId = button.getAttribute("data-comment-delete");
-    if (!commentId || !window.confirm("Delete this comment?")) {
+    if (!commentId || !window.confirm(projectT("project.comment.deleteConfirm", "Delete this comment?"))) {
         return;
     }
 
-    setCommentStatus("Deleting comment...", "info");
+    setCommentStatus(projectT("project.comment.deleting", "Deleting comment..."), "info");
 
     try {
         const response = await fetch(`/api/comments/${commentId}`, {
@@ -59,10 +63,10 @@ commentsNode.addEventListener("click", async (event) => {
 
         if (!response.ok) {
             const body = await response.json().catch(() => ({}));
-            throw new Error(body.message || body.error || "Could not delete comment");
+            throw new Error(body.message || body.error || projectT("project.comment.deleteError", "Could not delete comment"));
         }
 
-        setCommentStatus("Comment deleted", "success");
+        setCommentStatus(projectT("project.comment.deleted", "Comment deleted"), "success");
         await refreshComments();
     } catch (error) {
         setCommentStatus(error.message, "error");
@@ -108,7 +112,7 @@ async function loadProjectPage(id) {
     ]);
 
     if (!projectResponse.ok) {
-        throw new Error("Project not found");
+        throw new Error(projectT("project.error.notFound", "Project not found"));
     }
 
     const project = await projectResponse.json();
@@ -125,16 +129,16 @@ async function loadProjectPage(id) {
 
 function renderProjectPage(project, stats, reviews, donations, updates, comments) {
     const progress = resolveProjectProgress(project, stats);
-    document.getElementById("project-category").textContent = project.categoryTitle ?? "Project";
+    document.getElementById("project-category").textContent = project.categoryTitle ?? projectT("app.project", "Project");
     document.getElementById("project-title").textContent = project.title;
     document.getElementById("project-description").textContent = project.description || project.shortDescription || "";
     document.getElementById("project-progress-value").textContent = `${progress}%`;
     document.getElementById("project-progress-bar").style.width = `${Math.min(progress, 100)}%`;
     document.getElementById("project-metrics").innerHTML = `
-        <div class="metric-box"><span>Raised</span><strong>${formatMoney(stats?.totalAmount ?? project.collectedAmount)}</strong></div>
-        <div class="metric-box"><span>Goal</span><strong>${formatMoney(stats?.goalAmount ?? project.goalAmount)}</strong></div>
-        <div class="metric-box"><span>Donors</span><strong>${stats?.totalDonors ?? 0}</strong></div>
-        <div class="metric-box"><span>Author</span><strong>${escapeHtml(project.authorDisplayName ?? "Unknown")}</strong></div>
+        <div class="metric-box"><span>${projectT("app.raisedCap", "Raised")}</span><strong>${formatMoney(stats?.totalAmount ?? project.collectedAmount)}</strong></div>
+        <div class="metric-box"><span>${projectT("app.goal", "Goal")}</span><strong>${formatMoney(stats?.goalAmount ?? project.goalAmount)}</strong></div>
+        <div class="metric-box"><span>${projectT("project.donors", "Donors")}</span><strong>${stats?.totalDonors ?? 0}</strong></div>
+        <div class="metric-box"><span>${projectT("app.author", "Author")}</span><strong>${escapeHtml(project.authorDisplayName ?? projectT("app.unknown", "Unknown"))}</strong></div>
     `;
 
     renderDonations(donations);
@@ -149,13 +153,13 @@ function renderDonations(donations) {
         ? donations.map((donation) => `
             <article class="review-card donation-card">
                 <div class="review-head">
-                    <strong>${escapeHtml(donation.sponsorDisplayName ?? "Anonymous sponsor")}</strong>
+                    <strong>${escapeHtml(donation.sponsorDisplayName ?? projectT("project.anonymousSponsor", "Anonymous sponsor"))}</strong>
                     <span class="donation-amount">${formatMoney(donation.amount)}</span>
                 </div>
                 <p>${escapeHtml(donation.status ?? "SUCCEEDED")} · ${formatDateTime(donation.confirmedAt || donation.createdAt)}</p>
             </article>
         `).join("")
-        : `<div class="empty-state">No public donations yet.</div>`;
+        : `<div class="empty-state">${projectT("project.noPublicDonations", "No public donations yet.")}</div>`;
 }
 
 function renderReviews(reviews) {
@@ -166,21 +170,21 @@ function renderReviews(reviews) {
     if (currentUserId) {
         reviewForm.classList.toggle("hidden", hasOwnReview);
         reviewNoteNode.textContent = hasOwnReview
-            ? "You have already posted a review for this project."
-            : "Rate this project and share feedback.";
+            ? projectT("project.review.already", "You have already posted a review for this project.")
+            : projectT("project.review.rate", "Rate this project and share feedback.");
     }
 
     reviewsNode.innerHTML = reviews.length
         ? reviews.map((review) => `
             <article class="review-card">
                 <div class="review-head">
-                    <strong>${escapeHtml(review.userDisplayName ?? "Anonymous")}</strong>
+                        <strong>${escapeHtml(review.userDisplayName ?? projectT("app.anonymous", "Anonymous"))}</strong>
                     <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
                 </div>
                 <p>${escapeHtml(review.reviewText ?? "")}</p>
             </article>
         `).join("")
-        : `<div class="empty-state">No reviews yet.</div>`;
+        : `<div class="empty-state">${projectT("project.review.none", "No reviews yet.")}</div>`;
 }
 
 function renderUpdates(updates) {
@@ -189,14 +193,14 @@ function renderUpdates(updates) {
         ? updates.map((update) => `
             <article class="timeline-card">
                 <div class="timeline-meta">
-                    <strong>${escapeHtml(update.title ?? "Update")}</strong>
+                    <strong>${escapeHtml(update.title ?? projectT("project.update.titleDefault", "Update"))}</strong>
                     <span>${formatDateTime(update.createdAt)}</span>
                 </div>
-                <p class="timeline-author">${escapeHtml(update.authorDisplayName ?? "Author")}</p>
+                <p class="timeline-author">${escapeHtml(update.authorDisplayName ?? projectT("app.author", "Author"))}</p>
                 <p>${escapeHtml(update.content ?? "")}</p>
             </article>
         `).join("")
-        : `<div class="empty-state">No updates published yet.</div>`;
+        : `<div class="empty-state">${projectT("project.update.none", "No updates published yet.")}</div>`;
 }
 
 function renderComments(comments) {
@@ -204,25 +208,25 @@ function renderComments(comments) {
         ? comments.map((comment) => `
             <article class="review-card comment-card${comment.deleted ? " comment-card-deleted" : ""}">
                 <div class="review-head">
-                    <strong>${escapeHtml(comment.userDisplayName ?? "Anonymous")}</strong>
+                    <strong>${escapeHtml(comment.userDisplayName ?? projectT("app.anonymous", "Anonymous"))}</strong>
                     <span>${formatDateTime(comment.createdAt)}</span>
                 </div>
                 <p>${escapeHtml(comment.content ?? "")}</p>
                 ${canDeleteComment(comment) ? `
                     <div class="form-actions">
-                        <button class="ghost-btn small-btn" type="button" data-comment-delete="${comment.id}">Delete comment</button>
+                        <button class="ghost-btn small-btn" type="button" data-comment-delete="${comment.id}">${projectT("project.comment.delete", "Delete comment")}</button>
                     </div>
                 ` : ""}
             </article>
         `).join("")
-        : `<div class="empty-state">No comments yet.</div>`;
+        : `<div class="empty-state">${projectT("project.comment.none", "No comments yet.")}</div>`;
 }
 
 function initializeRoleAwarePanels() {
     if (paymentResult === "success") {
-        setPageStatus("Payment succeeded. Project funding was updated.", "success");
+        setPageStatus(projectT("project.payment.success", "Payment succeeded. Project funding was updated."), "success");
     } else if (paymentResult === "failed") {
-        setPageStatus("Payment failed. You can try again.", "error");
+        setPageStatus(projectT("project.payment.failed", "Payment failed. You can try again."), "error");
     }
 
     donationForm.classList.add("hidden");
@@ -230,10 +234,10 @@ function initializeRoleAwarePanels() {
     commentForm.classList.add("hidden");
     updateForm.classList.add("hidden");
 
-    donationNoteNode.textContent = "Log in as sponsor to support this campaign.";
-    reviewNoteNode.textContent = "Log in to leave a review.";
-    commentNoteNode.textContent = "Log in to join the discussion.";
-    updateNoteNode.textContent = "Only the project author can publish updates here.";
+    donationNoteNode.textContent = projectT("project.donation.login", "Log in as sponsor to support this campaign.");
+    reviewNoteNode.textContent = projectT("project.review.login", "Log in to leave a review.");
+    commentNoteNode.textContent = projectT("project.comment.login", "Log in to join the discussion.");
+    updateNoteNode.textContent = projectT("project.update.authorOnly", "Only the project author can publish updates here.");
     updateNoteNode.classList.remove("hidden");
 
     const user = projectPageState.currentUser;
@@ -243,27 +247,27 @@ function initializeRoleAwarePanels() {
     }
 
     reviewForm.classList.remove("hidden");
-    reviewNoteNode.textContent = "Rate this project and share feedback.";
+    reviewNoteNode.textContent = projectT("project.review.rate", "Rate this project and share feedback.");
     reviewForm.addEventListener("submit", submitReviewForm);
 
     commentForm.classList.remove("hidden");
-    commentNoteNode.textContent = "Share feedback or ask a question.";
+    commentNoteNode.textContent = projectT("project.comment.invite", "Share feedback or ask a question.");
     commentForm.addEventListener("submit", submitCommentForm);
 
     if (user.roles.includes("SPONSOR")) {
         donationForm.classList.remove("hidden");
-        donationNoteNode.textContent = "You are logged in as sponsor. Donation will open the demo payment page.";
+        donationNoteNode.textContent = projectT("project.donation.sponsorFlow", "You are logged in as sponsor. Donation will open the demo payment page.");
         donationForm.addEventListener("submit", submitDonationForm);
     } else if (user.roles.includes("AUTHOR")) {
-        donationNoteNode.textContent = "Authors cannot donate from this account. Use a sponsor account.";
+        donationNoteNode.textContent = projectT("project.donation.authorBlocked", "Authors cannot donate from this account. Use a sponsor account.");
     } else if (user.roles.includes("ADMIN")) {
-        donationNoteNode.textContent = "Admins do not use the donation flow.";
+        donationNoteNode.textContent = projectT("project.donation.adminBlocked", "Admins do not use the donation flow.");
     }
 
     const isProjectAuthor = user.id === project.authorId;
     if (isProjectAuthor && project.status !== "DRAFT") {
         updateForm.classList.remove("hidden");
-        updateNoteNode.textContent = "Publish timeline updates for your backers.";
+        updateNoteNode.textContent = projectT("project.update.publishHint", "Publish timeline updates for your backers.");
         updateForm.addEventListener("submit", submitUpdateForm);
     }
 }
@@ -273,11 +277,11 @@ async function submitDonationForm(event) {
 
     const amountValue = Number(document.getElementById("donation-amount").value);
     if (!amountValue || amountValue <= 0) {
-        setDonationStatus("Enter a valid donation amount", "error");
+        setDonationStatus(projectT("project.donation.invalidAmount", "Enter a valid donation amount"), "error");
         return;
     }
 
-    setDonationStatus("Creating donation...", "info");
+    setDonationStatus(projectT("project.donation.creating", "Creating donation..."), "info");
 
     try {
         const response = await fetch("/api/donations", {
@@ -294,10 +298,10 @@ async function submitDonationForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Could not create donation");
+            throw new Error(body.message || body.error || projectT("project.donation.createError", "Could not create donation"));
         }
 
-        setDonationStatus("Redirecting to payment...", "success");
+        setDonationStatus(projectT("project.donation.redirecting", "Redirecting to payment..."), "success");
         window.setTimeout(() => {
             window.location.href = body.paymentUrl;
         }, 500);
@@ -312,11 +316,11 @@ async function submitCommentForm(event) {
     const form = event.currentTarget;
     const content = form.content.value.trim();
     if (!content) {
-        setCommentStatus("Comment cannot be empty", "error");
+        setCommentStatus(projectT("project.comment.empty", "Comment cannot be empty"), "error");
         return;
     }
 
-    setCommentStatus("Posting comment...", "info");
+    setCommentStatus(projectT("project.comment.posting", "Posting comment..."), "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/comments`, {
@@ -330,11 +334,11 @@ async function submitCommentForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Could not post comment");
+            throw new Error(body.message || body.error || projectT("project.comment.postError", "Could not post comment"));
         }
 
         form.reset();
-        setCommentStatus("Comment posted", "success");
+        setCommentStatus(projectT("project.comment.posted", "Comment posted"), "success");
         await refreshComments();
     } catch (error) {
         setCommentStatus(error.message, "error");
@@ -351,11 +355,11 @@ async function submitReviewForm(event) {
     };
 
     if (!payload.rating || payload.rating < 1 || payload.rating > 5 || !payload.reviewText) {
-        setReviewStatus("Provide a rating and review text", "error");
+        setReviewStatus(projectT("project.review.invalid", "Provide a rating and review text"), "error");
         return;
     }
 
-    setReviewStatus("Posting review...", "info");
+    setReviewStatus(projectT("project.review.posting", "Posting review..."), "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/reviews`, {
@@ -369,12 +373,12 @@ async function submitReviewForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Could not post review");
+            throw new Error(body.message || body.error || projectT("project.review.postError", "Could not post review"));
         }
 
         form.reset();
         form.rating.value = "5";
-        setReviewStatus("Review posted", "success");
+        setReviewStatus(projectT("project.review.posted", "Review posted"), "success");
         await refreshReviews();
     } catch (error) {
         setReviewStatus(error.message, "error");
@@ -391,11 +395,11 @@ async function submitUpdateForm(event) {
     };
 
     if (!payload.title || !payload.content) {
-        setUpdateStatus("Fill in both title and content", "error");
+        setUpdateStatus(projectT("project.update.invalid", "Fill in both title and content"), "error");
         return;
     }
 
-    setUpdateStatus("Publishing update...", "info");
+    setUpdateStatus(projectT("project.update.publishing", "Publishing update..."), "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/updates`, {
@@ -409,11 +413,11 @@ async function submitUpdateForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Could not publish update");
+            throw new Error(body.message || body.error || projectT("project.update.publishError", "Could not publish update"));
         }
 
         form.reset();
-        setUpdateStatus("Update published", "success");
+        setUpdateStatus(projectT("project.update.published", "Update published"), "success");
         await refreshUpdates();
     } catch (error) {
         setUpdateStatus(error.message, "error");
@@ -472,7 +476,7 @@ function resolveProjectProgress(project, stats) {
 
 function formatDateTime(value) {
     if (!value) {
-        return "Recently";
+        return projectT("common.recently", "Recently");
     }
     return new Intl.DateTimeFormat("en-US", {
         month: "short",
@@ -531,4 +535,8 @@ function canDeleteComment(comment) {
     }
 
     return comment.userId === user.id || user.roles.includes("ADMIN");
+}
+
+function projectT(key, fallback) {
+    return projectI18n?.t(key) ?? fallback;
 }

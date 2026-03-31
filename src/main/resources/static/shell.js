@@ -1,7 +1,11 @@
 const SHELL_AUTH_KEY = "crowdfunding_auth";
+const SHELL_I18N = window.AppI18n;
 
 document.addEventListener("DOMContentLoaded", () => {
     mountShell();
+    document.addEventListener("app:lang-changed", () => {
+        mountShell();
+    });
 });
 
 async function mountShell() {
@@ -12,11 +16,11 @@ async function mountShell() {
 
     host.innerHTML = buildShellMarkup({
         loggedIn: false,
-        displayName: "Guest",
-        roleLabel: "Sign in to continue",
+        displayName: shellT("shell.guest", "Guest"),
+        roleLabel: shellT("shell.signInHint", "Sign in to continue"),
         profileHref: "/auth.html",
         primaryHref: "/auth.html",
-        primaryLabel: "Login"
+        primaryLabel: shellT("shell.login", "Login")
     });
 
     const auth = readShellAuth();
@@ -41,7 +45,7 @@ async function mountShell() {
         const user = await response.json();
     const normalizedRoles = normalizeRoles(user.roles);
     const displayName = (user.email || "authorized").split("@")[0];
-    const roleLabel = normalizedRoles.length ? normalizedRoles.map(prettyRole).join(", ") : "User";
+    const roleLabel = normalizedRoles.length ? normalizedRoles.map(prettyRole).join(", ") : shellT("shell.profile", "User");
     const hideProfileLink = normalizedRoles.includes("ADMIN") || normalizedRoles.includes("SPONSOR");
     const profileHref = resolveProfileHref(normalizedRoles);
     const primaryNav = resolvePrimaryNav(normalizedRoles);
@@ -64,11 +68,11 @@ async function mountShell() {
         host.innerHTML = buildShellMarkup({
             loggedIn: false,
             hideProfileLink: false,
-            displayName: "Guest",
-            roleLabel: "Sign in to continue",
+            displayName: shellT("shell.guest", "Guest"),
+            roleLabel: shellT("shell.signInHint", "Sign in to continue"),
             profileHref: "/auth.html",
             primaryHref: "/auth.html",
-            primaryLabel: "Login"
+            primaryLabel: shellT("shell.login", "Login")
         });
         wireShellEvents(false);
         markActiveShellLink();
@@ -78,29 +82,33 @@ async function mountShell() {
 
 function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleLabel, profileHref, primaryHref, primaryLabel}) {
     const navLinks = [
-        shellLink("/", "Dashboard"),
-        loggedIn ? (hideProfileLink ? "" : shellLink(profileHref, "Profile")) : shellLink(profileHref, "Login"),
+        shellLink("/", shellT("shell.dashboard", "Dashboard")),
+        loggedIn ? (hideProfileLink ? "" : shellLink(profileHref, shellT("shell.profile", "Profile"))) : shellLink(profileHref, shellT("shell.login", "Login")),
         loggedIn ? shellLink(primaryHref, primaryLabel) : ""
     ].join("");
 
     const dropdownLinks = [
-        shellMenuLink("/", "Dashboard"),
-        loggedIn ? (hideProfileLink ? "" : shellMenuLink(profileHref, "Profile")) : shellMenuLink(profileHref, "Profile"),
+        shellMenuLink("/", shellT("shell.dashboard", "Dashboard")),
+        loggedIn ? (hideProfileLink ? "" : shellMenuLink(profileHref, shellT("shell.profile", "Profile"))) : shellMenuLink(profileHref, shellT("shell.profile", "Profile")),
         loggedIn ? shellMenuLink(primaryHref, primaryLabel) : "",
         loggedIn
-            ? `<button class="shell-menu-btn shell-menu-danger" type="button" id="shell-logout-btn">Logout</button>`
-            : shellMenuLink("/auth.html", "Sign in")
+            ? `<button class="shell-menu-btn shell-menu-danger" type="button" id="shell-logout-btn">${shellT("shell.logout", "Logout")}</button>`
+            : shellMenuLink("/auth.html", shellT("shell.signIn", "Sign in"))
     ].join("");
 
     return `
         <header class="shell-header">
             <a class="shell-brand" href="/">
                 <img class="shell-brand-logo" src="/assets/riseup-mark-square.png" alt="RiseUp mark">
-                <span>RiseUp</span>
+                <span>${shellT("shell.brand", "RiseUp")}</span>
             </a>
             <nav class="shell-nav">
                 ${navLinks}
             </nav>
+            <div class="shell-lang">
+                <button class="shell-lang-btn ${shellActiveLangClass("en")}" type="button" data-lang-switch="en">EN</button>
+                <button class="shell-lang-btn ${shellActiveLangClass("ru")}" type="button" data-lang-switch="ru">RU</button>
+            </div>
             <details class="shell-user-menu">
                 <summary class="shell-user-summary">
                     <span class="shell-user-avatar">${getShellInitials(displayName)}</span>
@@ -133,6 +141,13 @@ function wireShellEvents(loggedIn) {
             window.location.href = "/";
         });
     }
+
+    document.querySelectorAll("[data-lang-switch]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const lang = button.getAttribute("data-lang-switch");
+            SHELL_I18N?.setLang(lang);
+        });
+    });
 }
 
 function markActiveShellLink() {
@@ -167,11 +182,11 @@ function normalizeRoles(roles) {
 function prettyRole(role) {
     switch (role) {
         case "AUTHOR":
-            return "Author";
+            return shellT("shell.role.author", "Author");
         case "SPONSOR":
-            return "Sponsor";
+            return shellT("shell.role.sponsor", "Sponsor");
         case "ADMIN":
-            return "Admin";
+            return shellT("shell.role.admin", "Admin");
         default:
             return role.charAt(0) + role.slice(1).toLowerCase();
     }
@@ -192,15 +207,15 @@ function resolveProfileHref(roles) {
 
 function resolvePrimaryNav(roles) {
     if (roles.includes("ADMIN")) {
-        return {href: "/admin-dashboard.html", label: "Moderation"};
+        return {href: "/admin-dashboard.html", label: shellT("shell.moderation", "Moderation")};
     }
     if (roles.includes("AUTHOR")) {
-        return {href: "/create-project.html", label: "Create"};
+        return {href: "/create-project.html", label: shellT("shell.create", "Create")};
     }
     if (roles.includes("SPONSOR")) {
-        return {href: "/sponsor-dashboard.html", label: "Sponsored"};
+        return {href: "/sponsor-dashboard.html", label: shellT("shell.sponsored", "Sponsored")};
     }
-    return {href: "/auth.html", label: "Login"};
+    return {href: "/auth.html", label: shellT("shell.login", "Login")};
 }
 
 function getShellInitials(name) {
@@ -219,4 +234,12 @@ function escapeShellHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function shellT(key, fallback) {
+    return SHELL_I18N?.t(key) ?? fallback;
+}
+
+function shellActiveLangClass(lang) {
+    return (SHELL_I18N?.getLang() ?? "en") === lang ? "active" : "";
 }
