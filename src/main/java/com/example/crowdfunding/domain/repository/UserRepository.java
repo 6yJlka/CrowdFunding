@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     @Query("""
             select u
             from UserEntity u
-            where (:q is null or :q = '' or lower(u.email) like lower(concat('%', :q, '%')) or lower(u.displayName) like lower(concat('%', :q, '%')))
+            where (:q is null or :q = '' or lower(u.email) like lower(concat(:q, '%')) or lower(u.displayName) like lower(concat(:q, '%')))
               and (:status is null or u.status = :status)
             """)
     Page<UserEntity> findAllByQuery(String q, UserStatus status, Pageable pageable);

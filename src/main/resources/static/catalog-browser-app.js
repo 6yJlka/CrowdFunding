@@ -55,7 +55,13 @@ function hydrateCatalogStateFromUrl() {
 }
 
 function wireCatalogPageEvents() {
+    const runCatalogSearchDebounced = debounce(submitCatalogSearch, 250);
+
     document.getElementById("catalog-page-search-btn").addEventListener("click", submitCatalogSearch);
+
+    catalogSearchNode.addEventListener("input", () => {
+        runCatalogSearchDebounced();
+    });
 
     catalogSearchNode.addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
@@ -382,4 +388,12 @@ function escapeCatalogHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function debounce(callback, delayMs) {
+    let timeoutId;
+    return (...args) => {
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => callback(...args), delayMs);
+    };
 }

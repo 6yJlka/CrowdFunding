@@ -126,7 +126,7 @@ public class ProjectServiceImpl implements ProjectService {
         if (q == null || q.isBlank()) {
             return projectRepository.findByStatus(ProjectStatus.ACTIVE, pageable);
         }
-        return projectRepository.findByStatusAndTitleContainingIgnoreCase(ProjectStatus.ACTIVE, q.trim(), pageable);
+        return projectRepository.findByStatusAndTitleStartingWithIgnoreCase(ProjectStatus.ACTIVE, q.trim(), pageable);
     }
 
     @Override

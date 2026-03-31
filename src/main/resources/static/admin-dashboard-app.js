@@ -269,6 +269,17 @@ document.getElementById("admin-comments-search-btn").addEventListener("click", (
     applyCommentFilters();
 });
 
+const runUserFiltersDebounced = debounce(applyUserFilters, 250);
+const runCommentFiltersDebounced = debounce(applyCommentFilters, 250);
+
+adminUsersSearchNode.addEventListener("input", () => {
+    runUserFiltersDebounced();
+});
+
+adminCommentsSearchNode.addEventListener("input", () => {
+    runCommentFiltersDebounced();
+});
+
 adminUsersSearchNode.addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
         applyUserFilters();
@@ -420,4 +431,12 @@ function escapeAdminHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function debounce(callback, delayMs) {
+    let timeoutId;
+    return (...args) => {
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => callback(...args), delayMs);
+    };
 }

@@ -20,7 +20,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
     Page<ProjectEntity> findByStatus(ProjectStatus status, Pageable pageable);
 
     @EntityGraph(attributePaths = {"author", "category"})
-    Page<ProjectEntity> findByStatusAndTitleContainingIgnoreCase(
+    Page<ProjectEntity> findByStatusAndTitleStartingWithIgnoreCase(
             ProjectStatus status,
             String title,
             Pageable pageable
@@ -31,7 +31,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
             select p
             from ProjectEntity p
             where p.status in :statuses
-              and (:q is null or :q = '' or lower(p.title) like lower(concat('%', :q, '%')))
+              and (:q is null or :q = '' or lower(p.title) like lower(concat(:q, '%')))
               and (:categoryId is null or p.category.id = :categoryId)
             """)
     Page<ProjectEntity> findPublicCatalog(

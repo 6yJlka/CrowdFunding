@@ -21,10 +21,10 @@ public interface CommentRepository extends JpaRepository<CommentEntity, UUID> {
             from CommentEntity c
             where c.deleted = false
               and (:q is null or :q = ''
-                or lower(c.content) like lower(concat('%', :q, '%'))
-                or lower(c.user.displayName) like lower(concat('%', :q, '%'))
-                or lower(c.user.email) like lower(concat('%', :q, '%'))
-                or lower(c.project.title) like lower(concat('%', :q, '%')))
+                or lower(c.content) like lower(concat(:q, '%'))
+                or lower(c.user.displayName) like lower(concat(:q, '%'))
+                or lower(c.user.email) like lower(concat(:q, '%'))
+                or lower(c.project.title) like lower(concat(:q, '%')))
             """)
     Page<CommentEntity> findAllForAdmin(String q, Pageable pageable);
 

@@ -342,8 +342,17 @@ function escapeHtml(value) {
 }
 
 function wireStaticActions() {
+    const runCatalogSearchDebounced = debounce((value) => {
+        loadCatalog(value).catch(renderError);
+    }, 250);
+    const runLeaderboardSearchDebounced = debounce(handleLeaderboardSearch, 150);
+
     document.getElementById("catalog-search-btn").addEventListener("click", () => {
         loadCatalog(document.getElementById("catalog-search").value).catch(renderError);
+    });
+
+    document.getElementById("catalog-search").addEventListener("input", (event) => {
+        runCatalogSearchDebounced(event.target.value);
     });
 
     document.getElementById("catalog-search").addEventListener("keydown", (event) => {
@@ -364,6 +373,9 @@ function wireStaticActions() {
     });
 
     document.getElementById("leaderboard-search-btn").addEventListener("click", handleLeaderboardSearch);
+    document.getElementById("leaderboard-search").addEventListener("input", () => {
+        runLeaderboardSearchDebounced();
+    });
     document.getElementById("leaderboard-search").addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             handleLeaderboardSearch();
@@ -475,4 +487,12 @@ function runCardAction(dataset) {
             target.scrollIntoView({behavior: "smooth", block: "start"});
         }
     }
+}
+
+function debounce(callback, delayMs) {
+    let timeoutId;
+    return (...args) => {
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => callback(...args), delayMs);
+    };
 }
