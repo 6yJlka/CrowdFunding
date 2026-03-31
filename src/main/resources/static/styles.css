@@ -45,12 +45,11 @@ body.modal-open {
     color: var(--navy);
 }
 
-.shell-brand-mark {
-    width: 14px;
-    height: 14px;
-    border-radius: 4px;
-    background: linear-gradient(135deg, var(--green), var(--teal));
-    transform: rotate(45deg);
+.shell-brand-logo {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    display: block;
 }
 
 .shell-nav {
@@ -210,31 +209,11 @@ button, input, select { font: inherit; }
     text-transform: lowercase;
 }
 
-.brand-mark {
-    position: relative;
-    width: 34px;
-    height: 28px;
-}
-
-.brand-mark span {
-    position: absolute;
-    inset: 0;
-    border-radius: 9px 9px 4px 9px;
-    transform: rotate(45deg);
-}
-
-.brand-mark span:first-child {
-    width: 18px;
-    background: var(--green);
-    left: 1px;
-    top: 5px;
-}
-
-.brand-mark span:last-child {
-    width: 18px;
-    background: var(--navy);
-    right: 1px;
-    top: 5px;
+.brand-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    display: block;
 }
 
 .menu {

@@ -49,7 +49,8 @@ public class SecurityConfig {
                                 "/create-project-app.js",
                                 "/edit-project-app.js",
                                 "/author-dashboard-app.js",
-                                "/project-app.js"
+                                "/project-app.js",
+                                "/assets/**"
                         ).permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/categories").permitAll()
