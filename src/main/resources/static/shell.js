@@ -95,7 +95,7 @@ function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleL
     return `
         <header class="shell-header">
             <a class="shell-brand" href="/">
-                <img class="shell-brand-logo" src="/assets/riseup-logo.png" alt="RiseUp logo">
+                <img class="shell-brand-logo" src="/assets/riseup-mark-square.png" alt="RiseUp mark">
                 <span>RiseUp</span>
             </a>
             <nav class="shell-nav">
