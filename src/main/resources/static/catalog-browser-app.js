@@ -22,10 +22,19 @@ const catalogPaginationCopyNode = document.getElementById("catalog-pagination-co
 const catalogI18n = window.AppI18n;
 
 let catalogCategories = [];
+let currentCatalogProjects = [];
+let currentModalProject = null;
+let currentModalReviews = [];
 
 bootstrapCatalogPage().catch((error) => setCatalogPageStatus(error.message, "error"));
 document.addEventListener("app:lang-changed", () => {
-    window.location.reload();
+    hydrateCatalogHeading();
+    loadCatalogCategories()
+        .then(() => loadCatalogPageProjects())
+        .catch((error) => setCatalogPageStatus(error.message, "error"));
+    if (currentModalProject) {
+        renderCatalogProjectModal(currentModalProject, currentModalReviews);
+    }
 });
 
 async function bootstrapCatalogPage() {
@@ -179,8 +188,8 @@ async function loadCatalogPageProjects() {
     const payload = await response.json();
     catalogPageState.totalPages = payload.totalPages ?? 0;
     catalogPageState.totalElements = payload.totalElements ?? 0;
-
-    renderCatalogPageProjects(payload.content ?? []);
+    currentCatalogProjects = payload.content ?? [];
+    renderCatalogPageProjects(currentCatalogProjects);
     updateCatalogPagination();
     syncCatalogUrl();
     setCatalogPageStatus(catalogT("catalog.found", "{count} project(s) found").replace("{count}", `${payload.totalElements ?? 0}`), "success");
@@ -246,8 +255,12 @@ async function openCatalogProjectModal(projectId) {
 
         const project = await projectResponse.json();
         const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
+        currentModalProject = project;
+        currentModalReviews = reviews;
         renderCatalogProjectModal(project, reviews);
     } catch (error) {
+        currentModalProject = null;
+        currentModalReviews = [];
         body.innerHTML = `<p class="panel-kicker">${catalogT("app.project", "Project")}</p><h3>${catalogT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${catalogT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
         console.error(error);
     }
@@ -306,6 +319,8 @@ function renderCatalogProjectModal(project, reviews) {
 function closeCatalogProjectModal() {
     document.getElementById("project-modal").classList.add("hidden");
     document.body.classList.remove("modal-open");
+    currentModalProject = null;
+    currentModalReviews = [];
 }
 
 function renderCatalogChips() {

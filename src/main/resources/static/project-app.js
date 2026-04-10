@@ -21,10 +21,26 @@ const commentsNode = document.getElementById("project-comments");
 
 const projectPageState = {
     currentUser: null,
-    currentProject: null
+    currentProject: null,
+    currentStats: null,
+    currentReviews: [],
+    currentDonations: [],
+    currentUpdates: [],
+    currentComments: []
 };
 document.addEventListener("app:lang-changed", () => {
-    window.location.reload();
+    if (!projectPageState.currentProject) {
+        return;
+    }
+    renderProjectPage(
+        projectPageState.currentProject,
+        projectPageState.currentStats,
+        projectPageState.currentReviews,
+        projectPageState.currentDonations,
+        projectPageState.currentUpdates,
+        projectPageState.currentComments
+    );
+    initializeRoleAwarePanels();
 });
 
 if (!projectId) {
@@ -123,8 +139,13 @@ async function loadProjectPage(id) {
     const donationsPayload = donationsResponse.ok ? await donationsResponse.json() : {content: []};
     const updates = updatesResponse.ok ? await updatesResponse.json() : [];
     const comments = commentsResponse.ok ? await commentsResponse.json() : [];
+    projectPageState.currentStats = stats;
+    projectPageState.currentReviews = reviews;
+    projectPageState.currentDonations = donationsPayload.content ?? [];
+    projectPageState.currentUpdates = updates;
+    projectPageState.currentComments = comments;
 
-    renderProjectPage(project, stats, reviews, donationsPayload.content ?? [], updates, comments);
+    renderProjectPage(project, stats, reviews, projectPageState.currentDonations, updates, comments);
 }
 
 function renderProjectPage(project, stats, reviews, donations, updates, comments) {
@@ -233,6 +254,10 @@ function initializeRoleAwarePanels() {
     reviewForm.classList.add("hidden");
     commentForm.classList.add("hidden");
     updateForm.classList.add("hidden");
+    donationForm.onsubmit = null;
+    reviewForm.onsubmit = null;
+    commentForm.onsubmit = null;
+    updateForm.onsubmit = null;
 
     donationNoteNode.textContent = projectT("project.donation.login", "Log in as sponsor to support this campaign.");
     reviewNoteNode.textContent = projectT("project.review.login", "Log in to leave a review.");
@@ -248,16 +273,16 @@ function initializeRoleAwarePanels() {
 
     reviewForm.classList.remove("hidden");
     reviewNoteNode.textContent = projectT("project.review.rate", "Rate this project and share feedback.");
-    reviewForm.addEventListener("submit", submitReviewForm);
+    reviewForm.onsubmit = submitReviewForm;
 
     commentForm.classList.remove("hidden");
     commentNoteNode.textContent = projectT("project.comment.invite", "Share feedback or ask a question.");
-    commentForm.addEventListener("submit", submitCommentForm);
+    commentForm.onsubmit = submitCommentForm;
 
     if (user.roles.includes("SPONSOR")) {
         donationForm.classList.remove("hidden");
         donationNoteNode.textContent = projectT("project.donation.sponsorFlow", "You are logged in as sponsor. Donation will open the demo payment page.");
-        donationForm.addEventListener("submit", submitDonationForm);
+        donationForm.onsubmit = submitDonationForm;
     } else if (user.roles.includes("AUTHOR")) {
         donationNoteNode.textContent = projectT("project.donation.authorBlocked", "Authors cannot donate from this account. Use a sponsor account.");
     } else if (user.roles.includes("ADMIN")) {
@@ -268,7 +293,7 @@ function initializeRoleAwarePanels() {
     if (isProjectAuthor && project.status !== "DRAFT") {
         updateForm.classList.remove("hidden");
         updateNoteNode.textContent = projectT("project.update.publishHint", "Publish timeline updates for your backers.");
-        updateForm.addEventListener("submit", submitUpdateForm);
+        updateForm.onsubmit = submitUpdateForm;
     }
 }
 
@@ -430,6 +455,7 @@ async function refreshComments() {
         return;
     }
     const comments = await response.json();
+    projectPageState.currentComments = comments;
     renderComments(comments);
 }
 
@@ -439,6 +465,7 @@ async function refreshReviews() {
         return;
     }
     const reviews = await response.json();
+    projectPageState.currentReviews = reviews;
     renderReviews(reviews);
 }
 
@@ -448,6 +475,7 @@ async function refreshUpdates() {
         return;
     }
     const updates = await response.json();
+    projectPageState.currentUpdates = updates;
     renderUpdates(updates);
 }
 

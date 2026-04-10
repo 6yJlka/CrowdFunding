@@ -84,15 +84,16 @@ async function mountShell() {
 }
 
 function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleLabel, profileHref, primaryHref, primaryLabel}) {
+    const profileLabel = resolveProfileLabel(profileHref);
     const navLinks = [
         shellLink("/", shellT("shell.dashboard", "Dashboard")),
-        loggedIn ? (hideProfileLink ? "" : shellLink(profileHref, shellT("shell.profile", "Profile"))) : shellLink(profileHref, shellT("shell.login", "Login")),
+        loggedIn ? (hideProfileLink ? "" : shellLink(profileHref, profileLabel)) : shellLink(profileHref, shellT("shell.login", "Login")),
         loggedIn ? shellLink(primaryHref, primaryLabel) : ""
     ].join("");
 
     const dropdownLinks = [
         shellMenuLink("/", shellT("shell.dashboard", "Dashboard")),
-        loggedIn ? (hideProfileLink ? "" : shellMenuLink(profileHref, shellT("shell.profile", "Profile"))) : shellMenuLink(profileHref, shellT("shell.profile", "Profile")),
+        loggedIn ? (hideProfileLink ? "" : shellMenuLink(profileHref, profileLabel)) : shellMenuLink(profileHref, shellT("shell.profile", "Profile")),
         loggedIn ? shellMenuLink(primaryHref, primaryLabel) : "",
         loggedIn
             ? `<button class="shell-menu-btn shell-menu-danger" type="button" id="shell-logout-btn">${shellT("shell.logout", "Logout")}</button>`
@@ -219,6 +220,13 @@ function resolvePrimaryNav(roles) {
         return {href: "/sponsor-dashboard.html", label: shellT("shell.sponsored", "Sponsored")};
     }
     return {href: "/auth.html", label: shellT("shell.login", "Login")};
+}
+
+function resolveProfileLabel(profileHref) {
+    if (profileHref === "/author-dashboard.html") {
+        return shellT("shell.myProjects", "My projects");
+    }
+    return shellT("shell.profile", "Profile");
 }
 
 function getShellInitials(name) {

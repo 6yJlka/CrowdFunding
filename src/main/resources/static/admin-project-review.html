@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moderation Review | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="project-page moderation-review-page">
+    <section class="panel project-page-main moderation-review-main">
+        <div class="panel-header">
+            <div>
+                <p class="panel-kicker" id="moderation-project-category">Moderation</p>
+                <h1 id="moderation-project-title">Loading...</h1>
+            </div>
+            <div class="project-card-footer-actions">
+                <a class="ghost-btn" href="/admin-dashboard.html">Back to moderation</a>
+                <a class="ghost-btn" id="moderation-public-link" href="/">Public page</a>
+            </div>
+        </div>
+
+        <div class="auth-status" id="moderation-page-status"></div>
+
+        <div class="moderation-summary-grid" id="moderation-summary-grid"></div>
+
+        <section class="project-section">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Overview</p>
+                    <h3>Project description</h3>
+                </div>
+            </div>
+            <div class="moderation-description-block">
+                <h4 id="moderation-short-description-label">Short description</h4>
+                <p id="moderation-short-description"></p>
+            </div>
+            <div class="moderation-description-block">
+                <h4 id="moderation-full-description-label">Full description</h4>
+                <p id="moderation-description"></p>
+            </div>
+        </section>
+
+        <section class="project-section">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Timeline</p>
+                    <h3>Author updates</h3>
+                </div>
+            </div>
+            <div class="timeline-list" id="moderation-updates"></div>
+        </section>
+
+        <section class="project-section">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Discussion</p>
+                    <h3>Project comments</h3>
+                </div>
+            </div>
+            <div class="review-list" id="moderation-comments"></div>
+        </section>
+    </section>
+
+    <aside class="panel project-page-side moderation-review-side">
+        <p class="panel-kicker">Moderation</p>
+        <h3>Decision panel</h3>
+        <div class="project-side-note" id="moderation-side-note">Review the project and choose the moderation action.</div>
+        <div class="moderation-side-block">
+            <h4 id="moderation-status-title">Status</h4>
+            <p id="moderation-status-label">MODERATION</p>
+        </div>
+        <div class="moderation-side-block hidden" id="moderation-reason-block">
+            <h4>Current rejection reason</h4>
+            <p id="moderation-reason-text"></p>
+        </div>
+        <div class="moderation-side-block">
+            <label for="moderation-reject-reason">Reject reason</label>
+            <textarea id="moderation-reject-reason" rows="5" maxlength="500" placeholder="Explain what must be fixed before publication"></textarea>
+        </div>
+        <div class="form-actions moderation-actions">
+            <button class="primary-btn small-btn" type="button" id="moderation-approve-btn">Approve</button>
+            <button class="ghost-btn small-btn" type="button" id="moderation-reject-btn">Reject</button>
+        </div>
+    </aside>
+</main>
+<script src="/i18n.js"></script>
+<script src="/shell.js"></script>
+<script src="/admin-project-review-app.js"></script>
+</body>
+</html>

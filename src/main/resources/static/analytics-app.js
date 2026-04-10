@@ -62,7 +62,7 @@ function renderAnalyticsChart(points) {
 
     labelsContainer.style.gridTemplateColumns = `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`;
     labelsContainer.innerHTML = buildAnalyticsChartLabels(points);
-    rangeBadge.textContent = `${analyticsT("index.chart.since", "Since")} ${points[0].label}`;
+    rangeBadge.textContent = formatAnalyticsChartRangeBadge(points[0].label);
 
     const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
     const minValue = Math.min(...values);
@@ -131,6 +131,34 @@ function buildAnalyticsChartLabels(points) {
         const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
         return `<span>${shouldShow ? escapeAnalyticsHtml(pointItem.label) : ""}</span>`;
     }).join("");
+}
+
+function formatAnalyticsChartRangeBadge(label) {
+    const lang = analyticsI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${analyticsT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const months = {
+        Jan: "января",
+        Feb: "февраля",
+        Mar: "марта",
+        Apr: "апреля",
+        May: "мая",
+        Jun: "июня",
+        Jul: "июля",
+        Aug: "августа",
+        Sep: "сентября",
+        Oct: "октября",
+        Nov: "ноября",
+        Dec: "декабря"
+    };
+
+    const [monthToken, yearToken] = String(label ?? "").split(/\s+/, 2);
+    const localizedMonth = months[monthToken] ?? monthToken ?? "";
+    return yearToken
+        ? `${analyticsT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
+        : `${analyticsT("index.chart.since", "С")} ${localizedMonth}`;
 }
 
 function formatAnalyticsMoney(value) {

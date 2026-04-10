@@ -1271,6 +1271,67 @@ svg {
     align-self: start;
 }
 
+.moderation-review-page {
+    grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+.moderation-review-main,
+.moderation-review-side {
+    padding: 28px;
+}
+
+.moderation-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+}
+
+.moderation-description-block {
+    margin-top: 18px;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: #fbfcff;
+}
+
+.moderation-description-block h4,
+.moderation-side-block h4,
+.moderation-side-block label {
+    margin: 0 0 10px;
+    font-size: 0.95rem;
+}
+
+.moderation-description-block p,
+.moderation-side-block p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+.moderation-side-block {
+    margin-top: 18px;
+    padding: 18px 20px;
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    background: #fbfcff;
+}
+
+.moderation-side-block textarea {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: white;
+    padding: 14px 16px;
+    resize: vertical;
+}
+
+.moderation-actions {
+    margin-top: 18px;
+}
+
 .admin-filter {
     min-width: 180px;
 }

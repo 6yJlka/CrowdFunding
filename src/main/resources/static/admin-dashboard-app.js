@@ -14,7 +14,9 @@ const moderationState = {page: 0, size: 3, totalPages: 0};
 const userState = {page: 0, size: 3, totalPages: 0, query: "", status: ""};
 const commentState = {page: 0, size: 3, totalPages: 0, query: ""};
 document.addEventListener("app:lang-changed", () => {
-    window.location.reload();
+    loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
+    loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
+    loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
 });
 
 if (!adminAuth?.accessToken) {
@@ -62,7 +64,7 @@ function renderModerationQueue(projects) {
             <div class="form-actions">
                 <button class="ghost-btn" type="button" data-admin-action="approve" data-project-id="${project.id}">${adminT("admin.approve", "Approve")}</button>
                 <button class="ghost-btn" type="button" data-admin-action="reject" data-project-id="${project.id}">${adminT("admin.reject", "Reject")}</button>
-                <a class="ghost-btn" href="/project.html?id=${project.id}">${adminT("admin.open", "Open")}</a>
+                <a class="ghost-btn" href="/admin-project-review.html?id=${project.id}">${adminT("admin.open", "Open")}</a>
             </div>
         </article>
     `).join("");

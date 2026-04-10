@@ -13,11 +13,21 @@ const appI18n = window.AppI18n;
 let catalogQuery = "";
 let currentTopProjects = [];
 let currentFounders = [];
+let currentDashboardData = null;
+let currentCatalogProjects = [];
+let currentModalProject = null;
+let currentModalReviews = [];
 
 wireStaticActions();
 loadDashboard();
 document.addEventListener("app:lang-changed", () => {
-    window.location.reload();
+    if (currentDashboardData) {
+        renderDashboard(currentDashboardData);
+    }
+    renderCatalog(currentCatalogProjects);
+    if (currentModalProject) {
+        renderProjectModal(currentModalProject, currentModalReviews);
+    }
 });
 
 async function loadDashboard() {
@@ -28,6 +38,7 @@ async function loadDashboard() {
         }
 
         const data = await response.json();
+        currentDashboardData = data;
         currentTopProjects = data.topProjects ?? [];
         currentFounders = data.recentFounders ?? [];
         renderDashboard(data);
@@ -43,16 +54,29 @@ function renderDashboard(data) {
     setText("total-backers", `${data.totalBackers ?? 0}`);
     setText("funded-projects", `${data.fundedProjects ?? 0}`);
 
-    renderCategoryTags(currentTopProjects);
+    renderCategoryTags(currentCatalogProjects);
     renderFounderAvatars(currentFounders);
     renderChart(data.monthlyRaised ?? []);
     renderTopProjects(currentTopProjects);
     renderFounders(currentFounders);
 }
 
-function renderCategoryTags(topProjects) {
+function renderCategoryTags(projects) {
     const container = document.getElementById("category-tags");
-    const tags = [...new Set(topProjects.map((project) => project.categoryTitle).filter(Boolean))].slice(0, 2);
+    const counts = new Map();
+    projects.forEach((project) => {
+        const category = String(project?.categoryTitle ?? "").trim();
+        if (!category) {
+            return;
+        }
+        counts.set(category, (counts.get(category) ?? 0) + 1);
+    });
+
+    const tags = [...counts.entries()]
+        .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+        .slice(0, 3)
+        .map(([category]) => category);
+
     container.innerHTML = tags.length
         ? tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
         : `<span>${appT("app.noData", "No data")}</span>`;
@@ -92,7 +116,7 @@ function renderChart(points) {
 
     labelsContainer.style.gridTemplateColumns = `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`;
     labelsContainer.innerHTML = buildChartLabels(points);
-    rangeBadge.textContent = `${appT("index.chart.since", "Since")} ${points[0].label}`;
+    rangeBadge.textContent = formatChartRangeBadge(points[0].label);
 
     const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
     const maxValue = Math.max(...values, 1);
@@ -186,7 +210,9 @@ async function loadCatalog(query = catalogQuery) {
     }
 
     const payload = await response.json();
-    renderCatalog(payload.content ?? []);
+    currentCatalogProjects = payload.content ?? [];
+    renderCatalog(currentCatalogProjects);
+    renderCategoryTags(currentCatalogProjects);
 }
 
 function renderCatalog(projects) {
@@ -250,8 +276,12 @@ async function openProjectModal(projectId) {
 
         const project = await projectResponse.json();
         const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
+        currentModalProject = project;
+        currentModalReviews = reviews;
         renderProjectModal(project, reviews);
     } catch (error) {
+        currentModalProject = null;
+        currentModalReviews = [];
         body.innerHTML = `<p class="panel-kicker">${appT("app.project", "Project")}</p><h3>${appT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${appT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
         console.error(error);
     }
@@ -312,6 +342,8 @@ function closeProjectModal() {
     const modal = document.getElementById("project-modal");
     modal.classList.add("hidden");
     document.body.classList.remove("modal-open");
+    currentModalProject = null;
+    currentModalReviews = [];
 }
 
 function renderError(error) {
@@ -354,6 +386,34 @@ function buildChartLabels(points) {
         const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
         return `<span>${shouldShow ? escapeHtml(pointItem.label) : ""}</span>`;
     }).join("");
+}
+
+function formatChartRangeBadge(label) {
+    const lang = appI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${appT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const months = {
+        Jan: "января",
+        Feb: "февраля",
+        Mar: "марта",
+        Apr: "апреля",
+        May: "мая",
+        Jun: "июня",
+        Jul: "июля",
+        Aug: "августа",
+        Sep: "сентября",
+        Oct: "октября",
+        Nov: "ноября",
+        Dec: "декабря"
+    };
+
+    const [monthToken, yearToken] = String(label ?? "").split(/\s+/, 2);
+    const localizedMonth = months[monthToken] ?? monthToken ?? "";
+    return yearToken
+        ? `${appT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
+        : `${appT("index.chart.since", "С")} ${localizedMonth}`;
 }
 
 function getProgress(collectedAmount, goalAmount) {
