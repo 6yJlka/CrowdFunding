@@ -599,6 +599,20 @@ button, input, select { font: inherit; }
     margin-top: 20px;
 }
 
+.chart-range-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255, 250, 241, 0.96), rgba(255, 255, 255, 0.98));
+    color: #6f7785;
+    font-size: 0.88rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
 .y-axis {
     display: flex;
     flex-direction: column;
@@ -636,6 +650,7 @@ svg {
     stroke: #ffb01f;
     stroke-width: 4;
     stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .point {
@@ -646,24 +661,30 @@ svg {
 
 .callout {
     position: absolute;
-    left: 58%;
-    top: 24%;
     padding: 8px 12px;
     border-radius: 999px;
     background: #fff8e7;
     color: #b87400;
     font-weight: 800;
     box-shadow: 0 16px 26px rgba(255, 176, 31, 0.2);
+    transform: translate(-50%, -120%);
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .months {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: 8px;
     margin-left: 72px;
     margin-top: 2px;
     color: #a0a9b7;
     font-size: 0.84rem;
+}
+
+.months span {
+    min-width: 0;
+    text-align: center;
 }
 
 .leaderboard table {
@@ -1114,6 +1135,18 @@ svg {
     background: #fbfcff;
 }
 
+.review-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.review-meta-row a {
+    color: var(--navy);
+    font-weight: 700;
+}
+
 .review-head {
     display: flex;
     align-items: center;
@@ -1304,6 +1337,19 @@ svg {
     gap: 24px;
     min-height: 100vh;
     padding: 32px;
+}
+
+.analytics-stats-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.analytics-content-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr);
+    margin-top: 0;
+}
+
+.sponsor-card .sponsor-metrics {
+    margin-top: 18px;
 }
 
 .catalog-hero,

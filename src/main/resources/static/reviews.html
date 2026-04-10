@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="catalog-page">
+    <section class="panel catalog-hero">
+        <div>
+            <p class="panel-kicker">Feedback</p>
+            <h1>Recent reviews</h1>
+            <p class="catalog-subtitle">A shared review feed across active and successfully funded projects.</p>
+        </div>
+        <div class="catalog-hero-actions">
+            <a class="ghost-btn" href="/">Back to dashboard</a>
+            <a class="primary-btn" href="/projects.html">Open projects</a>
+        </div>
+    </section>
+
+    <section class="panel catalog-browser-panel">
+        <div class="catalog-toolbar">
+            <label class="compact-search">
+                <input type="search" id="reviews-search" placeholder="Search by project, author or text">
+            </label>
+            <button class="dark-btn" type="button" id="reviews-search-btn">Search</button>
+        </div>
+        <div class="auth-status" id="reviews-status"></div>
+        <div class="review-list" id="reviews-feed"></div>
+        <div class="catalog-pagination">
+            <button class="ghost-btn" type="button" id="reviews-prev-btn">Previous</button>
+            <span class="catalog-pagination-copy" id="reviews-pagination-copy">Page 1</span>
+            <button class="ghost-btn" type="button" id="reviews-next-btn">Next</button>
+        </div>
+    </section>
+</main>
+<script src="/i18n.js"></script>
+<script src="/shell.js"></script>
+<script src="/reviews-app.js"></script>
+</body>
+</html>

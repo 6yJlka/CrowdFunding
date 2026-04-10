@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="catalog-page">
+    <section class="panel catalog-hero">
+        <div>
+            <p class="panel-kicker">Analytics</p>
+            <h1>Platform analytics</h1>
+            <p class="catalog-subtitle">Key metrics, growth dynamics and the strongest campaigns in one place.</p>
+        </div>
+        <div class="catalog-hero-actions">
+            <a class="ghost-btn" href="/">Back to dashboard</a>
+            <a class="primary-btn" href="/projects.html">View projects</a>
+        </div>
+    </section>
+
+    <section class="stats-grid analytics-stats-grid">
+        <article class="stat-card accent-green">
+            <div class="stat-head">
+                <span class="stat-icon stat-icon-soft">$</span>
+                <span class="stat-link stat-link-static">LIVE</span>
+            </div>
+            <div class="stat-copy">
+                <h2 id="analytics-total-raised">$0</h2>
+                <p>Total raised</p>
+            </div>
+        </article>
+        <article class="stat-card accent-violet">
+            <div class="stat-head">
+                <span class="stat-icon stat-icon-soft">#</span>
+                <span class="stat-link stat-link-static">PUBLIC</span>
+            </div>
+            <div class="stat-copy">
+                <h2 id="analytics-active-projects">0</h2>
+                <p>Active campaigns</p>
+            </div>
+        </article>
+        <article class="stat-card accent-orange">
+            <div class="stat-head">
+                <span class="stat-icon stat-icon-soft">@</span>
+                <span class="stat-link stat-link-static">BACKERS</span>
+            </div>
+            <div class="stat-copy">
+                <h2 id="analytics-total-backers">0</h2>
+                <p>Total backers</p>
+            </div>
+        </article>
+        <article class="stat-card accent-cyan">
+            <div class="stat-head">
+                <span class="stat-icon stat-icon-soft">+</span>
+                <span class="stat-link stat-link-static">DONE</span>
+            </div>
+            <div class="stat-copy">
+                <h2 id="analytics-funded-projects">0</h2>
+                <p>Funded projects</p>
+            </div>
+        </article>
+    </section>
+
+    <section class="content-grid analytics-content-grid">
+        <div class="panel chart-panel" id="overview-chart">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Statistics</p>
+                    <h3>Growth curve</h3>
+                </div>
+                <div class="chart-range-badge" id="chart-range-badge">Since launch</div>
+            </div>
+
+            <div class="chart-area">
+                <div class="y-axis">
+                    <span id="axis-max">$0</span>
+                    <span id="axis-75">$0</span>
+                    <span id="axis-50">$0</span>
+                    <span id="axis-25">$0</span>
+                    <span id="axis-min">$0</span>
+                </div>
+                <div class="chart">
+                    <div class="grid-lines"></div>
+                    <svg viewBox="0 0 800 320" preserveAspectRatio="none" aria-label="Growth analytics chart">
+                        <defs>
+                            <linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#ffcb66" stop-opacity="0.34"/>
+                                <stop offset="100%" stop-color="#ffcb66" stop-opacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path class="area-path" id="chart-area-path" d=""></path>
+                        <path class="line-path" id="chart-line-path" d=""></path>
+                        <circle class="point" id="chart-point" cx="0" cy="0" r="8"></circle>
+                    </svg>
+                    <div class="callout" id="chart-callout">$0</div>
+                </div>
+            </div>
+
+            <div class="months" id="chart-months"></div>
+        </div>
+
+        <aside class="panel leaderboard analytics-leaderboard">
+            <div class="panel-header">
+                <div>
+                    <p class="panel-kicker">Top</p>
+                    <h3>Top campaigns</h3>
+                </div>
+                <a class="ghost-btn" href="/projects.html">All projects</a>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Pos</th>
+                    <th>Campaign</th>
+                    <th>Owner</th>
+                </tr>
+                </thead>
+                <tbody id="analytics-top-projects"></tbody>
+            </table>
+        </aside>
+    </section>
+</main>
+<script src="/i18n.js"></script>
+<script src="/shell.js"></script>
+<script src="/analytics-app.js"></script>
+</body>
+</html>

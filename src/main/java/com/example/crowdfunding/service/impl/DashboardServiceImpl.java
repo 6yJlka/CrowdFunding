@@ -4,6 +4,7 @@ import com.example.crowdfunding.api.dto.DashboardFounderResponse;
 import com.example.crowdfunding.api.dto.DashboardMonthlyPointResponse;
 import com.example.crowdfunding.api.dto.DashboardProjectRowResponse;
 import com.example.crowdfunding.api.dto.DashboardResponse;
+import com.example.crowdfunding.domain.entity.DonationEntity;
 import com.example.crowdfunding.domain.entity.ProjectEntity;
 import com.example.crowdfunding.domain.enums.DonationStatus;
 import com.example.crowdfunding.domain.enums.ProjectStatus;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -50,9 +52,9 @@ public class DashboardServiceImpl implements DashboardService {
                 PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))
         );
 
-        List<ProjectEntity> monthlyProjectsSource = projectRepository.findByStatusIn(
-                DASHBOARD_STATUSES,
-                PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "createdAt"))
+        List<DonationEntity> dashboardDonations = donationRepository.findAllSucceededForDashboard(
+                DonationStatus.SUCCEEDED,
+                DASHBOARD_STATUSES
         );
 
         DashboardResponse response = new DashboardResponse();
@@ -62,39 +64,60 @@ public class DashboardServiceImpl implements DashboardService {
         response.setTotalBackers(
                 donationRepository.countDistinctSponsorsByStatusAndProjectStatusIn(DonationStatus.SUCCEEDED, DASHBOARD_STATUSES)
         );
-        response.setMonthlyRaised(buildMonthlySeries(monthlyProjectsSource));
+        response.setMonthlyRaised(buildMonthlySeries(dashboardDonations));
         response.setTopProjects(buildTopProjects(topProjectsSource));
         response.setRecentFounders(buildRecentFounders(recentProjectsSource));
         return response;
     }
 
-    private List<DashboardMonthlyPointResponse> buildMonthlySeries(List<ProjectEntity> projects) {
-        Map<YearMonth, BigDecimal> monthlyRaised = new LinkedHashMap<>();
+    private List<DashboardMonthlyPointResponse> buildMonthlySeries(List<DonationEntity> donations) {
+        OffsetDateTime firstProjectCreatedAt = projectRepository.findFirstProjectCreatedAt();
+        OffsetDateTime firstDonationAt = donationRepository.findFirstRelevantDonationAt(
+                DonationStatus.SUCCEEDED,
+                DASHBOARD_STATUSES
+        );
+
+        OffsetDateTime seriesStartAt = firstProjectCreatedAt != null ? firstProjectCreatedAt : firstDonationAt;
+        if (seriesStartAt == null) {
+            return List.of();
+        }
+
+        YearMonth startMonth = YearMonth.from(seriesStartAt);
         YearMonth currentMonth = YearMonth.now();
-        for (int i = 11; i >= 0; i--) {
-            YearMonth month = currentMonth.minusMonths(i);
+        Map<YearMonth, BigDecimal> monthlyRaised = new LinkedHashMap<>();
+        for (YearMonth month = startMonth; !month.isAfter(currentMonth); month = month.plusMonths(1)) {
             monthlyRaised.put(month, BigDecimal.ZERO);
         }
 
-        for (ProjectEntity project : projects) {
-            if (project.getCreatedAt() == null || project.getCollectedAmount() == null) {
+        for (DonationEntity donation : donations) {
+            OffsetDateTime effectiveDate = donation.getConfirmedAt() != null ? donation.getConfirmedAt() : donation.getCreatedAt();
+            if (effectiveDate == null || donation.getAmount() == null) {
                 continue;
             }
 
-            YearMonth month = YearMonth.from(project.getCreatedAt());
+            YearMonth month = YearMonth.from(effectiveDate);
             if (!monthlyRaised.containsKey(month)) {
                 continue;
             }
 
-            monthlyRaised.computeIfPresent(month, (key, value) -> value.add(project.getCollectedAmount()));
+            monthlyRaised.computeIfPresent(month, (key, value) -> value.add(donation.getAmount()));
         }
 
         List<DashboardMonthlyPointResponse> result = new ArrayList<>();
-        monthlyRaised.forEach((month, amount) -> result.add(new DashboardMonthlyPointResponse(
-                month.getMonth().getDisplayName(TextStyle.SHORT, DASHBOARD_LOCALE),
-                amount
-        )));
+        BigDecimal cumulative = BigDecimal.ZERO;
+        for (Map.Entry<YearMonth, BigDecimal> entry : monthlyRaised.entrySet()) {
+            cumulative = cumulative.add(entry.getValue());
+            result.add(new DashboardMonthlyPointResponse(formatMonthLabel(entry.getKey(), startMonth, currentMonth), cumulative));
+        }
         return result;
+    }
+
+    private String formatMonthLabel(YearMonth month, YearMonth startMonth, YearMonth currentMonth) {
+        String monthLabel = month.getMonth().getDisplayName(TextStyle.SHORT, DASHBOARD_LOCALE);
+        if (month.equals(startMonth) || month.getMonthValue() == 1 || month.equals(currentMonth)) {
+            return monthLabel + " " + month.getYear();
+        }
+        return monthLabel;
     }
 
     private List<DashboardProjectRowResponse> buildTopProjects(List<ProjectEntity> projects) {

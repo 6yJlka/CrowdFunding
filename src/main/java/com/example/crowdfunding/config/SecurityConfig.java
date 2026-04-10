@@ -34,19 +34,25 @@ public class SecurityConfig {
                                 "/create-project.html",
                                 "/edit-project.html",
                                 "/funded-projects.html",
+                                "/analytics.html",
                                 "/pay.html",
                                 "/project.html",
                                 "/projects.html",
+                                "/reviews.html",
+                                "/sponsors.html",
                                 "/sponsor-dashboard.html",
                                 "/styles.css",
                                 "/i18n.js",
                                 "/shell.js",
                                 "/app.js",
+                                "/analytics-app.js",
                                 "/admin-dashboard-app.js",
                                 "/auth-app.js",
                                 "/catalog-browser-app.js",
                                 "/pay-app.js",
                                 "/sponsor-dashboard-app.js",
+                                "/reviews-app.js",
+                                "/sponsors-app.js",
                                 "/create-project-app.js",
                                 "/edit-project-app.js",
                                 "/author-dashboard-app.js",
@@ -56,6 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/categories").permitAll()
                         .requestMatchers("/api/dashboard").permitAll()
+                        .requestMatchers("/api/showcase/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/{projectId}/reviews").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/projects/**").permitAll()

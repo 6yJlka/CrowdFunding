@@ -39,7 +39,8 @@ async function mountShell() {
         });
 
         if (!response.ok) {
-            throw new Error("Unauthorized");
+            const authExpired = response.status === 401 || response.status === 403;
+            throw new Error(authExpired ? "AUTH_EXPIRED" : `AUTH_REQUEST_FAILED_${response.status}`);
         }
 
         const user = await response.json();
@@ -63,8 +64,10 @@ async function mountShell() {
         wireShellEvents(true);
         markActiveShellLink();
         syncCreateLinks(primaryNav.href);
-    } catch {
-        localStorage.removeItem(SHELL_AUTH_KEY);
+    } catch (error) {
+        if (error?.message === "AUTH_EXPIRED") {
+            localStorage.removeItem(SHELL_AUTH_KEY);
+        }
         host.innerHTML = buildShellMarkup({
             loggedIn: false,
             hideProfileLink: false,

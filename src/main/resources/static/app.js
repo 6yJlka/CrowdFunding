@@ -72,38 +72,53 @@ function renderChart(points) {
     const linePath = document.getElementById("chart-line-path");
     const areaPath = document.getElementById("chart-area-path");
     const point = document.getElementById("chart-point");
+    const callout = document.getElementById("chart-callout");
+    const rangeBadge = document.getElementById("chart-range-badge");
 
     if (!points.length) {
         labelsContainer.innerHTML = `<span>${appT("app.noData", "No data")}</span>`;
+        labelsContainer.style.gridTemplateColumns = "1fr";
         linePath.setAttribute("d", "");
         areaPath.setAttribute("d", "");
         point.setAttribute("cx", "0");
         point.setAttribute("cy", "0");
         setText("chart-callout", "$0");
-        updateAxis(0);
+        callout.style.left = "50%";
+        callout.style.top = "40%";
+        rangeBadge.textContent = appT("index.chart.emptyRange", "No data yet");
+        updateAxis(0, 0);
         return;
     }
 
-    labelsContainer.innerHTML = points.map((pointItem) => `<span>${escapeHtml(pointItem.label)}</span>`).join("");
+    labelsContainer.style.gridTemplateColumns = `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`;
+    labelsContainer.innerHTML = buildChartLabels(points);
+    rangeBadge.textContent = `${appT("index.chart.since", "Since")} ${points[0].label}`;
+
     const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
     const maxValue = Math.max(...values, 1);
-    updateAxis(maxValue);
+    const minValue = Math.min(...values);
+    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
+    const displayMin = Math.max(0, minValue - visualPadding);
+    const displayMax = maxValue + visualPadding;
+    updateAxis(displayMin, displayMax);
 
     const width = 800;
-    const leftPadding = 10;
-    const bottomY = 290;
-    const stepX = points.length > 1 ? (width - 20) / (points.length - 1) : 0;
+    const leftPadding = 12;
+    const rightPadding = 12;
+    const topY = 18;
+    const bottomY = 294;
+    const drawableHeight = bottomY - topY;
+    const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
 
     const coordinates = values.map((value, index) => {
         const x = leftPadding + stepX * index;
-        const y = bottomY - (value / maxValue) * 240;
+        const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
+        const y = bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight;
         return {x, y};
     });
 
-    const lineD = coordinates.map((coordinate, index) =>
-        `${index === 0 ? "M" : "L"}${coordinate.x},${coordinate.y}`
-    ).join(" ");
-    const areaD = `${lineD} L${coordinates[coordinates.length - 1].x},320 L${coordinates[0].x},320 Z`;
+    const lineD = buildSmoothLinePath(coordinates);
+    const areaD = `${lineD} L${coordinates[coordinates.length - 1].x},${bottomY} L${coordinates[0].x},${bottomY} Z`;
 
     linePath.setAttribute("d", lineD);
     areaPath.setAttribute("d", areaD);
@@ -112,13 +127,17 @@ function renderChart(points) {
     point.setAttribute("cx", `${lastPoint.x}`);
     point.setAttribute("cy", `${lastPoint.y}`);
     setText("chart-callout", formatCompactMoney(values[values.length - 1]));
+    callout.style.left = `${(lastPoint.x / width) * 100}%`;
+    callout.style.top = `${(lastPoint.y / 320) * 100}%`;
 }
 
-function updateAxis(maxValue) {
+function updateAxis(minValue, maxValue) {
+    const range = Math.max(maxValue - minValue, 1);
     setText("axis-max", formatCompactMoney(maxValue));
-    setText("axis-75", formatCompactMoney(maxValue * 0.75));
-    setText("axis-50", formatCompactMoney(maxValue * 0.5));
-    setText("axis-25", formatCompactMoney(maxValue * 0.25));
+    setText("axis-75", formatCompactMoney(minValue + range * 0.75));
+    setText("axis-50", formatCompactMoney(minValue + range * 0.5));
+    setText("axis-25", formatCompactMoney(minValue + range * 0.25));
+    setText("axis-min", formatCompactMoney(minValue));
 }
 
 function renderTopProjects(projects) {
@@ -129,9 +148,9 @@ function renderTopProjects(projects) {
                 <td>${index + 1}</td>
                 <td>
                     <strong>${escapeHtml(project.title)}</strong>
-                    <div class="table-subtitle">${escapeHtml(project.categoryTitle ?? "General")} · ${escapeHtml(formatCompactMoney(project.collectedAmount))}</div>
+                    <div class="table-subtitle">${escapeHtml(project.categoryTitle ?? appT("app.general", "General"))} · ${escapeHtml(formatCompactMoney(project.collectedAmount))}</div>
                 </td>
-                <td>${escapeHtml(project.authorDisplayName ?? "Unknown")}</td>
+                <td>${escapeHtml(project.authorDisplayName ?? appT("app.unknown", "Unknown"))}</td>
             </tr>
         `).join("")
         : `<tr><td colspan="3">${appT("app.noCampaigns", "No campaigns available")}</td></tr>`;
@@ -311,6 +330,32 @@ function formatCompactMoney(value) {
     return `$${compactNumberFormatter.format(Number(value ?? 0))}`;
 }
 
+function buildSmoothLinePath(coordinates) {
+    if (!coordinates.length) {
+        return "";
+    }
+    if (coordinates.length === 1) {
+        return `M${coordinates[0].x},${coordinates[0].y}`;
+    }
+
+    let path = `M${coordinates[0].x},${coordinates[0].y}`;
+    for (let index = 0; index < coordinates.length - 1; index += 1) {
+        const current = coordinates[index];
+        const next = coordinates[index + 1];
+        const controlX = (current.x + next.x) / 2;
+        path += ` C${controlX},${current.y} ${controlX},${next.y} ${next.x},${next.y}`;
+    }
+    return path;
+}
+
+function buildChartLabels(points) {
+    const step = Math.max(1, Math.ceil(points.length / 8));
+    return points.map((pointItem, index) => {
+        const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
+        return `<span>${shouldShow ? escapeHtml(pointItem.label) : ""}</span>`;
+    }).join("");
+}
+
 function getProgress(collectedAmount, goalAmount) {
     const collected = Number(collectedAmount ?? 0);
     const goal = Number(goalAmount ?? 0);
@@ -431,10 +476,7 @@ function wireStaticActions() {
     document.getElementById("modal-backdrop").addEventListener("click", closeProjectModal);
 
     const sectionMap = [
-        {id: "overview-chart", menuHref: "/"},
-        {id: "top-campaigns", menuHref: "#top-campaigns"},
-        {id: "new-founders", menuHref: "#new-founders"},
-        {id: "active-campaigns", menuHref: "#active-campaigns"}
+        {id: "overview-chart", menuHref: "/"}
     ];
 
     const observer = new IntersectionObserver((entries) => {
