@@ -225,7 +225,7 @@ function renderCatalogPageProjects(projects) {
                     </div>
                 </div>
                 <div class="project-card-footer">
-                    <strong>${escapeCatalogHtml(project.currency ?? "USD")}</strong>
+                    <strong>${escapeCatalogHtml(project.currency ?? "RUB")}</strong>
                     <div class="project-card-footer-actions">
                         <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
                         <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
@@ -395,9 +395,9 @@ function getCatalogProgress(collectedAmount, goalAmount) {
 }
 
 function formatCatalogMoney(value) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(resolveCatalogLocale(), {
         style: "currency",
-        currency: "USD",
+        currency: "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
 }
@@ -421,4 +421,8 @@ function debounce(callback, delayMs) {
 
 function catalogT(key, fallback) {
     return catalogI18n?.t(key) ?? fallback;
+}
+
+function resolveCatalogLocale() {
+    return catalogI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }

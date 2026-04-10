@@ -94,7 +94,7 @@ function renderModerationView() {
 
 function renderModerationSummary(project, stats) {
     const progress = resolveModerationProgress(project, stats);
-    const currency = project.currency || "USD";
+    const currency = project.currency || "RUB";
 
     document.getElementById("moderation-summary-grid").innerHTML = `
         <div class="metric-box">
@@ -227,7 +227,7 @@ function resolveModerationProgress(project, stats) {
 function formatModerationMoney(value, currency) {
     return new Intl.NumberFormat(resolveModerationLocale(), {
         style: "currency",
-        currency: currency || "USD",
+        currency: currency || "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
 }

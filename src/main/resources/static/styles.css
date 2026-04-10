@@ -669,6 +669,8 @@ svg {
     box-shadow: 0 16px 26px rgba(255, 176, 31, 0.2);
     transform: translate(-50%, -120%);
     white-space: nowrap;
+    max-width: calc(100% - 24px);
+    overflow: hidden;
     pointer-events: none;
 }
 

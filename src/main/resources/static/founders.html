@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Founders | CrowdFunding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div id="site-shell"></div>
+<main class="catalog-page">
+    <section class="panel catalog-hero">
+        <div>
+            <p class="panel-kicker">Community</p>
+            <h1>All founders</h1>
+            <p class="catalog-subtitle">Browse public project authors and see who is building campaigns on the platform.</p>
+        </div>
+        <div class="catalog-hero-actions">
+            <a class="ghost-btn" href="/">Back to dashboard</a>
+            <a class="primary-btn" href="/projects.html">Explore projects</a>
+        </div>
+    </section>
+
+    <section class="panel catalog-browser-panel">
+        <div class="catalog-toolbar">
+            <label class="compact-search">
+                <input type="search" id="founders-search" placeholder="Search founder by name">
+            </label>
+            <button class="dark-btn" type="button" id="founders-search-btn">Search</button>
+        </div>
+        <div class="auth-status" id="founders-status"></div>
+        <div class="project-grid" id="founders-grid-page"></div>
+        <div class="catalog-pagination">
+            <button class="ghost-btn" type="button" id="founders-prev-btn">Previous</button>
+            <span class="catalog-pagination-copy" id="founders-pagination-copy">Page 1</span>
+            <button class="ghost-btn" type="button" id="founders-next-btn">Next</button>
+        </div>
+    </section>
+</main>
+<script src="/i18n.js"></script>
+<script src="/shell.js"></script>
+<script src="/founders-app.js"></script>
+</body>
+</html>

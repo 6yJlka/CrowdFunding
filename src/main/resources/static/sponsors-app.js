@@ -131,14 +131,18 @@ function setSponsorsStatus(message, type = "") {
 }
 
 function formatSponsorsMoney(value) {
-    return new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", maximumFractionDigits: 0}).format(Number(value ?? 0));
+    return new Intl.NumberFormat(resolveSponsorsLocale(), {
+        style: "currency",
+        currency: "RUB",
+        maximumFractionDigits: 0
+    }).format(Number(value ?? 0));
 }
 
 function formatSponsorsDate(value) {
     if (!value) {
         return sponsorsT("common.recently", "Recently");
     }
-    return new Intl.DateTimeFormat("en-US", {month: "short", day: "numeric", year: "numeric"}).format(new Date(value));
+    return new Intl.DateTimeFormat(resolveSponsorsLocale(), {month: "short", day: "numeric", year: "numeric"}).format(new Date(value));
 }
 
 function escapeSponsorsHtml(value) {
@@ -152,4 +156,8 @@ function escapeSponsorsHtml(value) {
 
 function sponsorsT(key, fallback) {
     return sponsorsI18n?.t(key) ?? fallback;
+}
+
+function resolveSponsorsLocale() {
+    return sponsorsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }

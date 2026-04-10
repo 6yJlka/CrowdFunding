@@ -5,12 +5,15 @@ const editForm = document.getElementById("project-form");
 const editStatusNode = document.getElementById("project-status");
 const editCategorySelect = document.getElementById("category-select");
 const editRejectionNode = document.getElementById("project-rejection-note");
+const editStartAtInput = editForm.elements.startAt;
+const editEndAtInput = editForm.elements.endAt;
 
 const editAuth = readEditAuth();
 if (!editAuth?.accessToken || !editProjectId) {
     window.location.href = "/author-dashboard.html";
 }
 
+applyEditDateConstraints();
 Promise.all([loadEditCategories(), loadProjectForEdit(editProjectId)])
     .catch((error) => setEditStatus(error.message, "error"));
 
@@ -88,6 +91,7 @@ async function loadProjectForEdit(projectId) {
     editForm.categoryId.value = project.categoryId ?? "";
     editForm.startAt.value = toLocalInputValue(project.startAt);
     editForm.endAt.value = toLocalInputValue(project.endAt);
+    syncEditEndDateMin();
 }
 
 function collectProjectPayload(form) {
@@ -101,6 +105,22 @@ function collectProjectPayload(form) {
         startAt: toOffsetDate(form.startAt.value),
         endAt: toOffsetDate(form.endAt.value)
     };
+}
+
+function applyEditDateConstraints() {
+    editStartAtInput.min = toLocalInputValue(new Date());
+    syncEditEndDateMin();
+
+    editStartAtInput.addEventListener("input", () => {
+        syncEditEndDateMin();
+        if (editEndAtInput.value && editStartAtInput.value && editEndAtInput.value <= editStartAtInput.value) {
+            editEndAtInput.value = "";
+        }
+    });
+}
+
+function syncEditEndDateMin() {
+    editEndAtInput.min = editStartAtInput.value || toLocalInputValue(new Date());
 }
 
 function readEditAuth() {

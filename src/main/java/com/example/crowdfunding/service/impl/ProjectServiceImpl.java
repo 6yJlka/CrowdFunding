@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -181,6 +182,10 @@ public class ProjectServiceImpl implements ProjectService {
 
         if (project.getStartAt() != null && project.getEndAt() != null && !project.getEndAt().isAfter(project.getStartAt())) {
             throw new IllegalArgumentException("endAt must be after startAt");
+        }
+
+        if (project.getStartAt() != null && project.getStartAt().isBefore(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("startAt must not be in the past");
         }
     }
 

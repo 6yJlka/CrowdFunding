@@ -34,6 +34,7 @@ public class SecurityConfig {
                                 "/author-dashboard.html",
                                 "/create-project.html",
                                 "/edit-project.html",
+                                "/founders.html",
                                 "/funded-projects.html",
                                 "/analytics.html",
                                 "/pay.html",
@@ -57,6 +58,7 @@ public class SecurityConfig {
                                 "/sponsors-app.js",
                                 "/create-project-app.js",
                                 "/edit-project-app.js",
+                                "/founders-app.js",
                                 "/author-dashboard-app.js",
                                 "/project-app.js",
                                 "/assets/**"

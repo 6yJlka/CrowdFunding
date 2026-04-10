@@ -70,9 +70,9 @@ function readPayAuth() {
 }
 
 function formatPayMoney(value) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(resolvePayLocale(), {
         style: "currency",
-        currency: "USD",
+        currency: "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
 }
@@ -89,4 +89,8 @@ function escapePayHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function resolvePayLocale() {
+    return window.AppI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }

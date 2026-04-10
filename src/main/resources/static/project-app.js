@@ -480,9 +480,9 @@ async function refreshUpdates() {
 }
 
 function formatMoney(value) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(resolveProjectLocale(), {
         style: "currency",
-        currency: "USD",
+        currency: projectPageState.currentProject?.currency || "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
 }
@@ -506,7 +506,7 @@ function formatDateTime(value) {
     if (!value) {
         return projectT("common.recently", "Recently");
     }
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat(resolveProjectLocale(), {
         month: "short",
         day: "numeric",
         hour: "2-digit",
@@ -567,4 +567,8 @@ function canDeleteComment(comment) {
 
 function projectT(key, fallback) {
     return projectI18n?.t(key) ?? fallback;
+}
+
+function resolveProjectLocale() {
+    return projectI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }

@@ -59,9 +59,9 @@ function setSponsorStatus(message, type = "") {
 }
 
 function formatSponsorMoney(value) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat(resolveSponsorLocale(), {
         style: "currency",
-        currency: "USD",
+        currency: "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
 }
@@ -73,4 +73,8 @@ function escapeSponsorHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+function resolveSponsorLocale() {
+    return window.AppI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }

@@ -1,6 +1,9 @@
 const analyticsI18n = window.AppI18n;
 
 bootstrapAnalyticsPage().catch((error) => console.error(error));
+document.addEventListener("app:lang-changed", () => {
+    bootstrapAnalyticsPage().catch((error) => console.error(error));
+});
 
 async function bootstrapAnalyticsPage() {
     const response = await fetch("/api/dashboard");
@@ -54,9 +57,8 @@ function renderAnalyticsChart(points) {
         point.setAttribute("cy", "0");
         linePath.setAttribute("d", "");
         areaPath.setAttribute("d", "");
-        callout.textContent = "$0";
-        callout.style.left = "50%";
-        callout.style.top = "40%";
+        callout.textContent = formatAnalyticsCompactMoney(0);
+        positionAnalyticsCallout(callout, 400, 128, 800, 320);
         return;
     }
 
@@ -95,8 +97,7 @@ function renderAnalyticsChart(points) {
     point.setAttribute("cx", `${lastPoint.x}`);
     point.setAttribute("cy", `${lastPoint.y}`);
     callout.textContent = formatAnalyticsCompactMoney(values[values.length - 1]);
-    callout.style.left = `${(lastPoint.x / width) * 100}%`;
-    callout.style.top = `${(lastPoint.y / 320) * 100}%`;
+    positionAnalyticsCallout(callout, lastPoint.x, lastPoint.y, width, 320);
 }
 
 function updateAnalyticsAxis(minValue, maxValue) {
@@ -162,12 +163,20 @@ function formatAnalyticsChartRangeBadge(label) {
 }
 
 function formatAnalyticsMoney(value) {
-    return new Intl.NumberFormat("en-US", {style: "currency", currency: "USD", maximumFractionDigits: 0}).format(Number(value ?? 0));
+    return new Intl.NumberFormat(resolveAnalyticsLocale(), {
+        style: "currency",
+        currency: "RUB",
+        maximumFractionDigits: 0
+    }).format(Number(value ?? 0));
 }
 
 function formatAnalyticsCompactMoney(value) {
-    const formatter = new Intl.NumberFormat("en-US", {notation: "compact", maximumFractionDigits: 1});
-    return `$${formatter.format(Number(value ?? 0))}`;
+    return new Intl.NumberFormat(resolveAnalyticsLocale(), {
+        style: "currency",
+        currency: "RUB",
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(Number(value ?? 0));
 }
 
 function escapeAnalyticsHtml(value) {
@@ -181,4 +190,24 @@ function escapeAnalyticsHtml(value) {
 
 function analyticsT(key, fallback) {
     return analyticsI18n?.t(key) ?? fallback;
+}
+
+function resolveAnalyticsLocale() {
+    return analyticsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+function positionAnalyticsCallout(callout, pointX, pointY, svgWidth, svgHeight) {
+    const chartNode = callout.parentElement;
+    const chartWidth = chartNode.clientWidth || svgWidth;
+    const chartHeight = chartNode.clientHeight || svgHeight;
+    const scaledX = (pointX / svgWidth) * chartWidth;
+    const scaledY = (pointY / svgHeight) * chartHeight;
+    const halfWidth = (callout.offsetWidth || 0) / 2;
+    const horizontalPadding = 12;
+    const topPadding = 20;
+    const clampedX = Math.min(Math.max(scaledX, halfWidth + horizontalPadding), chartWidth - halfWidth - horizontalPadding);
+    const clampedY = Math.max(scaledY, topPadding);
+
+    callout.style.left = `${clampedX}px`;
+    callout.style.top = `${clampedY}px`;
 }

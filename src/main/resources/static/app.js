@@ -1,13 +1,3 @@
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0
-});
-
-const compactNumberFormatter = new Intl.NumberFormat("en-US", {
-    notation: "compact",
-    maximumFractionDigits: 1
-});
 const appI18n = window.AppI18n;
 
 let catalogQuery = "";
@@ -106,9 +96,8 @@ function renderChart(points) {
         areaPath.setAttribute("d", "");
         point.setAttribute("cx", "0");
         point.setAttribute("cy", "0");
-        setText("chart-callout", "$0");
-        callout.style.left = "50%";
-        callout.style.top = "40%";
+        setText("chart-callout", formatCompactMoney(0));
+        positionChartCallout(callout, 400, 128, 800, 320);
         rangeBadge.textContent = appT("index.chart.emptyRange", "No data yet");
         updateAxis(0, 0);
         return;
@@ -151,8 +140,7 @@ function renderChart(points) {
     point.setAttribute("cx", `${lastPoint.x}`);
     point.setAttribute("cy", `${lastPoint.y}`);
     setText("chart-callout", formatCompactMoney(values[values.length - 1]));
-    callout.style.left = `${(lastPoint.x / width) * 100}%`;
-    callout.style.top = `${(lastPoint.y / 320) * 100}%`;
+    positionChartCallout(callout, lastPoint.x, lastPoint.y, width, 320);
 }
 
 function updateAxis(minValue, maxValue) {
@@ -186,7 +174,7 @@ function renderFounders(founders) {
 
     grid.innerHTML = founders.length
         ? founders.map((founder, index) => `
-            <a class="investor-card founder-link" href="/author-dashboard.html" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
+            <a class="investor-card founder-link" href="/founders.html?q=${encodeURIComponent(founder.authorDisplayName ?? "")}" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
                 <span class="investor-avatar ${avatarThemes[index % avatarThemes.length]}">${getInitials(founder.authorDisplayName)}</span>
                 <strong>${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
                 <p>${escapeHtml(founder.projectTitle ?? appT("app.noProject", "No project"))}</p>
@@ -246,7 +234,7 @@ function renderCatalog(projects) {
                     </div>
                 </div>
                 <div class="project-card-footer">
-                    <strong>${escapeHtml(project.currency ?? "USD")}</strong>
+                    <strong>${escapeHtml(project.currency ?? "RUB")}</strong>
                     <div class="project-card-footer-actions">
                         <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
                         <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
@@ -355,11 +343,20 @@ function renderError(error) {
 }
 
 function formatMoney(value) {
-    return currencyFormatter.format(Number(value ?? 0));
+    return new Intl.NumberFormat(resolveAppLocale(), {
+        style: "currency",
+        currency: "RUB",
+        maximumFractionDigits: 0
+    }).format(Number(value ?? 0));
 }
 
 function formatCompactMoney(value) {
-    return `$${compactNumberFormatter.format(Number(value ?? 0))}`;
+    return new Intl.NumberFormat(resolveAppLocale(), {
+        style: "currency",
+        currency: "RUB",
+        notation: "compact",
+        maximumFractionDigits: 1
+    }).format(Number(value ?? 0));
 }
 
 function buildSmoothLinePath(coordinates) {
@@ -605,4 +602,24 @@ function debounce(callback, delayMs) {
 
 function appT(key, fallback) {
     return appI18n?.t(key) ?? fallback;
+}
+
+function resolveAppLocale() {
+    return appI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+function positionChartCallout(callout, pointX, pointY, svgWidth, svgHeight) {
+    const chartNode = callout.parentElement;
+    const chartWidth = chartNode.clientWidth || svgWidth;
+    const chartHeight = chartNode.clientHeight || svgHeight;
+    const scaledX = (pointX / svgWidth) * chartWidth;
+    const scaledY = (pointY / svgHeight) * chartHeight;
+    const halfWidth = (callout.offsetWidth || 0) / 2;
+    const horizontalPadding = 12;
+    const topPadding = 20;
+    const clampedX = Math.min(Math.max(scaledX, halfWidth + horizontalPadding), chartWidth - halfWidth - horizontalPadding);
+    const clampedY = Math.max(scaledY, topPadding);
+
+    callout.style.left = `${clampedX}px`;
+    callout.style.top = `${clampedY}px`;
 }

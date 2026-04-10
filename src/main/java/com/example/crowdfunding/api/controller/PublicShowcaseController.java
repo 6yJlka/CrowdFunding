@@ -1,5 +1,6 @@
 package com.example.crowdfunding.api.controller;
 
+import com.example.crowdfunding.api.dto.PublicFounderResponse;
 import com.example.crowdfunding.api.dto.PublicReviewFeedResponse;
 import com.example.crowdfunding.api.dto.PublicSponsorResponse;
 import com.example.crowdfunding.service.PublicShowcaseService;
@@ -18,6 +19,14 @@ public class PublicShowcaseController {
 
     public PublicShowcaseController(PublicShowcaseService publicShowcaseService) {
         this.publicShowcaseService = publicShowcaseService;
+    }
+
+    @GetMapping("/founders")
+    public Page<PublicFounderResponse> founders(
+            @RequestParam(name = "q", required = false) String q,
+            Pageable pageable
+    ) {
+        return publicShowcaseService.getFounders(q, pageable);
     }
 
     @GetMapping("/sponsors")
