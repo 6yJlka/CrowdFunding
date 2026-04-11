@@ -37,12 +37,14 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
             where p.status in :statuses
               and (:q is null or :q = '' or lower(p.title) like lower(concat(:q, '%')))
               and (:categoryId is null or p.category.id = :categoryId)
+              and (:uncategorized = false or p.category is null)
               and (:authorId is null or p.author.id = :authorId)
             """)
     Page<ProjectEntity> findPublicCatalog(
             Collection<ProjectStatus> statuses,
             String q,
             Long categoryId,
+            boolean uncategorized,
             UUID authorId,
             Pageable pageable
     );

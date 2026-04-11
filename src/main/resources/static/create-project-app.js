@@ -14,7 +14,9 @@ if (!auth?.accessToken) {
 
 loadCategories().catch((error) => setStatus(error.message, "error"));
 applyCreateDateConstraints();
+applyCreateDateInputLocale();
 document.addEventListener("app:lang-changed", () => {
+    applyCreateDateInputLocale();
     loadCategories().catch((error) => setStatus(error.message, "error"));
 });
 
@@ -70,7 +72,7 @@ async function loadCategories() {
 
     const categories = await response.json();
     categorySelect.innerHTML = `<option value="">${createT("create.field.withoutCategory", "Without category")}</option>${categories.map((category) => `
-        <option value="${category.id}">${escapeHtml(category.title)}</option>
+        <option value="${category.id}">${escapeHtml(translateCreateCategoryTitle(category.title))}</option>
     `).join("")}`;
     categorySelect.value = selectedCategoryId;
 }
@@ -86,6 +88,12 @@ function applyCreateDateConstraints() {
             endAtInput.value = "";
         }
     });
+}
+
+function applyCreateDateInputLocale() {
+    const locale = resolveCreateDateInputLocale();
+    startAtInput.setAttribute("lang", locale);
+    endAtInput.setAttribute("lang", locale);
 }
 
 function readAuth() {
@@ -120,6 +128,30 @@ function escapeHtml(value) {
         .replaceAll("'", "&#39;");
 }
 
+function translateCreateCategoryTitle(title) {
+    const normalized = String(title ?? "").trim().toLowerCase();
+    const key = CREATE_CATEGORY_TRANSLATION_KEYS[normalized];
+    return key ? createT(key, title) : title;
+}
 function createT(key, fallback) {
     return createI18n?.t(key) ?? fallback;
 }
+
+function resolveCreateDateInputLocale() {
+    return createI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+const CREATE_CATEGORY_TRANSLATION_KEYS = {
+    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
+    "technology": "category.tech",
+    "technologies": "category.tech",
+    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
+    "art": "category.art",
+    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
+    "social": "category.social",
+    "social projects": "category.social",
+    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
+    "education": "category.education",
+    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
+    "charity": "category.charity"
+};

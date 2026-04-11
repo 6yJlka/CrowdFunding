@@ -133,14 +133,20 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional(readOnly = true)
     public Page<ProjectEntity> getCatalog(String q, Long categoryId, ProjectStatus status, Pageable pageable) {
-        return getCatalog(q, categoryId, null, status, pageable);
+        return getCatalog(q, categoryId, false, null, status, pageable);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<ProjectEntity> getCatalog(String q, Long categoryId, UUID authorId, ProjectStatus status, Pageable pageable) {
+        return getCatalog(q, categoryId, false, authorId, status, pageable);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectEntity> getCatalog(String q, Long categoryId, boolean uncategorized, UUID authorId, ProjectStatus status, Pageable pageable) {
         ProjectStatus publicStatus = status == ProjectStatus.FUNDED ? ProjectStatus.FUNDED : ProjectStatus.ACTIVE;
-        return projectRepository.findPublicCatalog(List.of(publicStatus), q == null ? null : q.trim(), categoryId, authorId, pageable);
+        return projectRepository.findPublicCatalog(List.of(publicStatus), q == null ? null : q.trim(), categoryId, uncategorized, authorId, pageable);
     }
 
     @Override

@@ -62,14 +62,15 @@ public class ProjectController {
     public Page<ProjectResponse> catalog(
             @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "categoryId", required = false) Long categoryId,
+            @RequestParam(name = "uncategorized", required = false, defaultValue = "false") boolean uncategorized,
             @RequestParam(name = "authorId", required = false) UUID authorId,
             @RequestParam(name = "status", required = false) ProjectStatus status,
             Pageable pageable
     ) {
-        if (categoryId == null && status == null && authorId == null) {
+        if (categoryId == null && status == null && authorId == null && !uncategorized) {
             return projectService.getCatalog(q, pageable).map(ProjectMapper::toResponse);
         }
-        return projectService.getCatalog(q, categoryId, authorId, status, pageable).map(ProjectMapper::toResponse);
+        return projectService.getCatalog(q, categoryId, uncategorized, authorId, status, pageable).map(ProjectMapper::toResponse);
     }
 
     // Карточка проекта (публично)

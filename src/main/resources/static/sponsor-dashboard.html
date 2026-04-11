@@ -11,27 +11,77 @@
 </head>
 <body>
 <div id="site-shell"></div>
-<main class="create-layout">
-    <section class="panel form-panel">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker">Sponsor Area</p>
-                <h3>Your sponsored projects</h3>
+<main class="author-dashboard-page sponsor-dashboard-page">
+    <section class="author-dashboard-grid sponsor-dashboard-grid">
+        <aside class="panel author-profile-card sponsor-profile-card">
+            <div class="author-profile-top">
+                <div class="author-avatar-frame">
+                    <img id="sponsor-avatar-preview" class="author-avatar-image hidden" alt="Аватар спонсора">
+                    <div id="sponsor-avatar-fallback" class="author-avatar-fallback">SP</div>
+                    <label id="sponsor-avatar-upload-label" class="author-avatar-upload" for="sponsor-avatar-input" aria-label="Загрузить аватар">
+                        <span>+</span>
+                    </label>
+                    <input id="sponsor-avatar-input" class="hidden" type="file" accept="image/*">
+                </div>
+                <div class="author-profile-copy">
+                    <p id="sponsor-profile-kicker" class="panel-kicker">Профиль спонсора</p>
+                    <h1 id="sponsor-name">Спонсор</h1>
+                    <p id="sponsor-bio" class="author-bio">Поддерживаю проекты, которые делают платформу сильнее.</p>
+                </div>
             </div>
-            <a class="ghost-btn" href="/">Dashboard</a>
+            <div class="author-meta-list">
+                <div class="author-meta-item">
+                    <span id="sponsor-registration-label">Дата регистрации</span>
+                    <strong id="sponsor-registration-date">-</strong>
+                </div>
+                <div class="author-meta-item">
+                    <span id="sponsor-email-label">Email</span>
+                    <strong id="sponsor-email">-</strong>
+                </div>
+            </div>
+            <div class="author-profile-actions">
+                <a id="sponsor-home-link" class="ghost-btn" href="/">На главную</a>
+                <a id="sponsor-projects-link" class="primary-btn primary-btn-light" href="/projects.html">Найти проект</a>
+            </div>
+            <div class="auth-status" id="sponsor-status"></div>
+        </aside>
+
+        <div class="author-dashboard-main">
+            <section class="author-stats-grid" id="sponsor-stats"></section>
+
+            <section class="author-info-grid">
+                <article class="panel author-activity-card">
+                    <div class="panel-header">
+                        <div>
+                            <p id="sponsor-activity-kicker" class="panel-kicker">Активность</p>
+                            <h3 id="sponsor-activity-title">Последние пожертвования</h3>
+                        </div>
+                    </div>
+                    <ul class="author-activity-list" id="sponsor-activities"></ul>
+                </article>
+
+                <article class="panel author-guide-card">
+                    <p id="sponsor-guide-kicker" class="panel-kicker">История</p>
+                    <h3 id="sponsor-guide-title">Что отображается в кабинете</h3>
+                    <ul class="tips-list" id="sponsor-guide-list">
+                        <li>Все проекты, которые вы поддержали.</li>
+                        <li>Сумма пожертвования и статус платежа.</li>
+                        <li>Быстрый переход к публичной карточке проекта.</li>
+                    </ul>
+                </article>
+            </section>
+
+            <section class="panel author-projects-panel">
+                <div class="panel-header">
+                    <div>
+                        <p id="sponsor-projects-kicker" class="panel-kicker">Поддержка</p>
+                        <h3 id="sponsor-projects-title">Ваши пожертвования</h3>
+                    </div>
+                </div>
+                <div class="author-projects" id="sponsor-projects"></div>
+            </section>
         </div>
-        <div class="auth-status" id="sponsor-status"></div>
-        <div class="author-projects" id="sponsor-projects"></div>
     </section>
-    <aside class="panel tips-panel">
-        <p class="panel-kicker">History</p>
-        <h3>What you can review here</h3>
-        <ul class="tips-list">
-            <li>All projects you donated to.</li>
-            <li>Donation amount and payment status.</li>
-            <li>Quick transition to the public project page.</li>
-        </ul>
-    </aside>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

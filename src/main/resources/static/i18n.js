@@ -1263,7 +1263,50 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "author.status.bioRequired": "Please fill in your profile description",
     "author.status.bioSaving": "Saving description...",
     "author.status.bioSaveError": "Could not save description",
-    "author.status.bioSaved": "Description saved"
+    "author.status.bioSaved": "Description saved",
+    "sponsor.title": "Sponsor Dashboard | RiseUp",
+    "sponsor.bio": "I support projects that make the platform stronger.",
+    "sponsor.avatar.alt": "Sponsor avatar",
+    "sponsor.avatar.upload": "Upload avatar",
+    "sponsor.profile.kicker": "Sponsor profile",
+    "sponsor.profile.registeredAt": "Registration date",
+    "sponsor.profile.email": "Email",
+    "sponsor.action.home": "Back home",
+    "sponsor.action.findProject": "Find a project",
+    "sponsor.activity.kicker": "Activity",
+    "sponsor.activity.title": "Recent donations",
+    "sponsor.activity.description": "Supported project {title}, amount: {amount}, status: {status}.",
+    "sponsor.activity.empty": "No donations yet. Choose a project and support it.",
+    "sponsor.guide.kicker": "History",
+    "sponsor.guide.title": "What appears in the dashboard",
+    "sponsor.guide.tip1": "All projects you supported.",
+    "sponsor.guide.tip2": "Donation amount and payment status.",
+    "sponsor.guide.tip3": "Quick jump to the public project page.",
+    "sponsor.projects.kicker": "Support",
+    "sponsor.projects.title": "Your donations",
+    "sponsor.projects.empty": "You have not supported any projects yet.",
+    "sponsor.project.amount": "Donation amount",
+    "sponsor.project.paymentId": "Payment",
+    "sponsor.project.noPaymentId": "No id",
+    "sponsor.project.provider": "Provider",
+    "sponsor.project.untitled": "Untitled",
+    "sponsor.project.open": "Open project",
+    "sponsor.stats.totalDonations": "Total donations",
+    "sponsor.stats.successfulDonations": "Successful payments",
+    "sponsor.stats.supportedProjects": "Supported projects",
+    "sponsor.stats.totalAmount": "Total support",
+    "sponsor.status.loadingProfile": "Loading sponsor dashboard...",
+    "sponsor.status.profileError": "Could not load sponsor profile",
+    "sponsor.status.donationsError": "Could not load donation history",
+    "sponsor.status.avatarTooLarge": "Avatar must be 5 MB or smaller",
+    "sponsor.status.avatarImageOnly": "Please choose an image file",
+    "sponsor.status.avatarSaving": "Saving avatar...",
+    "sponsor.status.avatarSaveError": "Could not save avatar",
+    "sponsor.status.avatarSaved": "Avatar saved",
+    "donation.status.SUCCEEDED": "Succeeded",
+    "donation.status.PENDING": "Pending",
+    "donation.status.FAILED": "Failed",
+    "donation.status.CANCELED": "Canceled"
 });
 
 Object.assign(I18N_TRANSLATIONS.ru, {
@@ -1320,7 +1363,80 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "author.status.bioRequired": "Заполните описание профиля",
     "author.status.bioSaving": "Сохраняем описание...",
     "author.status.bioSaveError": "Не удалось сохранить описание",
-    "author.status.bioSaved": "Описание сохранено"
+    "author.status.bioSaved": "Описание сохранено",
+    "sponsor.title": "Кабинет спонсора | RiseUp",
+    "sponsor.bio": "Поддерживаю проекты, которые делают платформу сильнее.",
+    "sponsor.avatar.alt": "Аватар спонсора",
+    "sponsor.avatar.upload": "Загрузить аватар",
+    "sponsor.profile.kicker": "Профиль спонсора",
+    "sponsor.profile.registeredAt": "Дата регистрации",
+    "sponsor.profile.email": "Email",
+    "sponsor.action.home": "На главную",
+    "sponsor.action.findProject": "Найти проект",
+    "sponsor.activity.kicker": "Активность",
+    "sponsor.activity.title": "Последние пожертвования",
+    "sponsor.activity.description": "Поддержан проект {title}, сумма: {amount}, статус: {status}.",
+    "sponsor.activity.empty": "Пока нет пожертвований. Выберите проект и поддержите его.",
+    "sponsor.guide.kicker": "История",
+    "sponsor.guide.title": "Что отображается в кабинете",
+    "sponsor.guide.tip1": "Все проекты, которые вы поддержали.",
+    "sponsor.guide.tip2": "Сумма пожертвования и статус платежа.",
+    "sponsor.guide.tip3": "Быстрый переход к публичной карточке проекта.",
+    "sponsor.projects.kicker": "Поддержка",
+    "sponsor.projects.title": "Ваши пожертвования",
+    "sponsor.projects.empty": "Вы еще не поддержали ни одного проекта.",
+    "sponsor.project.amount": "Сумма пожертвования",
+    "sponsor.project.paymentId": "Платеж",
+    "sponsor.project.noPaymentId": "Без id",
+    "sponsor.project.provider": "Провайдер",
+    "sponsor.project.untitled": "Без названия",
+    "sponsor.project.open": "Открыть проект",
+    "sponsor.stats.totalDonations": "Всего пожертвований",
+    "sponsor.stats.successfulDonations": "Успешных платежей",
+    "sponsor.stats.supportedProjects": "Поддержано проектов",
+    "sponsor.stats.totalAmount": "Сумма поддержки",
+    "sponsor.status.loadingProfile": "Загружаем кабинет спонсора...",
+    "sponsor.status.profileError": "Не удалось загрузить профиль спонсора",
+    "sponsor.status.donationsError": "Не удалось загрузить историю пожертвований",
+    "sponsor.status.avatarTooLarge": "Аватар должен быть не больше 5 МБ",
+    "sponsor.status.avatarImageOnly": "Можно выбрать только изображение",
+    "sponsor.status.avatarSaving": "Сохраняем аватар...",
+    "sponsor.status.avatarSaveError": "Не удалось сохранить аватар",
+    "sponsor.status.avatarSaved": "Аватар сохранен",
+    "donation.status.SUCCEEDED": "Успешно",
+    "donation.status.PENDING": "В ожидании",
+    "donation.status.FAILED": "Ошибка",
+    "donation.status.CANCELED": "Отменен"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "category.general": "General",
+    "category.tech": "Technology",
+    "category.art": "Art",
+    "category.social": "Social projects",
+    "category.education": "Education",
+    "category.charity": "Charity"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "category.general": "Общее",
+    "category.tech": "Технологии",
+    "category.art": "Творчество",
+    "category.social": "Социальные проекты",
+    "category.education": "Образование",
+    "category.charity": "Благотворительность"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "index.stats.publicApi": "Goal reached",
+    "index.stats.liveData": "Closed round",
+    "index.stats.dashboard": "Success story"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "index.stats.publicApi": "Цель достигнута",
+    "index.stats.liveData": "Сбор закрыт",
+    "index.stats.dashboard": "Успешный кейс"
 });
 
 function i18nDetectLanguage() {

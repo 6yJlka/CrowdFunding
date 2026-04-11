@@ -21,6 +21,7 @@ const catalogPrevNode = document.getElementById("catalog-prev-btn");
 const catalogNextNode = document.getElementById("catalog-next-btn");
 const catalogPaginationCopyNode = document.getElementById("catalog-pagination-copy");
 const catalogI18n = window.AppI18n;
+const UNCATEGORIZED_CATEGORY_TOKEN = "__uncategorized__";
 
 let catalogCategories = [];
 let currentCatalogProjects = [];
@@ -60,7 +61,9 @@ function hydrateCatalogHeading() {
 function hydrateCatalogStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     catalogPageState.query = params.get("q")?.trim() ?? "";
-    catalogPageState.categoryId = params.get("categoryId") ?? "";
+    catalogPageState.categoryId = params.get("uncategorized") === "true"
+        ? UNCATEGORIZED_CATEGORY_TOKEN
+        : (params.get("categoryId") ?? "");
     catalogPageState.authorId = params.get("authorId") ?? "";
     catalogPageState.sort = params.get("sort") ?? "createdAt,desc";
     catalogPageState.page = Math.max(Number(params.get("page") ?? "0"), 0);
@@ -158,9 +161,13 @@ async function loadCatalogCategories() {
     }
 
     catalogCategories = await response.json();
+    const categoryOptions = [
+        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogT("category.general", "General")},
+        ...catalogCategories
+    ];
     catalogCategoryNode.innerHTML = `
         <option value="">${catalogT("projects.allCategories", "All categories")}</option>
-        ${catalogCategories.map((category) => `<option value="${category.id}">${escapeCatalogHtml(category.title)}</option>`).join("")}
+        ${categoryOptions.map((category) => `<option value="${category.id}">${escapeCatalogHtml(translateCatalogCategoryTitle(category.title))}</option>`).join("")}
     `;
     catalogCategoryNode.value = catalogPageState.categoryId;
     renderCatalogChips();
@@ -179,7 +186,15 @@ async function loadCatalogPageProjects() {
         url.searchParams.set("q", catalogPageState.query);
     }
     if (catalogPageState.categoryId) {
-        url.searchParams.set("categoryId", catalogPageState.categoryId);
+        if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
+            url.searchParams.set("uncategorized", "true");
+        } else {
+            url.searchParams.set("categoryId", catalogPageState.categoryId);
+        }
+    }
+    url.searchParams.delete("uncategorized");
+    if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
+        url.searchParams.set("uncategorized", "true");
     }
     if (catalogPageState.authorId) {
         url.searchParams.set("authorId", catalogPageState.authorId);
@@ -212,7 +227,7 @@ function renderCatalogPageProjects(projects) {
             <article class="project-card">
                 <div class="project-card-header">
                     <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
-                    <span class="meta-pill">${escapeCatalogHtml(project.categoryTitle ?? catalogT("app.general", "General"))}</span>
+                    <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
                 </div>
                 <h4>${escapeCatalogHtml(project.title)}</h4>
                 <p>${escapeCatalogHtml(project.shortDescription ?? "")}</p>
@@ -274,7 +289,7 @@ async function openCatalogProjectModal(projectId) {
 function renderCatalogProjectModal(project, reviews) {
     const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
     document.getElementById("modal-body").innerHTML = `
-        <p class="panel-kicker">${escapeCatalogHtml(project.categoryTitle ?? catalogT("app.project", "Project"))}</p>
+        <p class="panel-kicker">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
         <h3>${escapeCatalogHtml(project.title)}</h3>
         <p class="modal-copy">${escapeCatalogHtml(project.description || project.shortDescription || "")}</p>
         <div class="modal-metrics">
@@ -334,11 +349,16 @@ function renderCatalogChips() {
         return;
     }
 
-    catalogChipRowNode.innerHTML = catalogCategories.slice(0, 8).map((category) => {
+    const chipCategories = [
+        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogT("category.general", "General")},
+        ...catalogCategories.slice(0, 7)
+    ];
+
+    catalogChipRowNode.innerHTML = chipCategories.map((category) => {
         const active = String(category.id) === String(catalogPageState.categoryId);
         return `
             <button class="catalog-chip${active ? " active" : ""}" type="button" data-category-id="${category.id}">
-                ${escapeCatalogHtml(category.title)}
+                ${escapeCatalogHtml(translateCatalogCategoryTitle(category.title))}
             </button>
         `;
     }).join("");
@@ -365,9 +385,16 @@ function syncCatalogUrl() {
     }
 
     if (catalogPageState.categoryId) {
-        params.set("categoryId", catalogPageState.categoryId);
+        if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
+            params.delete("categoryId");
+            params.set("uncategorized", "true");
+        } else {
+            params.set("categoryId", catalogPageState.categoryId);
+            params.delete("uncategorized");
+        }
     } else {
         params.delete("categoryId");
+        params.delete("uncategorized");
     }
 
     if (catalogPageState.authorId) {
@@ -434,6 +461,29 @@ function catalogT(key, fallback) {
     return catalogI18n?.t(key) ?? fallback;
 }
 
+function translateCatalogCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
+    const normalized = String(title ?? "").trim().toLowerCase();
+    const key = CATALOG_CATEGORY_TRANSLATION_KEYS[normalized];
+    return key ? catalogT(key, title) : (title || catalogT(fallbackKey, fallbackText));
+}
+
 function resolveCatalogLocale() {
     return catalogI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }
+
+const CATALOG_CATEGORY_TRANSLATION_KEYS = {
+    "general": "category.general",
+    "\u043e\u0431\u0449\u0435\u0435": "category.general",
+    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
+    "technology": "category.tech",
+    "technologies": "category.tech",
+    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
+    "art": "category.art",
+    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
+    "social": "category.social",
+    "social projects": "category.social",
+    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
+    "education": "category.education",
+    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
+    "charity": "category.charity"
+};

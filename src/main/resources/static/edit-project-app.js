@@ -55,7 +55,7 @@ async function loadEditCategories() {
 
     const categories = await response.json();
     editCategorySelect.innerHTML = `<option value="">Without category</option>${categories.map((category) => `
-        <option value="${category.id}">${escapeEditHtml(category.title)}</option>
+        <option value="${category.id}">${escapeEditHtml(translateEditCategoryTitle(category.title))}</option>
     `).join("")}`;
 }
 
@@ -157,3 +157,25 @@ function escapeEditHtml(value) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
 }
+function translateEditCategoryTitle(title) {
+    const normalized = String(title ?? "").trim().toLowerCase();
+    const key = EDIT_CATEGORY_TRANSLATION_KEYS[normalized];
+    return key ? editTranslate(key, title) : title;
+}
+function editTranslate(key, fallback) {
+    return window.AppI18n?.t?.(key) ?? fallback;
+}
+const EDIT_CATEGORY_TRANSLATION_KEYS = {
+    "??????????": "category.tech",
+    "technology": "category.tech",
+    "technologies": "category.tech",
+    "??????????": "category.art",
+    "art": "category.art",
+    "?????????? ???????": "category.social",
+    "social": "category.social",
+    "social projects": "category.social",
+    "???????????": "category.education",
+    "education": "category.education",
+    "???????????????????": "category.charity",
+    "charity": "category.charity"
+};

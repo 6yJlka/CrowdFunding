@@ -67,7 +67,7 @@ function renderCategoryTags(projects) {
     const tags = [...counts.entries()]
         .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
         .slice(0, 3)
-        .map(([category]) => category);
+        .map(([category]) => translateAppCategoryTitle(category));
 
     container.innerHTML = tags.length
         ? tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
@@ -173,7 +173,7 @@ function renderTopProjects(projects) {
                 <td>${index + 1}</td>
                 <td>
                     <strong>${escapeHtml(project.title)}</strong>
-                    <div class="table-subtitle">${escapeHtml(project.categoryTitle ?? appT("app.general", "General"))} · ${escapeHtml(formatCompactMoney(project.collectedAmount))}</div>
+                    <div class="table-subtitle">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))} · ${escapeHtml(formatCompactMoney(project.collectedAmount))}</div>
                 </td>
                 <td>${escapeHtml(project.authorDisplayName ?? appT("app.unknown", "Unknown"))}</td>
             </tr>
@@ -243,7 +243,7 @@ function renderCatalog(projects) {
             <article class="project-card">
                 <div class="project-card-header">
                     <span class="status-badge">${escapeHtml(project.status ?? "ACTIVE")}</span>
-                    <span class="meta-pill">${escapeHtml(project.categoryTitle ?? appT("app.general", "General"))}</span>
+                    <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
                 </div>
                 <h4>${escapeHtml(project.title)}</h4>
                 <p>${escapeHtml(project.shortDescription ?? "")}</p>
@@ -306,7 +306,7 @@ function renderProjectModal(project, reviews) {
     const percent = getProgress(project.collectedAmount, project.goalAmount);
     const body = document.getElementById("modal-body");
     body.innerHTML = `
-        <p class="panel-kicker">${escapeHtml(project.categoryTitle ?? appT("app.project", "Project"))}</p>
+        <p class="panel-kicker">${escapeHtml(translateAppCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
         <h3>${escapeHtml(project.title)}</h3>
         <p class="modal-copy">${escapeHtml(project.description || project.shortDescription || "")}</p>
         <div class="modal-metrics">
@@ -631,10 +631,31 @@ function appT(key, fallback) {
     return appI18n?.t(key) ?? fallback;
 }
 
+function translateAppCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
+    const normalized = String(title ?? "").trim().toLowerCase();
+    const key = APP_CATEGORY_TRANSLATION_KEYS[normalized];
+    return key ? appT(key, title) : (title || appT(fallbackKey, fallbackText));
+}
 function resolveAppLocale() {
     return appI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }
 
+const APP_CATEGORY_TRANSLATION_KEYS = {
+    "general": "category.general",
+    "\u043e\u0431\u0449\u0435\u0435": "category.general",
+    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
+    "technology": "category.tech",
+    "technologies": "category.tech",
+    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
+    "art": "category.art",
+    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
+    "social": "category.social",
+    "social projects": "category.social",
+    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
+    "education": "category.education",
+    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
+    "charity": "category.charity"
+};
 function positionChartCallout(callout, pointX, pointY, svgWidth, svgHeight) {
     const chartNode = callout.parentElement;
     const chartWidth = chartNode.clientWidth || svgWidth;
@@ -650,3 +671,4 @@ function positionChartCallout(callout, pointX, pointY, svgWidth, svgHeight) {
     callout.style.left = `${clampedX}px`;
     callout.style.top = `${clampedY}px`;
 }
+
