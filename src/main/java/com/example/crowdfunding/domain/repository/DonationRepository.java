@@ -129,4 +129,45 @@ public interface DonationRepository extends JpaRepository<DonationEntity, UUID> 
             String q,
             Pageable pageable
     );
+
+    @EntityGraph(attributePaths = {"sponsor", "sponsor.roles", "project"})
+    @Query("""
+            select d
+            from DonationEntity d
+            join d.sponsor s
+            join d.project p
+            join s.roles r
+            where d.status = :status
+              and p.status in :projectStatuses
+              and s.status = :userStatus
+              and r.code = :roleCode
+            order by coalesce(d.confirmedAt, d.createdAt) desc
+            """)
+    List<DonationEntity> findRecentPublicSponsorDonations(
+            DonationStatus status,
+            Collection<ProjectStatus> projectStatuses,
+            UserStatus userStatus,
+            RoleCode roleCode,
+            Pageable pageable
+    );
+
+    @Query("""
+            select count(d.id) > 0
+            from DonationEntity d
+            join d.sponsor s
+            join s.roles r
+            join d.project p
+            where s.id = :sponsorId
+              and d.status = :status
+              and p.status in :projectStatuses
+              and s.status = :userStatus
+              and r.code = :roleCode
+            """)
+    boolean existsPublicSponsor(
+            UUID sponsorId,
+            DonationStatus status,
+            Collection<ProjectStatus> projectStatuses,
+            UserStatus userStatus,
+            RoleCode roleCode
+    );
 }

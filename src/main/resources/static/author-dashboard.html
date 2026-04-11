@@ -11,31 +11,92 @@
 </head>
 <body>
 <div id="site-shell"></div>
-<main class="create-layout">
-    <section class="panel form-panel">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker">Author Area</p>
-                <h3>Your projects</h3>
+<main class="author-dashboard-page">
+    <section class="author-dashboard-grid">
+        <aside class="panel author-profile-card">
+            <div class="author-profile-top">
+                <div class="author-avatar-frame">
+                    <img id="author-avatar-preview" class="author-avatar-image hidden" alt="Аватар пользователя">
+                    <div id="author-avatar-fallback" class="author-avatar-fallback">AU</div>
+                    <label id="author-avatar-upload-label" class="author-avatar-upload" for="author-avatar-input" aria-label="Загрузить аватар">
+                        <span>+</span>
+                    </label>
+                    <input id="author-avatar-input" class="hidden" type="file" accept="image/*">
+                </div>
+                <div class="author-profile-copy">
+                    <p id="author-profile-kicker" class="panel-kicker">Профиль автора</p>
+                    <h1 id="author-name">Автор</h1>
+                    <div class="author-bio-block">
+                        <p id="author-bio" class="author-bio">Ведущий разработчик, создаю open-source проекты.</p>
+                        <button id="author-bio-edit-btn" class="ghost-btn small-btn author-bio-edit-btn" type="button">Редактировать</button>
+                    </div>
+                    <form id="author-bio-form" class="author-bio-form hidden">
+                        <label class="author-bio-label" for="author-bio-input">О себе</label>
+                        <textarea id="author-bio-input" maxlength="280"></textarea>
+                        <div class="author-bio-form-footer">
+                            <span id="author-bio-counter" class="author-bio-counter">0 / 280</span>
+                            <div class="author-bio-form-actions">
+                                <button id="author-bio-cancel-btn" class="ghost-btn small-btn" type="button">Отмена</button>
+                                <button id="author-bio-save-btn" class="primary-btn small-btn" type="submit">Сохранить</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div class="form-actions">
-                <a class="ghost-btn" href="/">Dashboard</a>
-                <a class="primary-btn primary-btn-light" href="/create-project.html">New project</a>
+            <div class="author-meta-list">
+                <div class="author-meta-item">
+                    <span id="author-registration-label">Дата регистрации</span>
+                    <strong id="author-registration-date">-</strong>
+                </div>
+                <div class="author-meta-item">
+                    <span id="author-email-label">Email</span>
+                    <strong id="author-email">-</strong>
+                </div>
             </div>
+            <div class="author-profile-actions">
+                <a id="author-home-link" class="ghost-btn" href="/">На главную</a>
+                <a id="author-new-project-link" class="primary-btn primary-btn-light" href="/create-project.html">Новый проект</a>
+            </div>
+            <div class="auth-status" id="author-status"></div>
+        </aside>
+
+        <div class="author-dashboard-main">
+            <section class="author-stats-grid" id="author-stats"></section>
+
+            <section class="author-info-grid">
+                <article class="panel author-activity-card">
+                    <div class="panel-header">
+                        <div>
+                            <p id="author-activity-kicker" class="panel-kicker">Активность</p>
+                            <h3 id="author-activity-title">Последние действия</h3>
+                        </div>
+                    </div>
+                    <ul class="author-activity-list" id="author-activities"></ul>
+                </article>
+
+                <article class="panel author-guide-card">
+                    <p id="author-guide-kicker" class="panel-kicker">Статусы</p>
+                    <h3 id="author-guide-title">Что происходит с проектами</h3>
+                    <ul class="tips-list" id="author-guide-list">
+                        <li><strong>DRAFT</strong> - проект еще редактируется и не виден публично.</li>
+                        <li><strong>MODERATION</strong> - проект ожидает проверки администратором.</li>
+                        <li><strong>ACTIVE</strong> - проект опубликован и собирает средства.</li>
+                        <li><strong>FUNDED</strong> и <strong>CLOSED</strong> - финальные состояния кампании.</li>
+                    </ul>
+                </article>
+            </section>
+
+            <section class="panel author-projects-panel">
+                <div class="panel-header">
+                    <div>
+                        <p id="author-projects-kicker" class="panel-kicker">Проекты</p>
+                        <h3 id="author-projects-title">Ваши кампании</h3>
+                    </div>
+                </div>
+                <div class="author-projects" id="author-projects"></div>
+            </section>
         </div>
-        <div class="auth-status" id="author-status"></div>
-        <div class="author-projects" id="author-projects"></div>
     </section>
-    <aside class="panel tips-panel">
-        <p class="panel-kicker">Flow</p>
-        <h3>Status guide</h3>
-        <ul class="tips-list">
-            <li>`DRAFT` means the campaign is still private.</li>
-            <li>`MODERATION` means it is waiting for admin review.</li>
-            <li>`ACTIVE` is visible in the public catalog.</li>
-            <li>`FUNDED` and `CLOSED` are final states.</li>
-        </ul>
-    </aside>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

@@ -4,6 +4,9 @@ import com.example.crowdfunding.api.dto.DashboardFounderResponse;
 import com.example.crowdfunding.api.dto.DashboardMonthlyPointResponse;
 import com.example.crowdfunding.api.dto.DashboardProjectRowResponse;
 import com.example.crowdfunding.api.dto.DashboardResponse;
+import com.example.crowdfunding.api.dto.DashboardSponsorResponse;
+import com.example.crowdfunding.domain.enums.RoleCode;
+import com.example.crowdfunding.domain.enums.UserStatus;
 import com.example.crowdfunding.domain.entity.DonationEntity;
 import com.example.crowdfunding.domain.entity.ProjectEntity;
 import com.example.crowdfunding.domain.enums.DonationStatus;
@@ -31,6 +34,10 @@ public class DashboardServiceImpl implements DashboardService {
 
     private static final Locale DASHBOARD_LOCALE = Locale.ENGLISH;
     private static final List<ProjectStatus> DASHBOARD_STATUSES = List.of(ProjectStatus.ACTIVE, ProjectStatus.FUNDED);
+    private static final int DASHBOARD_RECENT_FOUNDERS_LIMIT = 6;
+    private static final int DASHBOARD_RECENT_PROJECT_POOL_SIZE = 24;
+    private static final int DASHBOARD_RECENT_SPONSORS_LIMIT = 5;
+    private static final int DASHBOARD_RECENT_DONATIONS_POOL_SIZE = 24;
 
     private final ProjectRepository projectRepository;
     private final DonationRepository donationRepository;
@@ -49,7 +56,7 @@ public class DashboardServiceImpl implements DashboardService {
 
         List<ProjectEntity> recentProjectsSource = projectRepository.findByStatusIn(
                 DASHBOARD_STATUSES,
-                PageRequest.of(0, 6, Sort.by(Sort.Direction.DESC, "createdAt"))
+                PageRequest.of(0, DASHBOARD_RECENT_PROJECT_POOL_SIZE, Sort.by(Sort.Direction.DESC, "createdAt"))
         );
 
         List<DonationEntity> dashboardDonations = donationRepository.findAllSucceededForDashboard(
@@ -67,6 +74,7 @@ public class DashboardServiceImpl implements DashboardService {
         response.setMonthlyRaised(buildMonthlySeries(dashboardDonations));
         response.setTopProjects(buildTopProjects(topProjectsSource));
         response.setRecentFounders(buildRecentFounders(recentProjectsSource));
+        response.setRecentSponsors(buildRecentSponsors());
         return response;
     }
 
@@ -140,17 +148,60 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     private List<DashboardFounderResponse> buildRecentFounders(List<ProjectEntity> projects) {
-        return projects.stream()
-                .map(project -> {
-                    DashboardFounderResponse founder = new DashboardFounderResponse();
-                    founder.setAuthorId(project.getAuthor().getId());
-                    founder.setAuthorDisplayName(project.getAuthor().getDisplayName());
-                    founder.setProjectTitle(project.getTitle());
-                    founder.setCategoryTitle(project.getCategory() != null ? project.getCategory().getTitle() : "General");
-                    founder.setCreatedAt(project.getCreatedAt());
-                    return founder;
-                })
-                .toList();
+        Map<java.util.UUID, DashboardFounderResponse> uniqueFounders = new LinkedHashMap<>();
+
+        for (ProjectEntity project : projects) {
+            java.util.UUID authorId = project.getAuthor().getId();
+            if (uniqueFounders.containsKey(authorId)) {
+                continue;
+            }
+
+            DashboardFounderResponse founder = new DashboardFounderResponse();
+            founder.setAuthorId(authorId);
+            founder.setAuthorDisplayName(project.getAuthor().getDisplayName());
+            founder.setProjectTitle(project.getTitle());
+            founder.setCategoryTitle(project.getCategory() != null ? project.getCategory().getTitle() : "General");
+            founder.setCreatedAt(project.getCreatedAt());
+            founder.setHasAvatar(project.getAuthor().getAvatarContentType() != null && !project.getAuthor().getAvatarContentType().isBlank());
+            uniqueFounders.put(authorId, founder);
+
+            if (uniqueFounders.size() >= DASHBOARD_RECENT_FOUNDERS_LIMIT) {
+                break;
+            }
+        }
+
+        return new ArrayList<>(uniqueFounders.values());
+    }
+
+    private List<DashboardSponsorResponse> buildRecentSponsors() {
+        List<DonationEntity> donations = donationRepository.findRecentPublicSponsorDonations(
+                DonationStatus.SUCCEEDED,
+                DASHBOARD_STATUSES,
+                UserStatus.ACTIVE,
+                RoleCode.SPONSOR,
+                PageRequest.of(0, DASHBOARD_RECENT_DONATIONS_POOL_SIZE)
+        );
+
+        Map<java.util.UUID, DashboardSponsorResponse> uniqueSponsors = new LinkedHashMap<>();
+        for (DonationEntity donation : donations) {
+            java.util.UUID sponsorId = donation.getSponsor().getId();
+            if (uniqueSponsors.containsKey(sponsorId)) {
+                continue;
+            }
+
+            DashboardSponsorResponse sponsor = new DashboardSponsorResponse();
+            sponsor.setSponsorId(sponsorId);
+            sponsor.setSponsorDisplayName(donation.getSponsor().getDisplayName());
+            sponsor.setSupportedAt(donation.getConfirmedAt() != null ? donation.getConfirmedAt() : donation.getCreatedAt());
+            sponsor.setHasAvatar(donation.getSponsor().getAvatarContentType() != null && !donation.getSponsor().getAvatarContentType().isBlank());
+            uniqueSponsors.put(sponsorId, sponsor);
+
+            if (uniqueSponsors.size() >= DASHBOARD_RECENT_SPONSORS_LIMIT) {
+                break;
+            }
+        }
+
+        return new ArrayList<>(uniqueSponsors.values());
     }
 
     private BigDecimal defaultAmount(BigDecimal amount) {

@@ -10,6 +10,7 @@ public class DashboardFounderResponse {
     private String projectTitle;
     private String categoryTitle;
     private OffsetDateTime createdAt;
+    private boolean hasAvatar;
 
     public UUID getAuthorId() {
         return authorId;
@@ -49,5 +50,13 @@ public class DashboardFounderResponse {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isHasAvatar() {
+        return hasAvatar;
+    }
+
+    public void setHasAvatar(boolean hasAvatar) {
+        this.hasAvatar = hasAvatar;
     }
 }

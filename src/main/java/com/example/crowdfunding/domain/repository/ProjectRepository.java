@@ -37,11 +37,13 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
             where p.status in :statuses
               and (:q is null or :q = '' or lower(p.title) like lower(concat(:q, '%')))
               and (:categoryId is null or p.category.id = :categoryId)
+              and (:authorId is null or p.author.id = :authorId)
             """)
     Page<ProjectEntity> findPublicCatalog(
             Collection<ProjectStatus> statuses,
             String q,
             Long categoryId,
+            UUID authorId,
             Pageable pageable
     );
 
@@ -66,7 +68,8 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
                         a.displayName,
                         count(p.id),
                         coalesce(sum(p.collectedAmount), 0),
-                        max(p.createdAt)
+                        max(p.createdAt),
+                        case when a.avatarContentType is not null and a.avatarContentType <> '' then true else false end
                     )
                     from ProjectEntity p
                     join p.author a
@@ -95,6 +98,23 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
             RoleCode roleCode,
             String q,
             Pageable pageable
+    );
+
+    @Query("""
+            select count(p.id) > 0
+            from ProjectEntity p
+            join p.author a
+            join a.roles r
+            where a.id = :authorId
+              and p.status in :statuses
+              and a.status = :userStatus
+              and r.code = :roleCode
+            """)
+    boolean existsPublicFounder(
+            UUID authorId,
+            Collection<ProjectStatus> statuses,
+            UserStatus userStatus,
+            RoleCode roleCode
     );
 
     @Query("select min(p.createdAt) from ProjectEntity p")

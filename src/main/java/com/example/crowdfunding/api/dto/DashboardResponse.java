@@ -13,6 +13,7 @@ public class DashboardResponse {
     private List<DashboardMonthlyPointResponse> monthlyRaised = new ArrayList<>();
     private List<DashboardProjectRowResponse> topProjects = new ArrayList<>();
     private List<DashboardFounderResponse> recentFounders = new ArrayList<>();
+    private List<DashboardSponsorResponse> recentSponsors = new ArrayList<>();
 
     public BigDecimal getTotalRaised() {
         return totalRaised;
@@ -68,5 +69,13 @@ public class DashboardResponse {
 
     public void setRecentFounders(List<DashboardFounderResponse> recentFounders) {
         this.recentFounders = recentFounders;
+    }
+
+    public List<DashboardSponsorResponse> getRecentSponsors() {
+        return recentSponsors;
+    }
+
+    public void setRecentSponsors(List<DashboardSponsorResponse> recentSponsors) {
+        this.recentSponsors = recentSponsors;
     }
 }

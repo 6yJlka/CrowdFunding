@@ -11,17 +11,20 @@ public class PublicFounderResponse {
     private long projectsCount;
     private BigDecimal totalRaised;
     private OffsetDateTime latestProjectCreatedAt;
+    private boolean hasAvatar;
 
     public PublicFounderResponse(UUID authorId,
                                  String authorDisplayName,
                                  long projectsCount,
                                  BigDecimal totalRaised,
-                                 OffsetDateTime latestProjectCreatedAt) {
+                                 OffsetDateTime latestProjectCreatedAt,
+                                 boolean hasAvatar) {
         this.authorId = authorId;
         this.authorDisplayName = authorDisplayName;
         this.projectsCount = projectsCount;
         this.totalRaised = totalRaised;
         this.latestProjectCreatedAt = latestProjectCreatedAt;
+        this.hasAvatar = hasAvatar;
     }
 
     public UUID getAuthorId() {
@@ -42,5 +45,9 @@ public class PublicFounderResponse {
 
     public String getAuthorDisplayName() {
         return authorDisplayName;
+    }
+
+    public boolean isHasAvatar() {
+        return hasAvatar;
     }
 }

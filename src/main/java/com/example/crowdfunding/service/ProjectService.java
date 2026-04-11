@@ -22,6 +22,8 @@ public interface ProjectService {
 
     Page<ProjectEntity> getCatalog(String q, Long categoryId, com.example.crowdfunding.domain.enums.ProjectStatus status, Pageable pageable);
 
+    Page<ProjectEntity> getCatalog(String q, Long categoryId, UUID authorId, com.example.crowdfunding.domain.enums.ProjectStatus status, Pageable pageable);
+
     Page<ProjectEntity> getAuthorProjects(UUID authorId, Pageable pageable);
 
     Page<ProjectEntity> getProjectsByStatus(com.example.crowdfunding.domain.enums.ProjectStatus status, Pageable pageable);

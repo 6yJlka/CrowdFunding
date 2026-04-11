@@ -86,12 +86,17 @@ function renderFoundersPage(items) {
     }
 
     grid.innerHTML = items.map((founder) => `
-        <article class="project-card sponsor-card">
+        <article class="project-card sponsor-card founder-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeFoundersHtml(foundersT("founders.label", "Founder"))}</span>
                 <span class="meta-pill">${escapeFoundersHtml(formatFoundersDate(founder.latestProjectCreatedAt))}</span>
             </div>
-            <h4>${escapeFoundersHtml(founder.authorDisplayName ?? foundersT("app.unknown", "Unknown"))}</h4>
+            <div class="founder-card-identity">
+                ${renderFounderAvatar(founder)}
+                <div class="founder-card-copy">
+                    <h4>${escapeFoundersHtml(founder.authorDisplayName ?? foundersT("app.unknown", "Unknown"))}</h4>
+                </div>
+            </div>
             <div class="modal-metrics sponsor-metrics">
                 <div class="metric-box">
                     <span>${foundersT("founders.projects", "Projects")}</span>
@@ -104,6 +109,14 @@ function renderFoundersPage(items) {
             </div>
         </article>
     `).join("");
+}
+
+function renderFounderAvatar(founder) {
+    const name = founder.authorDisplayName ?? foundersT("app.unknown", "Unknown");
+    if (founder.hasAvatar && founder.authorId) {
+        return `<img class="founder-card-avatar" src="/api/showcase/founders/${encodeURIComponent(founder.authorId)}/avatar" alt="${escapeFoundersHtml(name)}">`;
+    }
+    return `<span class="founder-card-avatar founder-card-avatar-fallback">${escapeFoundersHtml(getFounderInitials(name))}</span>`;
 }
 
 function updateFoundersPagination() {
@@ -161,6 +174,15 @@ function escapeFoundersHtml(value) {
 
 function foundersT(key, fallback) {
     return foundersI18n?.t(key) ?? fallback;
+}
+
+function getFounderInitials(name) {
+    return String(name || "F")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("") || "F";
 }
 
 function resolveFoundersLocale() {

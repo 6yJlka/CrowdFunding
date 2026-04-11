@@ -1,5 +1,6 @@
 const SHELL_AUTH_KEY = "crowdfunding_auth";
 const SHELL_I18N = window.AppI18n;
+let shellAvatarObjectUrl = "";
 
 document.addEventListener("DOMContentLoaded", () => {
     mountShell();
@@ -44,20 +45,22 @@ async function mountShell() {
         }
 
         const user = await response.json();
-    const normalizedRoles = normalizeRoles(user.roles);
-    const displayName = (user.email || "authorized").split("@")[0];
-    const roleLabel = normalizedRoles.length ? normalizedRoles.map(prettyRole).join(", ") : shellT("shell.profile", "User");
-    const hideProfileLink = normalizedRoles.includes("ADMIN") || normalizedRoles.includes("SPONSOR");
-    const profileHref = resolveProfileHref(normalizedRoles);
-    const primaryNav = resolvePrimaryNav(normalizedRoles);
+        const normalizedRoles = normalizeRoles(user.roles);
+        const displayName = user.displayName || (user.email || "authorized").split("@")[0];
+        const roleLabel = normalizedRoles.length ? normalizedRoles.map(prettyRole).join(", ") : shellT("shell.profile", "User");
+        const hideProfileLink = normalizedRoles.includes("ADMIN") || normalizedRoles.includes("SPONSOR");
+        const profileHref = resolveProfileHref(normalizedRoles);
+        const primaryNav = resolvePrimaryNav(normalizedRoles);
+        const avatarUrl = await loadShellAvatar(auth, Boolean(user.hasAvatar));
 
-    host.innerHTML = buildShellMarkup({
-        loggedIn: true,
-        hideProfileLink,
-        displayName,
-        roleLabel,
-        profileHref,
-        primaryHref: primaryNav.href,
+        host.innerHTML = buildShellMarkup({
+            loggedIn: true,
+            hideProfileLink,
+            displayName,
+            roleLabel,
+            profileHref,
+            avatarUrl,
+            primaryHref: primaryNav.href,
             primaryLabel: primaryNav.label
         });
 
@@ -68,6 +71,7 @@ async function mountShell() {
         if (error?.message === "AUTH_EXPIRED") {
             localStorage.removeItem(SHELL_AUTH_KEY);
         }
+        clearShellAvatarUrl();
         host.innerHTML = buildShellMarkup({
             loggedIn: false,
             hideProfileLink: false,
@@ -83,7 +87,7 @@ async function mountShell() {
     }
 }
 
-function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleLabel, profileHref, primaryHref, primaryLabel}) {
+function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleLabel, profileHref, avatarUrl = "", primaryHref, primaryLabel}) {
     const profileLabel = resolveProfileLabel(profileHref);
     const navLinks = [
         shellLink("/", shellT("shell.dashboard", "Dashboard")),
@@ -115,7 +119,7 @@ function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleL
             </div>
             <details class="shell-user-menu">
                 <summary class="shell-user-summary">
-                    <span class="shell-user-avatar">${getShellInitials(displayName)}</span>
+                    ${renderShellAvatar(displayName, avatarUrl)}
                     <span class="shell-user-copy">
                         <strong>${escapeShellHtml(displayName)}</strong>
                         <small>${escapeShellHtml(roleLabel)}</small>
@@ -135,6 +139,45 @@ function shellLink(href, label) {
 
 function shellMenuLink(href, label) {
     return `<a class="shell-menu-btn" href="${href}">${label}</a>`;
+}
+
+async function loadShellAvatar(auth, hasAvatar) {
+    clearShellAvatarUrl();
+    if (!hasAvatar) {
+        return "";
+    }
+
+    try {
+        const response = await fetch("/api/me/avatar", {
+            headers: {
+                "Authorization": `${auth.tokenType || "Bearer"} ${auth.accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            return "";
+        }
+
+        const blob = await response.blob();
+        shellAvatarObjectUrl = URL.createObjectURL(blob);
+        return shellAvatarObjectUrl;
+    } catch {
+        return "";
+    }
+}
+
+function clearShellAvatarUrl() {
+    if (shellAvatarObjectUrl) {
+        URL.revokeObjectURL(shellAvatarObjectUrl);
+        shellAvatarObjectUrl = "";
+    }
+}
+
+function renderShellAvatar(displayName, avatarUrl) {
+    if (avatarUrl) {
+        return `<img class="shell-user-avatar shell-user-avatar-image" src="${avatarUrl}" alt="${escapeShellHtml(displayName)}">`;
+    }
+    return `<span class="shell-user-avatar">${getShellInitials(displayName)}</span>`;
 }
 
 function wireShellEvents(loggedIn) {

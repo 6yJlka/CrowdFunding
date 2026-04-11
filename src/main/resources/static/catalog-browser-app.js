@@ -1,6 +1,7 @@
 const catalogPageState = {
     query: "",
     categoryId: "",
+    authorId: "",
     sort: "createdAt,desc",
     page: 0,
     size: 9,
@@ -60,6 +61,7 @@ function hydrateCatalogStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     catalogPageState.query = params.get("q")?.trim() ?? "";
     catalogPageState.categoryId = params.get("categoryId") ?? "";
+    catalogPageState.authorId = params.get("authorId") ?? "";
     catalogPageState.sort = params.get("sort") ?? "createdAt,desc";
     catalogPageState.page = Math.max(Number(params.get("page") ?? "0"), 0);
 
@@ -178,6 +180,9 @@ async function loadCatalogPageProjects() {
     }
     if (catalogPageState.categoryId) {
         url.searchParams.set("categoryId", catalogPageState.categoryId);
+    }
+    if (catalogPageState.authorId) {
+        url.searchParams.set("authorId", catalogPageState.authorId);
     }
 
     const response = await fetch(url);
@@ -363,6 +368,12 @@ function syncCatalogUrl() {
         params.set("categoryId", catalogPageState.categoryId);
     } else {
         params.delete("categoryId");
+    }
+
+    if (catalogPageState.authorId) {
+        params.set("authorId", catalogPageState.authorId);
+    } else {
+        params.delete("authorId");
     }
 
     if (catalogPageState.sort !== "createdAt,desc") {

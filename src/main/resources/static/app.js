@@ -3,6 +3,7 @@ const appI18n = window.AppI18n;
 let catalogQuery = "";
 let currentTopProjects = [];
 let currentFounders = [];
+let currentSponsors = [];
 let currentDashboardData = null;
 let currentCatalogProjects = [];
 let currentModalProject = null;
@@ -31,6 +32,7 @@ async function loadDashboard() {
         currentDashboardData = data;
         currentTopProjects = data.topProjects ?? [];
         currentFounders = data.recentFounders ?? [];
+        currentSponsors = data.recentSponsors ?? [];
         renderDashboard(data);
         await loadCatalog();
     } catch (error) {
@@ -45,7 +47,7 @@ function renderDashboard(data) {
     setText("funded-projects", `${data.fundedProjects ?? 0}`);
 
     renderCategoryTags(currentCatalogProjects);
-    renderFounderAvatars(currentFounders);
+    renderSponsorAvatars(currentSponsors, Number(data.totalBackers ?? 0));
     renderChart(data.monthlyRaised ?? []);
     renderTopProjects(currentTopProjects);
     renderFounders(currentFounders);
@@ -72,13 +74,24 @@ function renderCategoryTags(projects) {
         : `<span>${appT("app.noData", "No data")}</span>`;
 }
 
-function renderFounderAvatars(founders) {
+function renderSponsorAvatars(sponsors, totalBackers = sponsors.length) {
     const container = document.getElementById("founder-avatars");
-    container.innerHTML = founders.length
-        ? founders.slice(0, 5).map((founder, index) => `
-            <span class="founder-badge" data-founder-index="${index}" title="${escapeHtml(founder.authorDisplayName)}">${getInitials(founder.authorDisplayName)}</span>
-        `).join("")
-        : "<span>--</span>";
+    if (!sponsors.length) {
+        container.innerHTML = "<span>--</span>";
+        return;
+    }
+
+    const visibleSponsors = sponsors.slice(0, 5);
+    const remainingCount = Math.max(totalBackers - visibleSponsors.length, 0);
+
+    container.innerHTML = `
+        ${visibleSponsors.map((sponsor, index) => `
+            <span class="avatar-stack-item founder-badge" data-sponsor-index="${index}" title="${escapeHtml(sponsor.sponsorDisplayName)}">
+                ${renderDashboardSponsorAvatar(sponsor)}
+            </span>
+        `).join("")}
+        ${remainingCount > 0 ? `<span class="avatar-stack-item founder-badge founder-badge-more" title="${escapeHtml(`More sponsors: ${remainingCount}`)}">+${remainingCount}</span>` : ""}
+    `;
 }
 
 function renderChart(points) {
@@ -170,17 +183,31 @@ function renderTopProjects(projects) {
 
 function renderFounders(founders) {
     const grid = document.getElementById("founders-grid");
-    const avatarThemes = ["cyan", "amber", "green", "coral", "blue", "violet"];
 
     grid.innerHTML = founders.length
-        ? founders.map((founder, index) => `
-            <a class="investor-card founder-link" href="/founders.html?q=${encodeURIComponent(founder.authorDisplayName ?? "")}" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
-                <span class="investor-avatar ${avatarThemes[index % avatarThemes.length]}">${getInitials(founder.authorDisplayName)}</span>
+        ? founders.map((founder) => `
+            <a class="investor-card founder-link" href="/projects.html?authorId=${encodeURIComponent(founder.authorId ?? "")}" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
+                ${renderDashboardFounderAvatar(founder, "investor-avatar investor-avatar-image", "investor-avatar investor-avatar-fallback")}
                 <strong>${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
-                <p>${escapeHtml(founder.projectTitle ?? appT("app.noProject", "No project"))}</p>
             </a>
         `).join("")
         : `<article class="investor-card"><strong>${appT("app.noFounders", "No founders yet")}</strong><p>${appT("app.createProjectHint", "Create a project to populate this block.")}</p></article>`;
+}
+
+function renderDashboardFounderAvatar(founder, imageClassName, fallbackClassName) {
+    const displayName = founder.authorDisplayName ?? appT("app.unknown", "Unknown");
+    if (founder.hasAvatar && founder.authorId) {
+        return `<img class="${imageClassName}" src="/api/showcase/founders/${encodeURIComponent(founder.authorId)}/avatar" alt="${escapeHtml(displayName)}">`;
+    }
+    return `<span class="${fallbackClassName}">${getInitials(displayName)}</span>`;
+}
+
+function renderDashboardSponsorAvatar(sponsor) {
+    const displayName = sponsor.sponsorDisplayName ?? appT("app.unknown", "Unknown");
+    if (sponsor.hasAvatar && sponsor.sponsorId) {
+        return `<img class="founder-badge-image" src="/api/showcase/sponsors/${encodeURIComponent(sponsor.sponsorId)}/avatar" alt="${escapeHtml(displayName)}">`;
+    }
+    return `<span class="founder-badge-fallback">${getInitials(displayName)}</span>`;
 }
 
 async function loadCatalog(query = catalogQuery) {
@@ -522,11 +549,11 @@ function wireStaticActions() {
     });
 
     document.getElementById("founder-avatars").addEventListener("click", (event) => {
-        const founder = event.target.closest("[data-founder-index]");
-        if (!founder) {
+        const sponsor = event.target.closest("[data-sponsor-index]");
+        if (!sponsor) {
             return;
         }
-        document.getElementById("new-founders").scrollIntoView({behavior: "smooth", block: "start"});
+        window.location.href = "/sponsors.html";
     });
 
     document.getElementById("modal-close").addEventListener("click", closeProjectModal);
