@@ -98,7 +98,8 @@ public interface DonationRepository extends JpaRepository<DonationEntity, UUID> 
                         s.displayName,
                         count(distinct p.id),
                         coalesce(sum(d.amount), 0),
-                        max(coalesce(d.confirmedAt, d.createdAt))
+                        max(coalesce(d.confirmedAt, d.createdAt)),
+                        (s.avatarContentType is not null and s.avatarContentType <> '')
                     )
                     from DonationEntity d
                     join d.sponsor s
@@ -108,7 +109,7 @@ public interface DonationRepository extends JpaRepository<DonationEntity, UUID> 
                       and s.status = :userStatus
                       and r.code = :roleCode
                       and (:q is null or :q = '' or lower(s.displayName) like lower(concat('%', :q, '%')))
-                    group by s.id, s.displayName
+                    group by s.id, s.displayName, s.avatarContentType
                     order by coalesce(sum(d.amount), 0) desc, max(coalesce(d.confirmedAt, d.createdAt)) desc
                     """,
             countQuery = """

@@ -22,7 +22,12 @@ function hydrateSponsorsState() {
 }
 
 function wireSponsorsEvents() {
+    const runSponsorsSearchDebounced = debounce(submitSponsorsSearch, 250);
+
     document.getElementById("sponsors-search-btn").addEventListener("click", submitSponsorsSearch);
+    document.getElementById("sponsors-search").addEventListener("input", () => {
+        runSponsorsSearchDebounced();
+    });
     document.getElementById("sponsors-search").addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
             submitSponsorsSearch();
@@ -81,12 +86,17 @@ function renderSponsors(items) {
     }
 
     grid.innerHTML = items.map((sponsor) => `
-        <article class="project-card sponsor-card">
+        <article class="project-card sponsor-card founder-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeSponsorsHtml(sponsorsT("sponsors.label", "Sponsor"))}</span>
                 <span class="meta-pill">${escapeSponsorsHtml(formatSponsorsDate(sponsor.lastSupportedAt))}</span>
             </div>
-            <h4>${escapeSponsorsHtml(sponsor.sponsorDisplayName ?? sponsorsT("app.unknown", "Unknown"))}</h4>
+            <div class="founder-card-identity">
+                ${renderSponsorAvatar(sponsor)}
+                <div class="founder-card-copy">
+                    <h4>${escapeSponsorsHtml(sponsor.sponsorDisplayName ?? sponsorsT("app.unknown", "Unknown"))}</h4>
+                </div>
+            </div>
             <div class="modal-metrics sponsor-metrics">
                 <div class="metric-box">
                     <span>${sponsorsT("sponsors.totalAmount", "Total support")}</span>
@@ -99,6 +109,14 @@ function renderSponsors(items) {
             </div>
         </article>
     `).join("");
+}
+
+function renderSponsorAvatar(sponsor) {
+    const name = sponsor.sponsorDisplayName ?? sponsorsT("app.unknown", "Unknown");
+    if (sponsor.hasAvatar && sponsor.sponsorId) {
+        return `<img class="founder-card-avatar" src="/api/showcase/sponsors/${encodeURIComponent(sponsor.sponsorId)}/avatar" alt="${escapeSponsorsHtml(name)}">`;
+    }
+    return `<span class="founder-card-avatar founder-card-avatar-fallback">${escapeSponsorsHtml(getSponsorInitials(name))}</span>`;
 }
 
 function updateSponsorsPagination() {
@@ -158,6 +176,23 @@ function sponsorsT(key, fallback) {
     return sponsorsI18n?.t(key) ?? fallback;
 }
 
+function getSponsorInitials(name) {
+    return String(name || "S")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("") || "S";
+}
+
 function resolveSponsorsLocale() {
     return sponsorsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+function debounce(callback, delayMs) {
+    let timeoutId;
+    return (...args) => {
+        window.clearTimeout(timeoutId);
+        timeoutId = window.setTimeout(() => callback(...args), delayMs);
+    };
 }

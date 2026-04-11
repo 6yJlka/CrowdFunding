@@ -1439,6 +1439,18 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "index.stats.dashboard": "Успешный кейс"
 });
 
+Object.assign(I18N_TRANSLATIONS.en, {
+    "shell.theme.label": "Theme",
+    "shell.theme.light": "Light",
+    "shell.theme.dark": "Dark"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "shell.theme.label": "Тема",
+    "shell.theme.light": "Светлая",
+    "shell.theme.dark": "Темная"
+});
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {

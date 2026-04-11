@@ -130,7 +130,7 @@ function buildAnalyticsChartLabels(points) {
     const step = Math.max(1, Math.ceil(points.length / 8));
     return points.map((pointItem, index) => {
         const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
-        return `<span>${shouldShow ? escapeAnalyticsHtml(pointItem.label) : ""}</span>`;
+        return `<span>${shouldShow ? escapeAnalyticsHtml(localizeAnalyticsChartAxisLabel(pointItem.label)) : ""}</span>`;
     }).join("");
 }
 
@@ -160,6 +160,17 @@ function formatAnalyticsChartRangeBadge(label) {
     return yearToken
         ? `${analyticsT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
         : `${analyticsT("index.chart.since", "С")} ${localizedMonth}`;
+}
+
+function localizeAnalyticsChartAxisLabel(label) {
+    const value = String(label ?? "").trim();
+    if ((analyticsI18n?.getLang?.() ?? "en") !== "ru") {
+        return value;
+    }
+
+    const [monthToken, yearToken] = value.split(/\s+/, 2);
+    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
+    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
 }
 
 function formatAnalyticsMoney(value) {
@@ -195,6 +206,21 @@ function analyticsT(key, fallback) {
 function resolveAnalyticsLocale() {
     return analyticsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }
+
+const ANALYTICS_CHART_MONTH_LABELS_RU = {
+    Jan: "Янв",
+    Feb: "Фев",
+    Mar: "Мар",
+    Apr: "Апр",
+    May: "Май",
+    Jun: "Июн",
+    Jul: "Июл",
+    Aug: "Авг",
+    Sep: "Сен",
+    Oct: "Окт",
+    Nov: "Ноя",
+    Dec: "Дек"
+};
 
 function positionAnalyticsCallout(callout, pointX, pointY, svgWidth, svgHeight) {
     const chartNode = callout.parentElement;

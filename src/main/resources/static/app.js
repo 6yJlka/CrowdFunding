@@ -408,7 +408,7 @@ function buildChartLabels(points) {
     const step = Math.max(1, Math.ceil(points.length / 8));
     return points.map((pointItem, index) => {
         const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
-        return `<span>${shouldShow ? escapeHtml(pointItem.label) : ""}</span>`;
+        return `<span>${shouldShow ? escapeHtml(localizeChartAxisLabel(pointItem.label)) : ""}</span>`;
     }).join("");
 }
 
@@ -438,6 +438,17 @@ function formatChartRangeBadge(label) {
     return yearToken
         ? `${appT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
         : `${appT("index.chart.since", "С")} ${localizedMonth}`;
+}
+
+function localizeChartAxisLabel(label) {
+    const value = String(label ?? "").trim();
+    if ((appI18n?.getLang?.() ?? "en") !== "ru") {
+        return value;
+    }
+
+    const [monthToken, yearToken] = value.split(/\s+/, 2);
+    const localizedMonth = CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
+    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
 }
 
 function getProgress(collectedAmount, goalAmount) {
@@ -655,6 +666,21 @@ const APP_CATEGORY_TRANSLATION_KEYS = {
     "education": "category.education",
     "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
     "charity": "category.charity"
+};
+
+const CHART_MONTH_LABELS_RU = {
+    Jan: "Янв",
+    Feb: "Фев",
+    Mar: "Мар",
+    Apr: "Апр",
+    May: "Май",
+    Jun: "Июн",
+    Jul: "Июл",
+    Aug: "Авг",
+    Sep: "Сен",
+    Oct: "Окт",
+    Nov: "Ноя",
+    Dec: "Дек"
 };
 function positionChartCallout(callout, pointX, pointY, svgWidth, svgHeight) {
     const chartNode = callout.parentElement;

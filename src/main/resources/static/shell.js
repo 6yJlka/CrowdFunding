@@ -1,6 +1,9 @@
 const SHELL_AUTH_KEY = "crowdfunding_auth";
 const SHELL_I18N = window.AppI18n;
+const SHELL_THEME_KEY = "riseup_theme";
 let shellAvatarObjectUrl = "";
+
+applyShellTheme(readShellTheme());
 
 document.addEventListener("DOMContentLoaded", () => {
     mountShell();
@@ -113,9 +116,15 @@ function buildShellMarkup({loggedIn, hideProfileLink = false, displayName, roleL
             <nav class="shell-nav">
                 ${navLinks}
             </nav>
-            <div class="shell-lang">
-                <button class="shell-lang-btn ${shellActiveLangClass("en")}" type="button" data-lang-switch="en">EN</button>
-                <button class="shell-lang-btn ${shellActiveLangClass("ru")}" type="button" data-lang-switch="ru">RU</button>
+            <div class="shell-controls">
+                <div class="shell-theme" aria-label="${shellT("shell.theme.label", "Theme")}">
+                    <button class="shell-theme-btn ${shellActiveThemeClass("light")}" type="button" data-theme-switch="light">${shellT("shell.theme.light", "Light")}</button>
+                    <button class="shell-theme-btn ${shellActiveThemeClass("dark")}" type="button" data-theme-switch="dark">${shellT("shell.theme.dark", "Dark")}</button>
+                </div>
+                <div class="shell-lang">
+                    <button class="shell-lang-btn ${shellActiveLangClass("en")}" type="button" data-lang-switch="en">EN</button>
+                    <button class="shell-lang-btn ${shellActiveLangClass("ru")}" type="button" data-lang-switch="ru">RU</button>
+                </div>
             </div>
             <details class="shell-user-menu">
                 <summary class="shell-user-summary">
@@ -195,6 +204,20 @@ function wireShellEvents(loggedIn) {
             SHELL_I18N?.setLang(lang);
         });
     });
+
+    document.querySelectorAll("[data-theme-switch]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const theme = button.getAttribute("data-theme-switch");
+            applyShellTheme(theme);
+            try {
+                localStorage.setItem(SHELL_THEME_KEY, theme === "dark" ? "dark" : "light");
+            } catch {
+                return;
+            } finally {
+                mountShell();
+            }
+        });
+    });
 }
 
 function markActiveShellLink() {
@@ -218,6 +241,26 @@ function readShellAuth() {
     } catch {
         return null;
     }
+}
+
+function readShellTheme() {
+    try {
+        const stored = localStorage.getItem(SHELL_THEME_KEY);
+        if (stored === "light" || stored === "dark") {
+            return stored;
+        }
+    } catch {
+        return resolvePreferredTheme();
+    }
+    return resolvePreferredTheme();
+}
+
+function resolvePreferredTheme() {
+    return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+}
+
+function applyShellTheme(theme) {
+    document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
 }
 
 function normalizeRoles(roles) {
@@ -296,4 +339,8 @@ function shellT(key, fallback) {
 
 function shellActiveLangClass(lang) {
     return (SHELL_I18N?.getLang() ?? "en") === lang ? "active" : "";
+}
+
+function shellActiveThemeClass(theme) {
+    return readShellTheme() === theme ? "active" : "";
 }

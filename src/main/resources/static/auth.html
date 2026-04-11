@@ -183,6 +183,69 @@
             line-height: 1.5;
         }
 
+        html[data-theme="dark"] .auth-panel {
+            background:
+                linear-gradient(180deg, rgba(139, 127, 255, 0.08), rgba(16, 26, 45, 0.98)),
+                var(--bg-white);
+            border-left-color: rgba(139, 127, 255, 0.14);
+        }
+
+        html[data-theme="dark"] .auth-panel-header h2 {
+            color: #eef4ff;
+        }
+
+        html[data-theme="dark"] .auth-panel-header p,
+        html[data-theme="dark"] .auth-footer-note {
+            color: #9fb1cf;
+        }
+
+        html[data-theme="dark"] .auth-tabs {
+            background: rgba(9, 17, 31, 0.72);
+            border: 1px solid rgba(139, 127, 255, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        html[data-theme="dark"] .auth-tab {
+            color: #93a6c6;
+        }
+
+        html[data-theme="dark"] .auth-tab.active {
+            background: rgba(139, 127, 255, 0.16);
+            color: #f3f7ff;
+            box-shadow: none;
+        }
+
+        html[data-theme="dark"] .auth-form label span {
+            color: #c7d5ea;
+        }
+
+        html[data-theme="dark"] .auth-form input,
+        html[data-theme="dark"] .auth-form select {
+            background: rgba(9, 17, 31, 0.68);
+            border-color: rgba(139, 127, 255, 0.18);
+            color: #eef4ff;
+        }
+
+        html[data-theme="dark"] .auth-form input::placeholder {
+            color: #7287ab;
+        }
+
+        html[data-theme="dark"] .auth-form input:-webkit-autofill,
+        html[data-theme="dark"] .auth-form input:-webkit-autofill:hover,
+        html[data-theme="dark"] .auth-form input:-webkit-autofill:focus {
+            -webkit-text-fill-color: #eef4ff;
+            -webkit-box-shadow: 0 0 0 1000px rgba(9, 17, 31, 0.92) inset;
+            transition: background-color 9999s ease-in-out 0s;
+        }
+
+        html[data-theme="dark"] .auth-submit {
+            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.28);
+        }
+
+        html[data-theme="dark"] .auth-status {
+            color: #c7d5ea;
+        }
+
         /* Responsive */
         @media (max-width: 900px) {
             .auth-layout { grid-template-columns: 1fr; }

@@ -11,17 +11,20 @@ public class PublicSponsorResponse {
     private long supportedProjects;
     private BigDecimal totalAmount;
     private OffsetDateTime lastSupportedAt;
+    private boolean hasAvatar;
 
     public PublicSponsorResponse(UUID sponsorId,
                                  String sponsorDisplayName,
                                  long supportedProjects,
                                  BigDecimal totalAmount,
-                                 OffsetDateTime lastSupportedAt) {
+                                 OffsetDateTime lastSupportedAt,
+                                 boolean hasAvatar) {
         this.sponsorId = sponsorId;
         this.sponsorDisplayName = sponsorDisplayName;
         this.supportedProjects = supportedProjects;
         this.totalAmount = totalAmount;
         this.lastSupportedAt = lastSupportedAt;
+        this.hasAvatar = hasAvatar;
     }
 
     public UUID getSponsorId() {
@@ -42,5 +45,9 @@ public class PublicSponsorResponse {
 
     public OffsetDateTime getLastSupportedAt() {
         return lastSupportedAt;
+    }
+
+    public boolean isHasAvatar() {
+        return hasAvatar;
     }
 }
