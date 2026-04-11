@@ -78,8 +78,8 @@ const I18N_TRANSLATIONS = {
 
         "auth.title": "Auth | RiseUp",
         "auth.eyebrow": "RiseUp",
-        "auth.headline": "Launch projects and manage fundraising without Swagger.",
-        "auth.sub": "Register as an author to create campaigns or as a sponsor to access donor flows later.",
+        "auth.headline": "Launch ideas. Fund dreams.\nChange the world.",
+        "auth.sub": "Join as an author to create campaigns, or as a sponsor to support the best projects.",
         "auth.back": "Back to dashboard",
         "auth.tab.login": "Login",
         "auth.tab.register": "Register",
@@ -381,8 +381,8 @@ const I18N_TRANSLATIONS = {
 
         "auth.title": "Авторизация | RiseUp",
         "auth.eyebrow": "RiseUp",
-        "auth.headline": "Запускайте проекты и управляйте фандрайзингом без Swagger.",
-        "auth.sub": "Зарегистрируйтесь как автор для создания кампаний или как спонсор для поддержки проектов.",
+        "auth.headline": "Запустите идею.\nСоберите команду.\nИзмените мир.",
+        "auth.sub": "Создайте аккаунт автора для запуска кампаний или спонсора — чтобы поддерживать лучшие проекты.",
         "auth.back": "Назад на главную",
         "auth.tab.login": "Вход",
         "auth.tab.register": "Регистрация",

@@ -3,70 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auth | CrowdFunding</title>
+    <title>Вход | RiseUp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
+    <style>
+        /* ─── Auth page layout ─── */
+        body { overflow-x: hidden; }
+
+        .auth-layout {
+            align-items: stretch;
+            min-height: calc(100vh - 57px); /* subtract shell header */
+            padding: 0;
+            gap: 0;
+        }
+
+        /* ─── Hero (left) ─── */
+        .auth-hero {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 44px 40px;
+            min-height: 100%;
+            position: relative;
+        }
+
+        .auth-hero-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: rgba(255,255,255,0.75);
+            font-size: 0.86rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            transition: color 0.15s;
+            width: fit-content;
+        }
+
+        .auth-hero-back:hover { color: white; }
+
+        .auth-hero-back svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .auth-hero h1 {
+            font-size: clamp(2rem, 3.2vw, 2.9rem);
+            margin: 0 0 16px;
+            line-height: 1.1;
+            white-space: pre-line;
+        }
+
+        .auth-hero-sub {
+            display: block;
+            font-size: 0.96rem;
+            color: rgba(255,255,255,0.72);
+            line-height: 1.65;
+            max-width: 400px;
+            margin-bottom: 36px;
+        }
+
+        /* Features */
+        .auth-feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .auth-feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+        }
+
+        .auth-feature-icon {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.18);
+            font-size: 0.95rem;
+        }
+
+        .auth-feature-text strong {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .auth-feature-text span {
+            font-size: 0.80rem;
+            color: rgba(255,255,255,0.58);
+            line-height: 1.45;
+        }
+
+        /* Stats */
+        .auth-hero-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            padding-top: 28px;
+            border-top: 1px solid rgba(255,255,255,0.15);
+            margin-top: auto;
+        }
+
+        .auth-stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .auth-stat-item strong {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.04em;
+        }
+
+        .auth-stat-item span {
+            font-size: 0.76rem;
+            color: rgba(255,255,255,0.58);
+        }
+
+        .auth-stat-loading {
+            display: inline-block;
+            width: 48px;
+            height: 10px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.2);
+            animation: shimmer 1.4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 0.4; }
+            50%       { opacity: 0.8; }
+        }
+
+        /* ─── Panel (right) ─── */
+        .auth-panel {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 48px 52px;
+            background: #fafbff;
+            border-left: 1px solid var(--line);
+        }
+
+        .auth-panel-header { margin-bottom: 24px; }
+
+        .auth-panel-header h2 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.035em;
+            margin: 8px 0 6px;
+            color: var(--text);
+        }
+
+        .auth-panel-header p {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        /* Hide duplicated h2 inside forms (i18n sets it) */
+        .auth-form h2 { display: none; }
+
+        .auth-footer-note {
+            margin-top: 18px;
+            text-align: center;
+            font-size: 0.80rem;
+            color: var(--muted-2);
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .auth-layout { grid-template-columns: 1fr; }
+            .auth-hero {
+                min-height: auto;
+                padding: 32px 28px;
+                border-radius: 0;
+            }
+            .auth-panel {
+                padding: 32px 24px;
+                border-left: none;
+                border-top: 1px solid var(--line);
+            }
+        }
+    </style>
 </head>
 <body>
 <div id="site-shell"></div>
-<main class="auth-layout">
-    <section class="auth-hero">
-        <p class="eyebrow">CrowdFunding</p>
-        <h1>Launch projects and manage fundraising without Swagger.</h1>
-        <p class="modal-copy">Register as an author to create campaigns or as a sponsor to access donor flows later.</p>
-        <a class="ghost-btn" href="/">Back to dashboard</a>
-    </section>
 
-    <section class="auth-panel">
-        <div class="auth-tabs">
-            <button class="auth-tab active" type="button" data-tab="login">Login</button>
-            <button class="auth-tab" type="button" data-tab="register">Register</button>
+<main class="auth-layout">
+
+    <!-- ═══ LEFT: Hero ═══ -->
+    <section class="auth-hero">
+
+        <!-- Back link -->
+        <a class="auth-hero-back" href="/">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 12L6 8l4-4"/>
+            </svg>
+            <span data-i18n-key="auth.back">Назад на главную</span>
+        </a>
+
+        <!-- Headline + sub -->
+        <div>
+            <h1 data-i18n-key="auth.headline">Запустите идею.
+Соберите команду.
+Измените мир.</h1>
+            <span class="auth-hero-sub" data-i18n-key="auth.sub">
+                Создайте аккаунт автора, чтобы запускать кампании, или спонсора — чтобы поддерживать лучшие проекты.
+            </span>
+
+            <!-- Features -->
+            <div class="auth-feature-list">
+                <div class="auth-feature-item">
+                    <span class="auth-feature-icon">🚀</span>
+                    <div class="auth-feature-text">
+                        <strong>Запускайте кампании за минуты</strong>
+                        <span>Удобная форма создания проекта — без технических знаний.</span>
+                    </div>
+                </div>
+                <div class="auth-feature-item">
+                    <span class="auth-feature-icon">💰</span>
+                    <div class="auth-feature-text">
+                        <strong>Прозрачный сбор средств</strong>
+                        <span>Все донаты и статусы видны в реальном времени.</span>
+                    </div>
+                </div>
+                <div class="auth-feature-item">
+                    <span class="auth-feature-icon">🌍</span>
+                    <div class="auth-feature-text">
+                        <strong>Сообщество единомышленников</strong>
+                        <span>Тысячи авторов и спонсоров уже находят друг друга.</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Live stats from /api/dashboard -->
+        <div class="auth-hero-stats">
+            <div class="auth-stat-item">
+                <strong id="auth-stat-campaigns"><span class="auth-stat-loading"></span></strong>
+                <span>Активных кампаний</span>
+            </div>
+            <div class="auth-stat-item">
+                <strong id="auth-stat-raised"><span class="auth-stat-loading"></span></strong>
+                <span>Собрано всего</span>
+            </div>
+            <div class="auth-stat-item">
+                <strong id="auth-stat-backers"><span class="auth-stat-loading"></span></strong>
+                <span>Спонсоров</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ RIGHT: Auth panel ═══ -->
+    <section class="auth-panel">
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" type="button" data-tab="login">Вход</button>
+            <button class="auth-tab"        type="button" data-tab="register">Регистрация</button>
+        </div>
+
+        <!-- Login header -->
+        <div class="auth-panel-header" id="login-header">
+            <h2>С возвращением 👋</h2>
+            <p>Войдите в свой аккаунт, чтобы продолжить.</p>
+        </div>
+
+        <!-- Login form -->
         <form class="auth-form" id="login-form">
-            <h2>Welcome back</h2>
+            <h2>С возвращением</h2>
             <label>
                 <span>Email</span>
-                <input type="email" name="email" required>
+                <input type="email" name="email" placeholder="you@example.com" required>
             </label>
             <label>
-                <span>Password</span>
-                <input type="password" name="password" required>
+                <span>Пароль</span>
+                <input type="password" name="password" placeholder="••••••••" required>
             </label>
-            <button class="primary-btn auth-submit" type="submit">Login</button>
+            <button class="primary-btn auth-submit" type="submit">Войти</button>
         </form>
 
+        <!-- Register header -->
+        <div class="auth-panel-header hidden" id="register-header">
+            <h2>Создать аккаунт ✨</h2>
+            <p>Присоединяйтесь к платформе — это бесплатно.</p>
+        </div>
+
+        <!-- Register form -->
         <form class="auth-form hidden" id="register-form">
-            <h2>Create account</h2>
+            <h2>Создать аккаунт</h2>
             <label>
-                <span>Display name</span>
-                <input type="text" name="displayName" maxlength="120" required>
+                <span>Имя</span>
+                <input type="text" name="displayName" maxlength="120" placeholder="Ваше имя" required>
             </label>
             <label>
                 <span>Email</span>
-                <input type="email" name="email" required>
+                <input type="email" name="email" placeholder="you@example.com" required>
             </label>
             <label>
-                <span>Password</span>
-                <input type="password" name="password" minlength="6" required>
+                <span>Пароль</span>
+                <input type="password" name="password" minlength="6" placeholder="Минимум 6 символов" required>
             </label>
             <label>
-                <span>Role</span>
+                <span>Роль</span>
                 <select name="role" required>
-                    <option value="AUTHOR">Author</option>
-                    <option value="SPONSOR">Sponsor</option>
+                    <option value="AUTHOR">Автор — создаю кампании</option>
+                    <option value="SPONSOR">Спонсор — поддерживаю проекты</option>
                 </select>
             </label>
-            <button class="primary-btn auth-submit" type="submit">Register</button>
+            <button class="primary-btn auth-submit" type="submit">Создать аккаунт</button>
         </form>
 
         <div class="auth-status" id="auth-status"></div>
+
+        <p class="auth-footer-note">
+            Регистрируясь, вы соглашаетесь с условиями использования платформы.
+        </p>
     </section>
 </main>
+
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>
 <script src="/auth-app.js"></script>
+<script>
+    // ── Show/hide panel header on tab switch ──
+    const loginHeader    = document.getElementById('login-header');
+    const registerHeader = document.getElementById('register-header');
+
+    document.querySelectorAll('.auth-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            loginHeader.classList.toggle('hidden', tab !== 'login');
+            registerHeader.classList.toggle('hidden', tab !== 'register');
+        });
+    });
+
+    // ── Load live stats from /api/dashboard ──
+    (async function loadAuthStats() {
+        try {
+            const res  = await fetch('/api/dashboard');
+            if (!res.ok) return;
+            const data = await res.json();
+
+            const fmt = (n) => {
+                if (!n && n !== 0) return '—';
+                if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0','') + ' млн ₽';
+                if (n >= 1_000)     return (n / 1_000).toFixed(0) + ' тыс. ₽';
+                return n.toLocaleString('ru') + ' ₽';
+            };
+
+            document.getElementById('auth-stat-campaigns').textContent =
+                (data.activeProjects ?? '—').toLocaleString('ru');
+            document.getElementById('auth-stat-raised').textContent =
+                fmt(data.totalRaised);
+            document.getElementById('auth-stat-backers').textContent =
+                (data.totalBackers ?? '—').toLocaleString('ru');
+        } catch (_) {
+            // silently fall back — stats stay as loading skeleton
+        }
+    })();
+</script>
 </body>
 </html>
