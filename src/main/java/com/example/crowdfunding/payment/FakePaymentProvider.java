@@ -16,7 +16,7 @@ public class FakePaymentProvider implements PaymentProvider {
     @Override
     public PaymentStartResult startPayment(UUID donationId, BigDecimal amount) {
         String extId = "fake_" + donationId;
-        String url = "http://localhost:8080/pay.html?donationId=" + donationId;
+        String url = "/pay.html?donationId=" + donationId;
         return new PaymentStartResult(extId, url);
     }
 }
