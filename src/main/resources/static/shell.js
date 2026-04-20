@@ -31,7 +31,7 @@ async function mountShell() {
     if (!auth?.accessToken) {
         wireShellEvents(false);
         markActiveShellLink();
-        syncCreateLinks("/auth.html");
+        syncCreateLinks({href: "/auth.html", visible: true});
         return;
     }
 
@@ -69,7 +69,13 @@ async function mountShell() {
 
         wireShellEvents(true);
         markActiveShellLink();
-        syncCreateLinks(primaryNav.href);
+        const canCreateProjects = normalizedRoles.includes("AUTHOR")
+            && !normalizedRoles.includes("ADMIN")
+            && !normalizedRoles.includes("SPONSOR");
+        syncCreateLinks({
+            href: primaryNav.href,
+            visible: canCreateProjects
+        });
     } catch (error) {
         if (error?.message === "AUTH_EXPIRED") {
             localStorage.removeItem(SHELL_AUTH_KEY);
@@ -86,7 +92,7 @@ async function mountShell() {
         });
         wireShellEvents(false);
         markActiveShellLink();
-        syncCreateLinks("/auth.html");
+        syncCreateLinks({href: "/auth.html", visible: true});
     }
 }
 
@@ -229,9 +235,12 @@ function markActiveShellLink() {
     });
 }
 
-function syncCreateLinks(primaryHref) {
+function syncCreateLinks({href, visible}) {
     document.querySelectorAll("#create-campaign-link").forEach((link) => {
-        link.setAttribute("href", primaryHref);
+        link.setAttribute("href", href);
+        link.hidden = !visible;
+        link.classList.toggle("hidden", !visible);
+        link.setAttribute("aria-hidden", String(!visible));
     });
 }
 
