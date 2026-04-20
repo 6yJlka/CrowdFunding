@@ -131,26 +131,24 @@ function renderChart(points) {
     const bottomY = 294;
     const drawableHeight = bottomY - topY;
     const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
-    const singlePointX = width / 2;
-
     const coordinates = values.map((value, index) => {
-        const x = points.length === 1 ? singlePointX : leftPadding + stepX * index;
+        const x = leftPadding + stepX * index;
         const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
         const y = bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight;
         return {x, y};
     });
 
-    const lineD = buildSmoothLinePath(coordinates);
-    const areaD = `${lineD} L${coordinates[coordinates.length - 1].x},${bottomY} L${coordinates[0].x},${bottomY} Z`;
+    const chartShape = points.length === 1
+        ? buildSinglePointChartShape(coordinates[0], leftPadding, rightPadding, width, bottomY)
+        : buildMultiPointChartShape(coordinates, bottomY);
 
-    linePath.setAttribute("d", lineD);
-    areaPath.setAttribute("d", areaD);
+    linePath.setAttribute("d", chartShape.lineD);
+    areaPath.setAttribute("d", chartShape.areaD);
 
-    const lastPoint = coordinates[coordinates.length - 1];
-    point.setAttribute("cx", `${lastPoint.x}`);
-    point.setAttribute("cy", `${lastPoint.y}`);
+    point.setAttribute("cx", `${chartShape.point.x}`);
+    point.setAttribute("cy", `${chartShape.point.y}`);
     setText("chart-callout", formatCompactMoney(values[values.length - 1]));
-    positionChartCallout(callout, lastPoint.x, lastPoint.y, width, 320);
+    positionChartCallout(callout, chartShape.point.x, chartShape.point.y, width, 320);
 }
 
 function updateAxis(minValue, maxValue) {
@@ -178,6 +176,29 @@ function buildChartDisplayRange(values) {
     return {
         displayMin: Math.max(0, minValue - visualPadding),
         displayMax: maxValue + visualPadding
+    };
+}
+
+function buildMultiPointChartShape(coordinates, bottomY) {
+    const lineD = buildSmoothLinePath(coordinates);
+    return {
+        lineD,
+        areaD: `${lineD} L${coordinates[coordinates.length - 1].x},${bottomY} L${coordinates[0].x},${bottomY} Z`,
+        point: coordinates[coordinates.length - 1]
+    };
+}
+
+function buildSinglePointChartShape(coordinate, leftPadding, rightPadding, width, bottomY) {
+    const drawableWidth = width - leftPadding - rightPadding;
+    const startX = leftPadding + drawableWidth * 0.14;
+    const pointX = leftPadding + drawableWidth * 0.5;
+    const endX = leftPadding + drawableWidth * 0.82;
+    const lineD = `M${startX},${bottomY} L${pointX},${coordinate.y} L${endX},${coordinate.y}`;
+
+    return {
+        lineD,
+        areaD: `${lineD} L${endX},${bottomY} L${startX},${bottomY} Z`,
+        point: {x: pointX, y: coordinate.y}
     };
 }
 
