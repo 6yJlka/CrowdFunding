@@ -211,6 +211,103 @@ function localizeAnalyticsChartAxisLabel(label) {
     return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
 }
 
+function buildAnalyticsRuGenitiveMonthLabel(token) {
+    switch (token) {
+        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
+        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
+        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
+        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
+        case "May": return String.fromCharCode(1084, 1072, 1103);
+        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
+        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
+        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
+        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
+        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
+        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
+        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
+        default: return token ?? "";
+    }
+}
+
+function buildAnalyticsRuSinceText() {
+    return String.fromCharCode(1057);
+}
+
+function formatAnalyticsChartRangeBadge(label) {
+    const lang = analyticsI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${analyticsT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return analyticsT("index.chart.emptyRange", "No data yet");
+    }
+
+    const sinceText = buildAnalyticsRuSinceText();
+    if (/^\d+$/.test(parts[0])) {
+        const dayToken = parts[0];
+        const monthToken = parts[1];
+        const yearToken = parts[2];
+        const localizedMonth = buildAnalyticsRuGenitiveMonthLabel(monthToken);
+        return yearToken
+            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
+            : `${sinceText} ${dayToken} ${localizedMonth}`;
+    }
+
+    const monthToken = parts[0];
+    const yearToken = parts[1];
+    const localizedMonth = buildAnalyticsRuGenitiveMonthLabel(monthToken);
+    return yearToken
+        ? `${sinceText} ${localizedMonth} ${yearToken}`
+        : `${sinceText} ${localizedMonth}`;
+}
+
+const ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE = {
+    Jan: "\u044f\u043d\u0432\u0430\u0440\u044f",
+    Feb: "\u0444\u0435\u0432\u0440\u0430\u043b\u044f",
+    Mar: "\u043c\u0430\u0440\u0442\u0430",
+    Apr: "\u0430\u043f\u0440\u0435\u043b\u044f",
+    May: "\u043c\u0430\u044f",
+    Jun: "\u0438\u044e\u043d\u044f",
+    Jul: "\u0438\u044e\u043b\u044f",
+    Aug: "\u0430\u0432\u0433\u0443\u0441\u0442\u0430",
+    Sep: "\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f",
+    Oct: "\u043e\u043a\u0442\u044f\u0431\u0440\u044f",
+    Nov: "\u043d\u043e\u044f\u0431\u0440\u044f",
+    Dec: "\u0434\u0435\u043a\u0430\u0431\u0440\u044f"
+};
+
+function formatAnalyticsChartRangeBadge(label) {
+    const lang = analyticsI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${analyticsT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const sinceText = analyticsT("index.chart.since", "\u0421");
+    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return analyticsT("index.chart.emptyRange", "\u0414\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442");
+    }
+
+    if (/^\d+$/.test(parts[0])) {
+        const dayToken = parts[0];
+        const monthToken = parts[1];
+        const yearToken = parts[2];
+        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
+        return yearToken
+            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
+            : `${sinceText} ${dayToken} ${localizedMonth}`;
+    }
+
+    const monthToken = parts[0];
+    const yearToken = parts[1];
+    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
+    return yearToken
+        ? `${sinceText} ${localizedMonth} ${yearToken}`
+        : `${sinceText} ${localizedMonth}`;
+}
+
 function formatAnalyticsMoney(value) {
     return new Intl.NumberFormat(resolveAnalyticsLocale(), {
         style: "currency",
@@ -274,4 +371,121 @@ function positionAnalyticsCallout(callout, pointX, pointY, svgWidth, svgHeight) 
 
     callout.style.left = `${clampedX}px`;
     callout.style.top = `${clampedY}px`;
+}
+
+const ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD = {
+    Jan: "СЏРЅРІР°СЂСЏ",
+    Feb: "С„РµРІСЂР°Р»СЏ",
+    Mar: "РјР°СЂС‚Р°",
+    Apr: "Р°РїСЂРµР»СЏ",
+    May: "РјР°СЏ",
+    Jun: "РёСЋРЅСЏ",
+    Jul: "РёСЋР»СЏ",
+    Aug: "Р°РІРіСѓСЃС‚Р°",
+    Sep: "СЃРµРЅС‚СЏР±СЂСЏ",
+    Oct: "РѕРєС‚СЏР±СЂСЏ",
+    Nov: "РЅРѕСЏР±СЂСЏ",
+    Dec: "РґРµРєР°Р±СЂСЏ"
+};
+
+function formatAnalyticsChartRangeBadge(label) {
+    const lang = analyticsI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${analyticsT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return analyticsT("index.chart.emptyRange", "No data yet");
+    }
+
+    if (/^\d+$/.test(parts[0])) {
+        const dayToken = parts[0];
+        const monthToken = parts[1];
+        const yearToken = parts[2];
+        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
+        return yearToken
+            ? `${analyticsT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth} ${yearToken}`
+            : `${analyticsT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth}`;
+    }
+
+    const monthToken = parts[0];
+    const yearToken = parts[1];
+    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
+    return yearToken
+        ? `${analyticsT("index.chart.since", "РЎ")} ${localizedMonth} ${yearToken}`
+        : `${analyticsT("index.chart.since", "РЎ")} ${localizedMonth}`;
+}
+
+function localizeAnalyticsChartAxisLabel(label) {
+    const value = String(label ?? "").trim();
+    if ((analyticsI18n?.getLang?.() ?? "en") !== "ru") {
+        return value;
+    }
+
+    const parts = value.split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return value;
+    }
+
+    if (/^\d+$/.test(parts[0])) {
+        const dayToken = parts[0];
+        const monthToken = parts[1];
+        const yearToken = parts[2];
+        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
+        return yearToken ? `${dayToken} ${localizedMonth} ${yearToken}` : `${dayToken} ${localizedMonth}`;
+    }
+
+    const monthToken = parts[0];
+    const yearToken = parts[1];
+    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
+    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
+}
+
+function buildAnalyticsRuGenitiveMonthLabelFinal(token) {
+    switch (token) {
+        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
+        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
+        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
+        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
+        case "May": return String.fromCharCode(1084, 1072, 1103);
+        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
+        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
+        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
+        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
+        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
+        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
+        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
+        default: return token ?? "";
+    }
+}
+
+function formatAnalyticsChartRangeBadge(label) {
+    const lang = analyticsI18n?.getLang?.() ?? "en";
+    if (lang !== "ru") {
+        return `${analyticsT("index.chart.since", "Since")} ${label}`;
+    }
+
+    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return "No data yet";
+    }
+
+    const sinceText = String.fromCharCode(1057);
+    if (/^\d+$/.test(parts[0])) {
+        const dayToken = parts[0];
+        const monthToken = parts[1];
+        const yearToken = parts[2];
+        const localizedMonth = buildAnalyticsRuGenitiveMonthLabelFinal(monthToken);
+        return yearToken
+            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
+            : `${sinceText} ${dayToken} ${localizedMonth}`;
+    }
+
+    const monthToken = parts[0];
+    const yearToken = parts[1];
+    const localizedMonth = buildAnalyticsRuGenitiveMonthLabelFinal(monthToken);
+    return yearToken
+        ? `${sinceText} ${localizedMonth} ${yearToken}`
+        : `${sinceText} ${localizedMonth}`;
 }

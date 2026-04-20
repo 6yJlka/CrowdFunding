@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
@@ -92,6 +93,18 @@ public class DashboardServiceImpl implements DashboardService {
 
         YearMonth startMonth = YearMonth.from(seriesStartAt);
         YearMonth currentMonth = YearMonth.now();
+        if (startMonth.equals(currentMonth)) {
+            return buildDailySeries(donations, seriesStartAt);
+        }
+
+        return buildMonthlySeries(donations, startMonth, currentMonth);
+    }
+
+    private List<DashboardMonthlyPointResponse> buildMonthlySeries(
+            List<DonationEntity> donations,
+            YearMonth startMonth,
+            YearMonth currentMonth
+    ) {
         Map<YearMonth, BigDecimal> monthlyRaised = new LinkedHashMap<>();
         for (YearMonth month = startMonth; !month.isAfter(currentMonth); month = month.plusMonths(1)) {
             monthlyRaised.put(month, BigDecimal.ZERO);
@@ -120,12 +133,51 @@ public class DashboardServiceImpl implements DashboardService {
         return result;
     }
 
+    private List<DashboardMonthlyPointResponse> buildDailySeries(List<DonationEntity> donations, OffsetDateTime seriesStartAt) {
+        LocalDate startDate = seriesStartAt.toLocalDate();
+        LocalDate currentDate = OffsetDateTime.now().toLocalDate();
+        Map<LocalDate, BigDecimal> dailyRaised = new LinkedHashMap<>();
+        for (LocalDate date = startDate; !date.isAfter(currentDate); date = date.plusDays(1)) {
+            dailyRaised.put(date, BigDecimal.ZERO);
+        }
+
+        for (DonationEntity donation : donations) {
+            OffsetDateTime effectiveDate = donation.getConfirmedAt() != null ? donation.getConfirmedAt() : donation.getCreatedAt();
+            if (effectiveDate == null || donation.getAmount() == null) {
+                continue;
+            }
+
+            LocalDate donationDate = effectiveDate.toLocalDate();
+            if (!dailyRaised.containsKey(donationDate)) {
+                continue;
+            }
+
+            dailyRaised.computeIfPresent(donationDate, (key, value) -> value.add(donation.getAmount()));
+        }
+
+        List<DashboardMonthlyPointResponse> result = new ArrayList<>();
+        BigDecimal cumulative = BigDecimal.ZERO;
+        for (Map.Entry<LocalDate, BigDecimal> entry : dailyRaised.entrySet()) {
+            cumulative = cumulative.add(entry.getValue());
+            result.add(new DashboardMonthlyPointResponse(formatDayLabel(entry.getKey(), startDate, currentDate), cumulative));
+        }
+        return result;
+    }
+
     private String formatMonthLabel(YearMonth month, YearMonth startMonth, YearMonth currentMonth) {
         String monthLabel = month.getMonth().getDisplayName(TextStyle.SHORT, DASHBOARD_LOCALE);
         if (month.equals(startMonth) || month.getMonthValue() == 1 || month.equals(currentMonth)) {
             return monthLabel + " " + month.getYear();
         }
         return monthLabel;
+    }
+
+    private String formatDayLabel(LocalDate date, LocalDate startDate, LocalDate currentDate) {
+        String monthLabel = date.getMonth().getDisplayName(TextStyle.SHORT, DASHBOARD_LOCALE);
+        if (date.equals(startDate) || date.equals(currentDate)) {
+            return date.getDayOfMonth() + " " + monthLabel + " " + date.getYear();
+        }
+        return date.getDayOfMonth() + " " + monthLabel;
     }
 
     private List<DashboardProjectRowResponse> buildTopProjects(List<ProjectEntity> projects) {
