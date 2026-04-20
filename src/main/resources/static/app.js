@@ -121,11 +121,7 @@ function renderChart(points) {
     rangeBadge.textContent = formatChartRangeBadge(points[0].label);
 
     const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
-    const maxValue = Math.max(...values, 1);
-    const minValue = Math.min(...values);
-    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
-    const displayMin = Math.max(0, minValue - visualPadding);
-    const displayMax = maxValue + visualPadding;
+    const {displayMin, displayMax} = buildChartDisplayRange(values);
     updateAxis(displayMin, displayMax);
 
     const width = 800;
@@ -135,9 +131,10 @@ function renderChart(points) {
     const bottomY = 294;
     const drawableHeight = bottomY - topY;
     const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
+    const singlePointX = width / 2;
 
     const coordinates = values.map((value, index) => {
-        const x = leftPadding + stepX * index;
+        const x = points.length === 1 ? singlePointX : leftPadding + stepX * index;
         const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
         const y = bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight;
         return {x, y};
@@ -163,6 +160,25 @@ function updateAxis(minValue, maxValue) {
     setText("axis-50", formatCompactMoney(minValue + range * 0.5));
     setText("axis-25", formatCompactMoney(minValue + range * 0.25));
     setText("axis-min", formatCompactMoney(minValue));
+}
+
+function buildChartDisplayRange(values) {
+    const maxValue = Math.max(...values, 0);
+    const minValue = Math.min(...values, 0);
+
+    if (values.length <= 1 || maxValue === minValue) {
+        const paddedMax = Math.max(maxValue * 1.15, 1);
+        return {
+            displayMin: 0,
+            displayMax: paddedMax
+        };
+    }
+
+    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
+    return {
+        displayMin: Math.max(0, minValue - visualPadding),
+        displayMax: maxValue + visualPadding
+    };
 }
 
 function renderTopProjects(projects) {

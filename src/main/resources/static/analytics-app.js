@@ -67,11 +67,7 @@ function renderAnalyticsChart(points) {
     rangeBadge.textContent = formatAnalyticsChartRangeBadge(points[0].label);
 
     const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
-    const minValue = Math.min(...values);
-    const maxValue = Math.max(...values, 1);
-    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
-    const displayMin = Math.max(0, minValue - visualPadding);
-    const displayMax = maxValue + visualPadding;
+    const {displayMin, displayMax} = buildAnalyticsChartDisplayRange(values);
     updateAnalyticsAxis(displayMin, displayMax);
 
     const width = 800;
@@ -81,10 +77,11 @@ function renderAnalyticsChart(points) {
     const bottomY = 294;
     const drawableHeight = bottomY - topY;
     const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
+    const singlePointX = width / 2;
     const coordinates = values.map((value, index) => {
         const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
         return {
-            x: leftPadding + stepX * index,
+            x: points.length === 1 ? singlePointX : leftPadding + stepX * index,
             y: bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight
         };
     });
@@ -107,6 +104,24 @@ function updateAnalyticsAxis(minValue, maxValue) {
     document.getElementById("axis-50").textContent = formatAnalyticsCompactMoney(minValue + range * 0.5);
     document.getElementById("axis-25").textContent = formatAnalyticsCompactMoney(minValue + range * 0.25);
     document.getElementById("axis-min").textContent = formatAnalyticsCompactMoney(minValue);
+}
+
+function buildAnalyticsChartDisplayRange(values) {
+    const maxValue = Math.max(...values, 0);
+    const minValue = Math.min(...values, 0);
+
+    if (values.length <= 1 || maxValue === minValue) {
+        return {
+            displayMin: 0,
+            displayMax: Math.max(maxValue * 1.15, 1)
+        };
+    }
+
+    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
+    return {
+        displayMin: Math.max(0, minValue - visualPadding),
+        displayMax: maxValue + visualPadding
+    };
 }
 
 function buildAnalyticsSmoothLinePath(coordinates) {
