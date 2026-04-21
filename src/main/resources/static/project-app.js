@@ -187,10 +187,13 @@ function renderReviews(reviews) {
     const reviewsNode = document.getElementById("project-reviews");
     const currentUserId = projectPageState.currentUser?.id;
     const hasOwnReview = Boolean(currentUserId && reviews.some((review) => review.userId === currentUserId));
+    const isProjectAuthor = Boolean(currentUserId && currentUserId === projectPageState.currentProject?.authorId);
 
     if (currentUserId) {
-        reviewForm.classList.toggle("hidden", hasOwnReview);
-        reviewNoteNode.textContent = hasOwnReview
+        reviewForm.classList.toggle("hidden", hasOwnReview || isProjectAuthor);
+        reviewNoteNode.textContent = isProjectAuthor
+            ? getProjectReviewAuthorBlockedText()
+            : hasOwnReview
             ? projectT("project.review.already", "You have already posted a review for this project.")
             : projectT("project.review.rate", "Rate this project and share feedback.");
     }
@@ -271,9 +274,15 @@ function initializeRoleAwarePanels() {
         return;
     }
 
-    reviewForm.classList.remove("hidden");
-    reviewNoteNode.textContent = projectT("project.review.rate", "Rate this project and share feedback.");
-    reviewForm.onsubmit = submitReviewForm;
+    const isProjectAuthor = user.id === project.authorId;
+    const hasOwnReview = hasCurrentUserReview();
+    reviewForm.classList.toggle("hidden", hasOwnReview || isProjectAuthor);
+    reviewNoteNode.textContent = isProjectAuthor
+        ? getProjectReviewAuthorBlockedText()
+        : hasOwnReview
+        ? projectT("project.review.already", "You have already posted a review for this project.")
+        : projectT("project.review.rate", "Rate this project and share feedback.");
+    reviewForm.onsubmit = hasOwnReview || isProjectAuthor ? null : submitReviewForm;
 
     commentForm.classList.remove("hidden");
     commentNoteNode.textContent = projectT("project.comment.invite", "Share feedback or ask a question.");
@@ -289,7 +298,6 @@ function initializeRoleAwarePanels() {
         donationNoteNode.textContent = projectT("project.donation.adminBlocked", "Admins do not use the donation flow.");
     }
 
-    const isProjectAuthor = user.id === project.authorId;
     if (isProjectAuthor && project.status !== "DRAFT") {
         updateForm.classList.remove("hidden");
         updateNoteNode.textContent = projectT("project.update.publishHint", "Publish timeline updates for your backers.");
@@ -467,6 +475,7 @@ async function refreshReviews() {
     const reviews = await response.json();
     projectPageState.currentReviews = reviews;
     renderReviews(reviews);
+    initializeRoleAwarePanels();
 }
 
 async function refreshUpdates() {
@@ -565,8 +574,29 @@ function canDeleteComment(comment) {
     return comment.userId === user.id || user.roles.includes("ADMIN");
 }
 
+function hasCurrentUserReview() {
+    const currentUserId = projectPageState.currentUser?.id;
+    return Boolean(
+        currentUserId
+        && projectPageState.currentReviews.some((review) => review.userId === currentUserId)
+    );
+}
+
 function projectT(key, fallback) {
     return projectI18n?.t(key) ?? fallback;
+}
+
+function getProjectReviewAuthorBlockedText() {
+    if (projectI18n?.getLang?.() === "ru") {
+        return "Нельзя оставить отзыв на свой собственный проект.";
+    }
+
+    const translated = projectI18n?.t?.("project.review.authorBlocked");
+    if (translated && translated !== "project.review.authorBlocked") {
+        return translated;
+    }
+
+    return "You cannot review your own project.";
 }
 
 function resolveProjectLocale() {

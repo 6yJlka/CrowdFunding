@@ -242,6 +242,7 @@ const I18N_TRANSLATIONS = {
         "project.anonymousSponsor": "Anonymous sponsor",
         "project.noPublicDonations": "No public donations yet.",
         "project.review.already": "You have already posted a review for this project.",
+        "project.review.authorBlocked": "You cannot review your own project.",
         "project.review.rate": "Rate this project and share feedback.",
         "project.review.none": "No reviews yet.",
         "project.review.login": "Log in to leave a review.",
