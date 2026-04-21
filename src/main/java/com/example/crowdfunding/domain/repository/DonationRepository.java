@@ -70,6 +70,8 @@ public interface DonationRepository extends JpaRepository<DonationEntity, UUID> 
             select d
             from DonationEntity d
             join fetch d.project p
+            join fetch p.author
+            left join fetch p.category
             where d.status = :status
               and p.status in :projectStatuses
             order by coalesce(d.confirmedAt, d.createdAt) asc

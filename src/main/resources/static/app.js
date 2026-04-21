@@ -1,7 +1,12 @@
 const appI18n = window.AppI18n;
 
 let catalogQuery = "";
-let currentTopProjects = [];
+let currentTopProjects = {
+    all: [],
+    year: [],
+    month: []
+};
+let currentLeaderboardFilter = "all";
 let currentFounders = [];
 let currentSponsors = [];
 let currentDashboardData = null;
@@ -30,7 +35,11 @@ async function loadDashboard() {
 
         const data = await response.json();
         currentDashboardData = data;
-        currentTopProjects = data.topProjects ?? [];
+        currentTopProjects = {
+            all: data.topProjects ?? [],
+            year: data.topProjectsYear ?? [],
+            month: data.topProjectsMonth ?? []
+        };
         currentFounders = data.recentFounders ?? [];
         currentSponsors = data.recentSponsors ?? [];
         renderDashboard(data);
@@ -49,7 +58,8 @@ function renderDashboard(data) {
     renderCategoryTags(currentCatalogProjects);
     renderSponsorAvatars(currentSponsors, Number(data.totalBackers ?? 0));
     renderChart(data.monthlyRaised ?? []);
-    renderTopProjects(currentTopProjects);
+    syncLeaderboardFilterButtons();
+    applyLeaderboardView();
     renderFounders(currentFounders);
 }
 
@@ -216,6 +226,47 @@ function renderTopProjects(projects) {
             </tr>
         `).join("")
         : `<tr><td colspan="3">${appT("app.noCampaigns", "No campaigns available")}</td></tr>`;
+}
+
+function getLeaderboardProjects() {
+    return currentTopProjects[currentLeaderboardFilter] ?? [];
+}
+
+function getLeaderboardSearchValue() {
+    return document.getElementById("leaderboard-search")?.value.trim().toLowerCase() ?? "";
+}
+
+function getFilteredLeaderboardProjects() {
+    const projects = getLeaderboardProjects();
+    const value = getLeaderboardSearchValue();
+    if (!value) {
+        return projects;
+    }
+
+    return projects.filter((project) =>
+        `${project.title ?? ""} ${project.authorDisplayName ?? ""} ${project.categoryTitle ?? ""}`.toLowerCase().includes(value)
+    );
+}
+
+function applyLeaderboardView() {
+    renderTopProjects(getFilteredLeaderboardProjects());
+}
+
+function setLeaderboardFilter(filter) {
+    if (!Object.prototype.hasOwnProperty.call(currentTopProjects, filter)) {
+        return;
+    }
+    currentLeaderboardFilter = filter;
+    syncLeaderboardFilterButtons();
+    applyLeaderboardView();
+}
+
+function syncLeaderboardFilterButtons() {
+    document.querySelectorAll(".leaderboard-head .filters button[data-filter]").forEach((button) => {
+        const isActive = button.dataset.filter === currentLeaderboardFilter;
+        button.classList.toggle("active-filter", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+    });
 }
 
 function renderFounders(founders) {
@@ -659,6 +710,11 @@ function wireStaticActions() {
             handleLeaderboardSearch();
         }
     });
+    document.querySelectorAll(".leaderboard-head .filters button[data-filter]").forEach((button) => {
+        button.addEventListener("click", () => {
+            setLeaderboardFilter(button.dataset.filter);
+        });
+    });
 
     document.querySelectorAll(".clickable-card").forEach((card) => {
         card.addEventListener("click", (event) => {
@@ -738,16 +794,7 @@ function wireStaticActions() {
 }
 
 function handleLeaderboardSearch() {
-    const value = document.getElementById("leaderboard-search").value.trim().toLowerCase();
-    if (!value) {
-        renderTopProjects(currentTopProjects);
-        return;
-    }
-
-    const filtered = currentTopProjects.filter((project) =>
-        `${project.title ?? ""} ${project.authorDisplayName ?? ""} ${project.categoryTitle ?? ""}`.toLowerCase().includes(value)
-    );
-    renderTopProjects(filtered);
+    applyLeaderboardView();
 }
 
 function runCardAction(dataset) {

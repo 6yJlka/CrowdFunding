@@ -999,6 +999,11 @@ body.modal-open { overflow: hidden; }
    ===================== */
 .panel { padding: 24px; }
 
+.chart-panel {
+    display: flex;
+    flex-direction: column;
+}
+
 .panel h3 {
     margin: 6px 0 0;
     font-size: 1.4rem;
@@ -1058,6 +1063,7 @@ body.modal-open { overflow: hidden; }
     flex-direction: column;
     justify-content: space-between;
     padding: 6px 0 12px;
+    min-height: 300px;
     color: var(--muted-2);
     font-size: 0.8rem;
     text-align: right;
@@ -1186,6 +1192,13 @@ svg {
     background: var(--brand-pale);
     border-color: rgba(99, 102, 241, 0.22);
     color: var(--brand);
+    box-shadow: var(--shadow-xs);
+}
+
+.filters button:focus-visible {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
 
 .leaderboard-head {

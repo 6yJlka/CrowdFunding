@@ -12,6 +12,8 @@ public class DashboardResponse {
     private long fundedProjects;
     private List<DashboardMonthlyPointResponse> monthlyRaised = new ArrayList<>();
     private List<DashboardProjectRowResponse> topProjects = new ArrayList<>();
+    private List<DashboardProjectRowResponse> topProjectsYear = new ArrayList<>();
+    private List<DashboardProjectRowResponse> topProjectsMonth = new ArrayList<>();
     private List<DashboardFounderResponse> recentFounders = new ArrayList<>();
     private List<DashboardSponsorResponse> recentSponsors = new ArrayList<>();
 
@@ -61,6 +63,22 @@ public class DashboardResponse {
 
     public void setTopProjects(List<DashboardProjectRowResponse> topProjects) {
         this.topProjects = topProjects;
+    }
+
+    public List<DashboardProjectRowResponse> getTopProjectsYear() {
+        return topProjectsYear;
+    }
+
+    public void setTopProjectsYear(List<DashboardProjectRowResponse> topProjectsYear) {
+        this.topProjectsYear = topProjectsYear;
+    }
+
+    public List<DashboardProjectRowResponse> getTopProjectsMonth() {
+        return topProjectsMonth;
+    }
+
+    public void setTopProjectsMonth(List<DashboardProjectRowResponse> topProjectsMonth) {
+        this.topProjectsMonth = topProjectsMonth;
     }
 
     public List<DashboardFounderResponse> getRecentFounders() {

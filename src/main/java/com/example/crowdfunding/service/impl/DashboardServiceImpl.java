@@ -25,16 +25,19 @@ import java.time.OffsetDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class DashboardServiceImpl implements DashboardService {
 
     private static final Locale DASHBOARD_LOCALE = Locale.ENGLISH;
     private static final List<ProjectStatus> DASHBOARD_STATUSES = List.of(ProjectStatus.ACTIVE, ProjectStatus.FUNDED);
+    private static final int DASHBOARD_TOP_PROJECTS_LIMIT = 10;
     private static final int DASHBOARD_RECENT_FOUNDERS_LIMIT = 6;
     private static final int DASHBOARD_RECENT_PROJECT_POOL_SIZE = 24;
     private static final int DASHBOARD_RECENT_SPONSORS_LIMIT = 5;
@@ -50,9 +53,13 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public DashboardResponse getDashboard() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime currentYearStart = now.withDayOfYear(1).toLocalDate().atStartOfDay().atOffset(now.getOffset());
+        OffsetDateTime currentMonthStart = now.withDayOfMonth(1).toLocalDate().atStartOfDay().atOffset(now.getOffset());
+
         List<ProjectEntity> topProjectsSource = projectRepository.findByStatusIn(
                 DASHBOARD_STATUSES,
-                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "collectedAmount"))
+                PageRequest.of(0, DASHBOARD_TOP_PROJECTS_LIMIT, Sort.by(Sort.Direction.DESC, "collectedAmount"))
         );
 
         List<ProjectEntity> recentProjectsSource = projectRepository.findByStatusIn(
@@ -74,6 +81,8 @@ public class DashboardServiceImpl implements DashboardService {
         );
         response.setMonthlyRaised(buildMonthlySeries(dashboardDonations));
         response.setTopProjects(buildTopProjects(topProjectsSource));
+        response.setTopProjectsYear(buildTopProjectsForPeriod(dashboardDonations, currentYearStart));
+        response.setTopProjectsMonth(buildTopProjectsForPeriod(dashboardDonations, currentMonthStart));
         response.setRecentFounders(buildRecentFounders(recentProjectsSource));
         response.setRecentSponsors(buildRecentSponsors());
         return response;
@@ -186,17 +195,72 @@ public class DashboardServiceImpl implements DashboardService {
                 .toList();
     }
 
+    private List<DashboardProjectRowResponse> buildTopProjectsForPeriod(
+            List<DonationEntity> donations,
+            OffsetDateTime periodStartAt
+    ) {
+        Map<UUID, ProjectPeriodStats> totalsByProject = new LinkedHashMap<>();
+
+        for (DonationEntity donation : donations) {
+            OffsetDateTime effectiveDate = donation.getConfirmedAt() != null ? donation.getConfirmedAt() : donation.getCreatedAt();
+            if (effectiveDate == null || donation.getAmount() == null || effectiveDate.isBefore(periodStartAt)) {
+                continue;
+            }
+
+            ProjectEntity project = donation.getProject();
+            if (project == null) {
+                continue;
+            }
+
+            ProjectPeriodStats currentStats = totalsByProject.get(project.getId());
+            if (currentStats == null) {
+                currentStats = new ProjectPeriodStats(project);
+            }
+            totalsByProject.put(project.getId(), currentStats.accumulate(donation.getAmount(), effectiveDate));
+        }
+
+        return totalsByProject.values().stream()
+                .sorted(Comparator
+                        .comparing(ProjectPeriodStats::totalRaised).reversed()
+                        .thenComparing(ProjectPeriodStats::lastDonationAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(stats -> {
+                            String title = stats.project().getTitle();
+                            return title == null ? "" : title.toLowerCase(Locale.ROOT);
+                        }))
+                .limit(DASHBOARD_TOP_PROJECTS_LIMIT)
+                .map(stats -> mapProjectRow(stats.project(), stats.totalRaised()))
+                .toList();
+    }
+
     private DashboardProjectRowResponse mapProjectRow(ProjectEntity project) {
+        return mapProjectRow(project, defaultAmount(project.getCollectedAmount()));
+    }
+
+    private DashboardProjectRowResponse mapProjectRow(ProjectEntity project, BigDecimal collectedAmount) {
         DashboardProjectRowResponse row = new DashboardProjectRowResponse();
         row.setId(project.getId());
         row.setTitle(project.getTitle());
         row.setAuthorDisplayName(project.getAuthor().getDisplayName());
         row.setCategoryTitle(project.getCategory() != null ? project.getCategory().getTitle() : "General");
-        row.setCollectedAmount(defaultAmount(project.getCollectedAmount()));
+        row.setCollectedAmount(defaultAmount(collectedAmount));
         row.setGoalAmount(defaultAmount(project.getGoalAmount()));
-        row.setProgressPercent(toPercent(project.getCollectedAmount(), project.getGoalAmount()));
+        row.setProgressPercent(toPercent(collectedAmount, project.getGoalAmount()));
         row.setCurrency(project.getCurrency());
         return row;
+    }
+
+    private record ProjectPeriodStats(ProjectEntity project, BigDecimal totalRaised, OffsetDateTime lastDonationAt) {
+
+        private ProjectPeriodStats(ProjectEntity project) {
+            this(project, BigDecimal.ZERO, null);
+        }
+
+        private ProjectPeriodStats accumulate(BigDecimal amount, OffsetDateTime donationAt) {
+            OffsetDateTime latestDonationAt = lastDonationAt == null || donationAt.isAfter(lastDonationAt)
+                    ? donationAt
+                    : lastDonationAt;
+            return new ProjectPeriodStats(project, totalRaised.add(amount), latestDonationAt);
+        }
     }
 
     private List<DashboardFounderResponse> buildRecentFounders(List<ProjectEntity> projects) {
