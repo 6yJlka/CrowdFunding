@@ -549,6 +549,7 @@ body.modal-open { overflow: hidden; }
 .menu-item.active::before { height: 100%; }
 
 .sidebar-footer {
+    margin-top: auto;
     color: var(--muted-2);
     font-size: 0.77rem;
     padding: 0 10px;
@@ -2242,15 +2243,31 @@ html[data-theme="dark"] .author-profile-card .primary-btn-light:hover {
     border: 1.5px solid var(--line);
     border-radius: 14px;
     background: var(--bg-white);
+    color: var(--text);
     padding: 14px 16px;
     resize: vertical;
     outline: none;
     transition: border-color 0.15s;
 }
 
+.moderation-side-block textarea::placeholder {
+    color: var(--muted-2);
+}
+
 .moderation-side-block textarea:focus {
     border-color: var(--brand);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+}
+
+html[data-theme="dark"] .moderation-side-block textarea {
+    color: #e5eefc;
+    -webkit-text-fill-color: #e5eefc;
+    caret-color: #e5eefc;
+}
+
+html[data-theme="dark"] .moderation-side-block textarea::placeholder {
+    color: #7f93b5;
+    -webkit-text-fill-color: #7f93b5;
 }
 
 .moderation-actions { margin-top: 18px; }
