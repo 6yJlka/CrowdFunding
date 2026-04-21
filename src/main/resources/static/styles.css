@@ -819,11 +819,16 @@ body.modal-open { overflow: hidden; }
 }
 
 /* Hover lift */
-.clickable-card { cursor: pointer; }
-
-.clickable-card:hover {
+.stat-card:hover {
     transform: translateY(-5px) scale(1.015);
 }
+
+.clickable-card { cursor: pointer; }
+
+.stat-card.accent-green:hover  { box-shadow: 0 28px 60px rgba(5,  150, 105, 0.42) !important; }
+.stat-card.accent-violet:hover { box-shadow: 0 28px 60px rgba(79,  70, 229, 0.42) !important; }
+.stat-card.accent-orange:hover { box-shadow: 0 28px 60px rgba(180, 83,   9, 0.38) !important; }
+.stat-card.accent-cyan:hover   { box-shadow: 0 28px 60px rgba(3,  105, 161, 0.40) !important; }
 
 .accent-green.clickable-card:hover  { box-shadow: 0 28px 60px rgba(5,  150, 105, 0.42) !important; }
 .accent-violet.clickable-card:hover { box-shadow: 0 28px 60px rgba(79,  70, 229, 0.42) !important; }

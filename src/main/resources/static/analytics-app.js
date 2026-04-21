@@ -1,4 +1,10 @@
 const analyticsI18n = window.AppI18n;
+let analyticsTopProjects = {
+    all: [],
+    year: [],
+    month: []
+};
+let analyticsLeaderboardFilter = "all";
 
 bootstrapAnalyticsPage().catch((error) => console.error(error));
 document.addEventListener("app:lang-changed", () => {
@@ -20,7 +26,13 @@ function renderAnalytics(data) {
     document.getElementById("analytics-active-projects").textContent = `${data.activeProjects ?? 0}`;
     document.getElementById("analytics-total-backers").textContent = `${data.totalBackers ?? 0}`;
     document.getElementById("analytics-funded-projects").textContent = `${data.fundedProjects ?? 0}`;
-    renderAnalyticsTopProjects(data.topProjects ?? []);
+    analyticsTopProjects = {
+        all: data.topProjects ?? [],
+        year: data.topProjectsYear ?? [],
+        month: data.topProjectsMonth ?? []
+    };
+    syncAnalyticsLeaderboardFilterButtons();
+    applyAnalyticsLeaderboardView();
     renderAnalyticsChart(data.monthlyRaised ?? []);
 }
 
@@ -38,6 +50,31 @@ function renderAnalyticsTopProjects(items) {
             </tr>
         `).join("")
         : `<tr><td colspan="3">${analyticsT("app.noCampaigns", "No campaigns available")}</td></tr>`;
+}
+
+function getAnalyticsLeaderboardProjects() {
+    return analyticsTopProjects[analyticsLeaderboardFilter] ?? [];
+}
+
+function setAnalyticsLeaderboardFilter(filter) {
+    if (!Object.prototype.hasOwnProperty.call(analyticsTopProjects, filter)) {
+        return;
+    }
+    analyticsLeaderboardFilter = filter;
+    syncAnalyticsLeaderboardFilterButtons();
+    applyAnalyticsLeaderboardView();
+}
+
+function applyAnalyticsLeaderboardView() {
+    renderAnalyticsTopProjects(getAnalyticsLeaderboardProjects());
+}
+
+function syncAnalyticsLeaderboardFilterButtons() {
+    document.querySelectorAll(".analytics-leaderboard .filters button[data-filter]").forEach((button) => {
+        const isActive = button.dataset.filter === analyticsLeaderboardFilter;
+        button.classList.toggle("active-filter", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+    });
 }
 
 function renderAnalyticsChart(points) {
@@ -338,8 +375,53 @@ function analyticsT(key, fallback) {
     return analyticsI18n?.t(key) ?? fallback;
 }
 
+document.querySelectorAll(".analytics-leaderboard .filters button[data-filter]").forEach((button) => {
+    button.addEventListener("click", () => {
+        setAnalyticsLeaderboardFilter(button.dataset.filter);
+    });
+});
+
 function resolveAnalyticsLocale() {
     return analyticsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+function translateAnalyticsCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
+    const normalized = String(title ?? "").trim().toLowerCase();
+    const key = ANALYTICS_CATEGORY_TRANSLATION_KEYS[normalized];
+    return key ? analyticsT(key, title) : (title || analyticsT(fallbackKey, fallbackText));
+}
+
+const ANALYTICS_CATEGORY_TRANSLATION_KEYS = {
+    "general": "category.general",
+    "\u043e\u0431\u0449\u0435\u0435": "category.general",
+    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
+    "technology": "category.tech",
+    "technologies": "category.tech",
+    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
+    "art": "category.art",
+    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
+    "social": "category.social",
+    "social projects": "category.social",
+    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
+    "education": "category.education",
+    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
+    "charity": "category.charity"
+};
+
+function renderAnalyticsTopProjects(items) {
+    const body = document.getElementById("analytics-top-projects");
+    body.innerHTML = items.length
+        ? items.map((project, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>
+                    <a href="/project.html?id=${project.id}">${escapeAnalyticsHtml(project.title)}</a>
+                    <div class="table-subtitle">${escapeAnalyticsHtml(translateAnalyticsCategoryTitle(project.categoryTitle))} · ${formatAnalyticsCompactMoney(project.collectedAmount)}</div>
+                </td>
+                <td>${escapeAnalyticsHtml(project.authorDisplayName ?? analyticsT("app.unknown", "Unknown"))}</td>
+            </tr>
+        `).join("")
+        : `<tr><td colspan="3">${analyticsT("app.noCampaigns", "No campaigns available")}</td></tr>`;
 }
 
 const ANALYTICS_CHART_MONTH_LABELS_RU = {

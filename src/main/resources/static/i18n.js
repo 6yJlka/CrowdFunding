@@ -770,7 +770,9 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: "#overview-chart h3", type: "text", key: "index.chart.title"},
         {selector: ".analytics-leaderboard .panel-kicker", type: "text", key: "showcase.analytics.top"},
         {selector: ".analytics-leaderboard h3", type: "text", key: "index.panel.top"},
-        {selector: ".analytics-leaderboard .ghost-btn", type: "text", key: "showcase.analytics.allProjects"},
+        {selector: ".analytics-leaderboard .filters button[data-filter='all']", type: "text", key: "index.filters.allTime"},
+        {selector: ".analytics-leaderboard .filters button[data-filter='year']", type: "text", key: "index.filters.thisYear"},
+        {selector: ".analytics-leaderboard .filters button[data-filter='month']", type: "text", key: "index.filters.thisMonth"},
         {selector: ".analytics-leaderboard th:nth-of-type(1)", type: "text", key: "index.table.pos"},
         {selector: ".analytics-leaderboard th:nth-of-type(2)", type: "text", key: "index.table.campaign"},
         {selector: ".analytics-leaderboard th:nth-of-type(3)", type: "text", key: "index.table.owner"}
