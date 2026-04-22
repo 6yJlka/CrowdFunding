@@ -46,7 +46,7 @@ const I18N_TRANSLATIONS = {
         "index.panel.active": "Active campaigns",
         "index.modal.select": "Select a campaign",
         "index.modal.details": "Details will appear here.",
-        "index.footer.version": "Version 1.0.0",
+        "index.footer.version": "Version 1.0.52",
         "index.footer.copy": "© RiseUp 2026",
         "common.recently": "Recently",
 
@@ -350,7 +350,7 @@ const I18N_TRANSLATIONS = {
         "index.panel.active": "Активные кампании",
         "index.modal.select": "Выберите кампанию",
         "index.modal.details": "Здесь появятся детали проекта.",
-        "index.footer.version": "Версия 1.0.0",
+        "index.footer.version": "Версия 1.0.52",
         "index.footer.copy": "© RiseUp 2026",
         "common.recently": "Недавно",
 
@@ -1072,7 +1072,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "index.panel.active": "Активные кампании",
     "index.modal.select": "Выберите кампанию",
     "index.modal.details": "Здесь появятся детали проекта.",
-    "index.footer.version": "Версия 1.0.0",
+    "index.footer.version": "Версия 1.0.52",
     "index.footer.copy": "© RiseUp 2026",
     "index.stats.live": "LIVE",
     "index.stats.go": "Перейти",
