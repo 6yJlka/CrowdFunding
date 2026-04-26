@@ -228,10 +228,6 @@ function renderCatalogPageProjects(projects) {
             <article class="project-card">
                 <div class="project-card-media">
                     ${coverMarkup}
-                    <div class="project-card-header project-card-header-overlay">
-                        <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
-                        <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
-                    </div>
                 </div>
                 <div class="project-card-content">
                     <h4>${escapeCatalogHtml(project.title)}</h4>
@@ -239,6 +235,10 @@ function renderCatalogPageProjects(projects) {
                     <div class="project-meta">
                         <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
                         <span>${formatCatalogMoney(project.goalAmount)}</span>
+                    </div>
+                    <div class="project-card-header project-card-badges">
+                        <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
+                        <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
                     </div>
                     <div class="project-progress">
                         <div class="project-progress-head">

@@ -48,7 +48,7 @@ document.addEventListener("app:lang-changed", () => {
 
 async function initializeSponsorDashboard() {
     applySponsorStaticTranslations();
-    setSponsorStatus(t("sponsor.status.loadingProfile", "Загружаем кабинет спонсора..."), "info");
+    setSponsorStatus(t("sponsor.status.loadingProfile", "Loading sponsor dashboard..."), "info");
 
     const [profile, donations] = await Promise.all([
         loadSponsorProfile(),
@@ -73,7 +73,7 @@ async function loadSponsorProfile() {
     });
 
     if (!response.ok) {
-        throw new Error(t("sponsor.status.profileError", "Не удалось загрузить профиль спонсора"));
+        throw new Error(t("sponsor.status.profileError", "Could not load sponsor profile"));
     }
 
     return response.json();
@@ -87,7 +87,7 @@ async function loadSponsorDonations() {
     });
 
     if (!response.ok) {
-        throw new Error(t("sponsor.status.donationsError", "Не удалось загрузить историю пожертвований"));
+        throw new Error(t("sponsor.status.donationsError", "Could not load donations history"));
     }
 
     const payload = await response.json();
@@ -97,7 +97,7 @@ async function loadSponsorDonations() {
 function renderSponsorProfile(profile) {
     const displayName = profile.displayName || (profile.email || "sponsor").split("@")[0];
     sponsorNameNode.textContent = displayName;
-    sponsorBioNode.textContent = profile.bio || t("sponsor.bio", "Поддерживаю проекты, которые делают платформу сильнее.");
+    sponsorBioNode.textContent = profile.bio || t("sponsor.bio", "I support projects that make the platform stronger.");
     sponsorEmailNode.textContent = profile.email || "-";
     sponsorRegistrationDateNode.textContent = formatSponsorDate(profile.createdAt);
     sponsorAvatarFallbackNode.textContent = getSponsorInitials(displayName);
@@ -112,10 +112,10 @@ function renderSponsorStats(donations) {
     const totalAmount = donations.reduce((sum, item) => sum + normalizeSponsorNumber(item.amount), 0);
 
     const stats = [
-        { title: t("sponsor.stats.totalDonations", "Всего пожертвований"), value: String(totalDonations), icon: "◼", accentClass: "accent-violet" },
-        { title: t("sponsor.stats.successfulDonations", "Успешных платежей"), value: String(successfulDonations), icon: "↗", accentClass: "accent-green" },
-        { title: t("sponsor.stats.supportedProjects", "Поддержано проектов"), value: String(supportedProjects), icon: "#", accentClass: "accent-cyan" },
-        { title: t("sponsor.stats.totalAmount", "Сумма поддержки"), value: formatSponsorMoney(totalAmount), icon: "₽", accentClass: "accent-orange" }
+        { title: t("sponsor.stats.totalDonations", "Total donations"), value: String(totalDonations), icon: "◣", accentClass: "accent-violet" },
+        { title: t("sponsor.stats.successfulDonations", "Successful payments"), value: String(successfulDonations), icon: "↗", accentClass: "accent-green" },
+        { title: t("sponsor.stats.supportedProjects", "Supported projects"), value: String(supportedProjects), icon: "#", accentClass: "accent-cyan" },
+        { title: t("sponsor.stats.totalAmount", "Support amount"), value: formatSponsorMoney(totalAmount), icon: "₽", accentClass: "accent-orange" }
     ];
 
     sponsorStatsNode.innerHTML = stats.map((stat) => `
@@ -145,7 +145,7 @@ function renderSponsorActivities(donations) {
             <li class="author-activity-item">
                 <div class="author-activity-dot"></div>
                 <div>
-                    <strong>${escapeSponsorHtml(item.projectTitle || t("sponsor.project.untitled", "Без названия"))}</strong>
+                    <strong>${escapeSponsorHtml(item.projectTitle || t("sponsor.project.untitled", "Untitled"))}</strong>
                     <p>${escapeSponsorHtml(formatSponsorActivity(item))}</p>
                     <span>${escapeSponsorHtml(formatSponsorDate(item.confirmedAt || item.createdAt))}</span>
                 </div>
@@ -154,35 +154,65 @@ function renderSponsorActivities(donations) {
 
     sponsorActivitiesNode.innerHTML = activities.length
         ? activities.join("")
-        : `<li class="empty-state">${escapeSponsorHtml(t("sponsor.activity.empty", "Пока нет пожертвований. Выберите проект и поддержите его."))}</li>`;
+        : `<li class="empty-state">${escapeSponsorHtml(t("sponsor.activity.empty", "No donations yet. Pick a project and support it."))}</li>`;
 }
 
 function renderSponsorProjects(items) {
     if (!items.length) {
-        sponsorProjectsNode.innerHTML = `<div class="empty-state">${escapeSponsorHtml(t("sponsor.projects.empty", "Вы еще не поддержали ни одного проекта."))}</div>`;
+        sponsorProjectsNode.innerHTML = `<div class="empty-state">${escapeSponsorHtml(t("sponsor.projects.empty", "You have not supported any project yet."))}</div>`;
         return;
     }
 
     sponsorProjectsNode.innerHTML = items.map((item) => `
-        <article class="project-card">
-            <div class="project-card-header">
-                <span class="status-badge">${escapeSponsorHtml(formatSponsorStatus(item.status))}</span>
-                <span class="meta-pill">${escapeSponsorHtml(item.provider ?? t("sponsor.project.provider", "Провайдер"))}</span>
+        <article class="project-card sponsor-support-card">
+            <div class="project-card-media sponsor-support-card-media">
+                ${renderSponsorProjectCover(item)}
             </div>
-            <h4>${escapeSponsorHtml(item.projectTitle ?? t("sponsor.project.untitled", "Без названия"))}</h4>
-            <p>${escapeSponsorHtml(t("sponsor.project.amount", "Сумма пожертвования"))}: ${escapeSponsorHtml(formatSponsorMoney(item.amount))}</p>
-            <div class="project-meta">
-                <span>${escapeSponsorHtml(t("sponsor.project.paymentId", "Платеж"))}: ${escapeSponsorHtml(item.externalPaymentId ?? t("sponsor.project.noPaymentId", "Без id"))}</span>
-                <span>${escapeSponsorHtml(formatSponsorDate(item.confirmedAt || item.createdAt))}</span>
-            </div>
-            <div class="project-card-footer">
-                <strong>${escapeSponsorHtml(item.provider ?? "-")}</strong>
-                <div class="project-card-footer-actions">
-                    <a class="ghost-btn" href="/project.html?id=${item.projectId}">${escapeSponsorHtml(t("sponsor.project.open", "Открыть проект"))}</a>
+            <div class="project-card-content sponsor-support-card-content">
+                <div class="sponsor-support-card-topline">
+                    <div class="sponsor-support-card-copy">
+                        <h4>${escapeSponsorHtml(item.projectTitle ?? t("sponsor.project.untitled", "Untitled"))}</h4>
+                        <p>${escapeSponsorHtml(t("sponsor.project.supportedOn", "Supported on"))}: ${escapeSponsorHtml(formatSponsorDate(item.confirmedAt || item.createdAt))}</p>
+                    </div>
+                    <div class="sponsor-support-card-amount">
+                        <span>${escapeSponsorHtml(t("sponsor.project.yourSupport", "Your support"))}</span>
+                        <strong>${escapeSponsorHtml(formatSponsorMoney(item.amount))}</strong>
+                    </div>
+                </div>
+                <div class="sponsor-support-card-meta">
+                    <span>${escapeSponsorHtml(t("sponsor.project.paymentStatus", "Payment status"))}: ${escapeSponsorHtml(formatSponsorStatus(item.status))}</span>
+                    <span>${escapeSponsorHtml(t("sponsor.project.paymentId", "Payment"))}: ${escapeSponsorHtml(item.externalPaymentId ?? t("sponsor.project.noPaymentId", "No id"))}</span>
+                </div>
+                <div class="project-card-header sponsor-support-card-badges">
+                    <span class="status-badge">${escapeSponsorHtml(formatSponsorStatus(item.status))}</span>
+                    <span class="meta-pill">${escapeSponsorHtml(item.provider ?? t("sponsor.project.provider", "Provider"))}</span>
+                </div>
+                <div class="project-card-footer sponsor-support-card-footer">
+                    <strong>${escapeSponsorHtml(t("sponsor.project.viaProvider", "Via {provider}").replace("{provider}", item.provider ?? t("sponsor.project.provider", "Provider")))}</strong>
+                    <div class="project-card-footer-actions">
+                        <a class="ghost-btn" href="/project.html?id=${item.projectId}">${escapeSponsorHtml(t("sponsor.project.open", "Open project"))}</a>
+                    </div>
                 </div>
             </div>
         </article>
     `).join("");
+}
+
+function renderSponsorProjectCover(item) {
+    const title = item?.projectTitle ?? t("sponsor.project.untitled", "Project");
+    const provider = item?.provider ?? t("sponsor.project.provider", "Provider");
+    const className = "project-card-cover sponsor-support-card-cover";
+    const tone = resolveSponsorProjectTone(item);
+    const initials = getSponsorProjectInitials(title);
+    return `
+        <div class="${className} ${tone}">
+            <div class="project-cover-glow"></div>
+            <div class="project-cover-copy">
+                <strong>${escapeSponsorHtml(initials)}</strong>
+                <span>${escapeSponsorHtml(provider)}</span>
+            </div>
+        </div>
+    `;
 }
 
 async function loadSponsorAvatar(hasAvatar) {
@@ -213,22 +243,40 @@ async function handleSponsorAvatarChange(event) {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        setSponsorStatus(t("sponsor.status.avatarTooLarge", "Аватар должен быть не больше 5 МБ"), "error");
+        setSponsorStatus(t("sponsor.status.avatarTooLarge", "Avatar must be 5 MB or smaller"), "error");
         event.target.value = "";
         return;
     }
 
     if (!file.type.startsWith("image/")) {
-        setSponsorStatus(t("sponsor.status.avatarImageOnly", "Можно выбрать только изображение"), "error");
+        setSponsorStatus(t("sponsor.status.avatarImageOnly", "Only image files are allowed"), "error");
         event.target.value = "";
         return;
     }
 
-    setSponsorAvatarPreview(URL.createObjectURL(file));
-    setSponsorStatus(t("sponsor.status.avatarSaving", "Сохраняем аватар..."), "info");
+    const croppedAvatar = await openAvatarCropper({
+        file,
+        kicker: t("avatar.crop.kicker", "Avatar"),
+        title: t("avatar.crop.title", "Adjust visible area"),
+        hint: t("avatar.crop.hint", "Drag the image and choose which part will be shown."),
+        zoomLabel: t("avatar.crop.zoom", "Zoom"),
+        resetLabel: t("avatar.crop.reset", "Reset"),
+        cancelLabel: t("avatar.crop.cancel", "Cancel"),
+        saveLabel: t("avatar.crop.save", "Apply")
+    }).catch(() => null);
+    if (!croppedAvatar) {
+        setSponsorStatus(t("avatar.crop.error", "Could not open avatar editor"), "error");
+        event.target.value = "";
+        return;
+    }
+
+    const uploadFile = new File([croppedAvatar], "avatar.png", {type: "image/png"});
+
+    setSponsorAvatarPreview(URL.createObjectURL(uploadFile));
+    setSponsorStatus(t("sponsor.status.avatarSaving", "Saving avatar..."), "info");
 
     const formData = new FormData();
-    formData.append("avatar", file);
+    formData.append("avatar", uploadFile);
 
     const response = await fetch("/api/me/avatar", {
         method: "POST",
@@ -240,7 +288,7 @@ async function handleSponsorAvatarChange(event) {
 
     if (!response.ok) {
         await loadSponsorAvatar(Boolean(currentSponsorProfile?.hasAvatar));
-        setSponsorStatus(t("sponsor.status.avatarSaveError", "Не удалось сохранить аватар"), "error");
+        setSponsorStatus(t("sponsor.status.avatarSaveError", "Could not save avatar"), "error");
         event.target.value = "";
         return;
     }
@@ -249,7 +297,7 @@ async function handleSponsorAvatarChange(event) {
         currentSponsorProfile.hasAvatar = true;
     }
     await loadSponsorAvatar(true);
-    setSponsorStatus(t("sponsor.status.avatarSaved", "Аватар сохранен"), "success");
+    setSponsorStatus(t("sponsor.status.avatarSaved", "Avatar saved"), "success");
     event.target.value = "";
 }
 
@@ -276,8 +324,8 @@ function revokeSponsorAvatarUrl() {
 }
 
 function formatSponsorActivity(item) {
-    return t("sponsor.activity.description", "Поддержан проект {title}, сумма: {amount}, статус: {status}.")
-        .replace("{title}", item.projectTitle || t("sponsor.project.untitled", "Без названия"))
+    return t("sponsor.activity.description", "Supported project {title}, amount: {amount}, status: {status}.")
+        .replace("{title}", item.projectTitle || t("sponsor.project.untitled", "Untitled"))
         .replace("{amount}", formatSponsorMoney(item.amount))
         .replace("{status}", formatSponsorStatus(item.status));
 }
@@ -325,6 +373,27 @@ function getSponsorInitials(value) {
         .join("") || "SP";
 }
 
+function getSponsorProjectInitials(value) {
+    return String(value || "PR")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() || "")
+        .join("") || "PR";
+}
+
+function resolveSponsorProjectTone(item) {
+    const source = `${item?.provider ?? ""}:${item?.projectTitle ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
+}
+
 function readSponsorAuth() {
     try {
         return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null");
@@ -340,23 +409,23 @@ function setSponsorStatus(message, type = "") {
 
 function applySponsorStaticTranslations() {
     document.title = t("sponsor.title", "Sponsor Dashboard | RiseUp");
-    sponsorAvatarPreviewNode.alt = t("sponsor.avatar.alt", "Аватар спонсора");
-    sponsorAvatarUploadLabelNode.setAttribute("aria-label", t("sponsor.avatar.upload", "Загрузить аватар"));
-    sponsorProfileKickerNode.textContent = t("sponsor.profile.kicker", "Профиль спонсора");
-    sponsorRegistrationLabelNode.textContent = t("sponsor.profile.registeredAt", "Дата регистрации");
+    sponsorAvatarPreviewNode.alt = t("sponsor.avatar.alt", "Sponsor avatar");
+    sponsorAvatarUploadLabelNode.setAttribute("aria-label", t("sponsor.avatar.upload", "Upload avatar"));
+    sponsorProfileKickerNode.textContent = t("sponsor.profile.kicker", "Sponsor profile");
+    sponsorRegistrationLabelNode.textContent = t("sponsor.profile.registeredAt", "Registration date");
     sponsorEmailLabelNode.textContent = t("sponsor.profile.email", "Email");
-    sponsorHomeLinkNode.textContent = t("sponsor.action.home", "На главную");
-    sponsorProjectsLinkNode.textContent = t("sponsor.action.findProject", "Найти проект");
-    sponsorActivityKickerNode.textContent = t("sponsor.activity.kicker", "Активность");
-    sponsorActivityTitleNode.textContent = t("sponsor.activity.title", "Последние пожертвования");
-    sponsorGuideKickerNode.textContent = t("sponsor.guide.kicker", "История");
-    sponsorGuideTitleNode.textContent = t("sponsor.guide.title", "Что отображается в кабинете");
-    sponsorProjectsKickerNode.textContent = t("sponsor.projects.kicker", "Поддержка");
-    sponsorProjectsTitleNode.textContent = t("sponsor.projects.title", "Ваши пожертвования");
+    sponsorHomeLinkNode.textContent = t("sponsor.action.home", "Home");
+    sponsorProjectsLinkNode.textContent = t("sponsor.action.findProject", "Find a project");
+    sponsorActivityKickerNode.textContent = t("sponsor.activity.kicker", "Activity");
+    sponsorActivityTitleNode.textContent = t("sponsor.activity.title", "Recent donations");
+    sponsorGuideKickerNode.textContent = t("sponsor.guide.kicker", "History");
+    sponsorGuideTitleNode.textContent = t("sponsor.guide.title", "What is shown in this dashboard");
+    sponsorProjectsKickerNode.textContent = t("sponsor.projects.kicker", "Support");
+    sponsorProjectsTitleNode.textContent = t("sponsor.projects.title", "Your donations");
     sponsorGuideListNode.innerHTML = `
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip1", "Все проекты, которые вы поддержали."))}</li>
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip2", "Сумма пожертвования и статус платежа."))}</li>
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip3", "Быстрый переход к публичной карточке проекта."))}</li>
+        <li>${escapeSponsorHtml(t("sponsor.guide.tip1", "All projects you supported."))}</li>
+        <li>${escapeSponsorHtml(t("sponsor.guide.tip2", "Donation amount and payment status."))}</li>
+        <li>${escapeSponsorHtml(t("sponsor.guide.tip3", "Quick access to the public project page."))}</li>
     `;
 }
 
@@ -375,4 +444,167 @@ function resolveSponsorLocale() {
 
 function t(key, fallback) {
     return window.AppI18n?.t?.(key) ?? fallback;
+}
+
+async function openAvatarCropper(options) {
+    const image = await loadAvatarCropperImage(options.file);
+    return new Promise((resolve) => {
+        const outputSize = 512;
+        const modal = document.createElement("div");
+        modal.className = "avatar-cropper-modal";
+        modal.innerHTML = `
+            <div class="avatar-cropper-dialog">
+                <div class="avatar-cropper-head">
+                    <div>
+                        <p class="panel-kicker">${escapeSponsorHtml(options.kicker || "")}</p>
+                        <h3>${escapeSponsorHtml(options.title || "Adjust avatar")}</h3>
+                    </div>
+                </div>
+                <div class="avatar-cropper-body">
+                    <div class="avatar-cropper-stage">
+                        <canvas class="avatar-cropper-canvas" width="${outputSize}" height="${outputSize}"></canvas>
+                        <div class="avatar-cropper-mask"></div>
+                    </div>
+                    <div class="avatar-cropper-controls">
+                        <label class="avatar-cropper-zoom">
+                            <span>${escapeSponsorHtml(options.zoomLabel || "Zoom")}</span>
+                            <input type="range" min="1" max="4" step="0.01" value="1">
+                        </label>
+                        <p class="avatar-cropper-hint">${escapeSponsorHtml(options.hint || "Drag the image to choose the visible area.")}</p>
+                    </div>
+                </div>
+                <div class="avatar-cropper-actions">
+                    <button type="button" class="ghost-btn avatar-cropper-reset">${escapeSponsorHtml(options.resetLabel || "Reset")}</button>
+                    <button type="button" class="ghost-btn avatar-cropper-cancel">${escapeSponsorHtml(options.cancelLabel || "Cancel")}</button>
+                    <button type="button" class="primary-btn avatar-cropper-save">${escapeSponsorHtml(options.saveLabel || "Apply")}</button>
+                </div>
+            </div>
+        `;
+
+        const canvas = modal.querySelector(".avatar-cropper-canvas");
+        const context = canvas.getContext("2d");
+        const zoomInput = modal.querySelector("input[type='range']");
+        const resetButton = modal.querySelector(".avatar-cropper-reset");
+        const cancelButton = modal.querySelector(".avatar-cropper-cancel");
+        const saveButton = modal.querySelector(".avatar-cropper-save");
+        const baseScale = Math.max(outputSize / image.naturalWidth, outputSize / image.naturalHeight);
+
+        let zoom = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let dragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startOffsetX = 0;
+        let startOffsetY = 0;
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function constrainOffsets() {
+            const scaledWidth = image.naturalWidth * baseScale * zoom;
+            const scaledHeight = image.naturalHeight * baseScale * zoom;
+            const limitX = Math.max((scaledWidth - outputSize) / 2, 0);
+            const limitY = Math.max((scaledHeight - outputSize) / 2, 0);
+            offsetX = clamp(offsetX, -limitX, limitX);
+            offsetY = clamp(offsetY, -limitY, limitY);
+        }
+
+        function render() {
+            constrainOffsets();
+            const scaledWidth = image.naturalWidth * baseScale * zoom;
+            const scaledHeight = image.naturalHeight * baseScale * zoom;
+            const drawX = (outputSize - scaledWidth) / 2 + offsetX;
+            const drawY = (outputSize - scaledHeight) / 2 + offsetY;
+            context.clearRect(0, 0, outputSize, outputSize);
+            context.drawImage(image, drawX, drawY, scaledWidth, scaledHeight);
+        }
+
+        function close(result) {
+            modal.remove();
+            document.body.classList.remove("avatar-cropper-open");
+            resolve(result);
+        }
+
+        function resetView() {
+            zoom = 1;
+            offsetX = 0;
+            offsetY = 0;
+            zoomInput.value = "1";
+            render();
+        }
+
+        canvas.addEventListener("pointerdown", (event) => {
+            dragging = true;
+            startX = event.clientX;
+            startY = event.clientY;
+            startOffsetX = offsetX;
+            startOffsetY = offsetY;
+            canvas.setPointerCapture?.(event.pointerId);
+            modal.classList.add("is-dragging");
+        });
+
+        canvas.addEventListener("pointermove", (event) => {
+            if (!dragging) {
+                return;
+            }
+            offsetX = startOffsetX + (event.clientX - startX);
+            offsetY = startOffsetY + (event.clientY - startY);
+            render();
+        });
+
+        function stopDragging(event) {
+            dragging = false;
+            canvas.releasePointerCapture?.(event.pointerId);
+            modal.classList.remove("is-dragging");
+        }
+
+        canvas.addEventListener("pointerup", stopDragging);
+        canvas.addEventListener("pointercancel", stopDragging);
+
+        zoomInput.addEventListener("input", () => {
+            zoom = Number(zoomInput.value);
+            render();
+        });
+
+        canvas.addEventListener("wheel", (event) => {
+            event.preventDefault();
+            const nextZoom = clamp(zoom + (event.deltaY < 0 ? 0.12 : -0.12), 1, 4);
+            zoom = nextZoom;
+            zoomInput.value = `${nextZoom}`;
+            render();
+        }, {passive: false});
+
+        resetButton.addEventListener("click", resetView);
+        cancelButton.addEventListener("click", () => close(null));
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                close(null);
+            }
+        });
+        saveButton.addEventListener("click", () => {
+            canvas.toBlob((blob) => close(blob || null), "image/png");
+        });
+
+        document.body.appendChild(modal);
+        document.body.classList.add("avatar-cropper-open");
+        resetView();
+    });
+}
+
+function loadAvatarCropperImage(file) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(image);
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Could not load image"));
+        };
+        image.src = objectUrl;
+    });
 }

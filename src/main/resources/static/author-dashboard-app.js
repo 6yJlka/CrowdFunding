@@ -244,10 +244,6 @@ function renderAuthorProjects(projects) {
             <article class="project-card author-project-card">
                 <div class="project-card-media author-project-card-media">
                     ${renderAuthorProjectCover(project)}
-                    <div class="project-card-header project-card-header-overlay">
-                        <span class="status-badge">${escapeHtml(formatProjectStatus(project.status))}</span>
-                        <span class="meta-pill">${escapeHtml(project.categoryTitle ?? t("app.general", "General"))}</span>
-                    </div>
                 </div>
                 <div class="project-card-content author-project-card-content">
                     <div class="author-project-card-topline">
@@ -272,6 +268,10 @@ function renderAuthorProjects(projects) {
                     <div class="author-project-card-meta">
                         <span>${escapeHtml(t("author.project.updated", "Updated"))}: ${escapeHtml(formatAuthorDate(project.updatedAt || project.createdAt))}</span>
                         <span>${escapeHtml(t("author.project.currency", "Currency"))}: ${escapeHtml(project.currency ?? "RUB")}</span>
+                    </div>
+                    <div class="project-card-header author-project-card-badges">
+                        <span class="status-badge">${escapeHtml(formatProjectStatus(project.status))}</span>
+                        <span class="meta-pill">${escapeHtml(project.categoryTitle ?? t("app.general", "General"))}</span>
                     </div>
                     ${project.rejectionReason ? `<div class="project-rejection-note"><strong>${escapeHtml(t("author.project.moderationNote", "Moderation note"))}:</strong> ${escapeHtml(project.rejectionReason)}</div>` : ""}
                     <div class="project-card-footer author-project-card-footer">
@@ -385,11 +385,29 @@ async function handleAvatarChange(event) {
         return;
     }
 
-    setAvatarPreviewUrl(URL.createObjectURL(file));
+    const croppedAvatar = await openAvatarCropper({
+        file,
+        kicker: t("avatar.crop.kicker", "Avatar"),
+        title: t("avatar.crop.title", "Adjust visible area"),
+        hint: t("avatar.crop.hint", "Drag the image and choose which part will be shown."),
+        zoomLabel: t("avatar.crop.zoom", "Zoom"),
+        resetLabel: t("avatar.crop.reset", "Reset"),
+        cancelLabel: t("avatar.crop.cancel", "Cancel"),
+        saveLabel: t("avatar.crop.save", "Apply")
+    }).catch(() => null);
+    if (!croppedAvatar) {
+        setAuthorStatus(t("avatar.crop.error", "Could not open avatar editor"), "error");
+        event.target.value = "";
+        return;
+    }
+
+    const uploadFile = new File([croppedAvatar], "avatar.png", {type: "image/png"});
+
+    setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
     setAuthorStatus(t("author.status.avatarSaving", "Saving avatar..."), "info");
 
     const formData = new FormData();
-    formData.append("avatar", file);
+    formData.append("avatar", uploadFile);
 
     const response = await fetch("/api/me/avatar", {
         method: "POST",
@@ -565,4 +583,167 @@ function escapeHtml(value) {
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+}
+
+async function openAvatarCropper(options) {
+    const image = await loadAvatarCropperImage(options.file);
+    return new Promise((resolve) => {
+        const outputSize = 512;
+        const modal = document.createElement("div");
+        modal.className = "avatar-cropper-modal";
+        modal.innerHTML = `
+            <div class="avatar-cropper-dialog">
+                <div class="avatar-cropper-head">
+                    <div>
+                        <p class="panel-kicker">${escapeHtml(options.kicker || "")}</p>
+                        <h3>${escapeHtml(options.title || "Adjust avatar")}</h3>
+                    </div>
+                </div>
+                <div class="avatar-cropper-body">
+                    <div class="avatar-cropper-stage">
+                        <canvas class="avatar-cropper-canvas" width="${outputSize}" height="${outputSize}"></canvas>
+                        <div class="avatar-cropper-mask"></div>
+                    </div>
+                    <div class="avatar-cropper-controls">
+                        <label class="avatar-cropper-zoom">
+                            <span>${escapeHtml(options.zoomLabel || "Zoom")}</span>
+                            <input type="range" min="1" max="4" step="0.01" value="1">
+                        </label>
+                        <p class="avatar-cropper-hint">${escapeHtml(options.hint || "Drag the image to choose the visible area.")}</p>
+                    </div>
+                </div>
+                <div class="avatar-cropper-actions">
+                    <button type="button" class="ghost-btn avatar-cropper-reset">${escapeHtml(options.resetLabel || "Reset")}</button>
+                    <button type="button" class="ghost-btn avatar-cropper-cancel">${escapeHtml(options.cancelLabel || "Cancel")}</button>
+                    <button type="button" class="primary-btn avatar-cropper-save">${escapeHtml(options.saveLabel || "Apply")}</button>
+                </div>
+            </div>
+        `;
+
+        const canvas = modal.querySelector(".avatar-cropper-canvas");
+        const context = canvas.getContext("2d");
+        const zoomInput = modal.querySelector("input[type='range']");
+        const resetButton = modal.querySelector(".avatar-cropper-reset");
+        const cancelButton = modal.querySelector(".avatar-cropper-cancel");
+        const saveButton = modal.querySelector(".avatar-cropper-save");
+        const baseScale = Math.max(outputSize / image.naturalWidth, outputSize / image.naturalHeight);
+
+        let zoom = 1;
+        let offsetX = 0;
+        let offsetY = 0;
+        let dragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startOffsetX = 0;
+        let startOffsetY = 0;
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function constrainOffsets() {
+            const scaledWidth = image.naturalWidth * baseScale * zoom;
+            const scaledHeight = image.naturalHeight * baseScale * zoom;
+            const limitX = Math.max((scaledWidth - outputSize) / 2, 0);
+            const limitY = Math.max((scaledHeight - outputSize) / 2, 0);
+            offsetX = clamp(offsetX, -limitX, limitX);
+            offsetY = clamp(offsetY, -limitY, limitY);
+        }
+
+        function render() {
+            constrainOffsets();
+            const scaledWidth = image.naturalWidth * baseScale * zoom;
+            const scaledHeight = image.naturalHeight * baseScale * zoom;
+            const drawX = (outputSize - scaledWidth) / 2 + offsetX;
+            const drawY = (outputSize - scaledHeight) / 2 + offsetY;
+            context.clearRect(0, 0, outputSize, outputSize);
+            context.drawImage(image, drawX, drawY, scaledWidth, scaledHeight);
+        }
+
+        function close(result) {
+            modal.remove();
+            document.body.classList.remove("avatar-cropper-open");
+            resolve(result);
+        }
+
+        function resetView() {
+            zoom = 1;
+            offsetX = 0;
+            offsetY = 0;
+            zoomInput.value = "1";
+            render();
+        }
+
+        canvas.addEventListener("pointerdown", (event) => {
+            dragging = true;
+            startX = event.clientX;
+            startY = event.clientY;
+            startOffsetX = offsetX;
+            startOffsetY = offsetY;
+            canvas.setPointerCapture?.(event.pointerId);
+            modal.classList.add("is-dragging");
+        });
+
+        canvas.addEventListener("pointermove", (event) => {
+            if (!dragging) {
+                return;
+            }
+            offsetX = startOffsetX + (event.clientX - startX);
+            offsetY = startOffsetY + (event.clientY - startY);
+            render();
+        });
+
+        function stopDragging(event) {
+            dragging = false;
+            canvas.releasePointerCapture?.(event.pointerId);
+            modal.classList.remove("is-dragging");
+        }
+
+        canvas.addEventListener("pointerup", stopDragging);
+        canvas.addEventListener("pointercancel", stopDragging);
+
+        zoomInput.addEventListener("input", () => {
+            zoom = Number(zoomInput.value);
+            render();
+        });
+
+        canvas.addEventListener("wheel", (event) => {
+            event.preventDefault();
+            const nextZoom = clamp(zoom + (event.deltaY < 0 ? 0.12 : -0.12), 1, 4);
+            zoom = nextZoom;
+            zoomInput.value = `${nextZoom}`;
+            render();
+        }, {passive: false});
+
+        resetButton.addEventListener("click", resetView);
+        cancelButton.addEventListener("click", () => close(null));
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                close(null);
+            }
+        });
+        saveButton.addEventListener("click", () => {
+            canvas.toBlob((blob) => close(blob || null), "image/png");
+        });
+
+        document.body.appendChild(modal);
+        document.body.classList.add("avatar-cropper-open");
+        resetView();
+    });
+}
+
+function loadAvatarCropperImage(file) {
+    return new Promise((resolve, reject) => {
+        const objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        image.onload = () => {
+            URL.revokeObjectURL(objectUrl);
+            resolve(image);
+        };
+        image.onerror = () => {
+            URL.revokeObjectURL(objectUrl);
+            reject(new Error("Could not load image"));
+        };
+        image.src = objectUrl;
+    });
 }

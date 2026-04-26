@@ -1507,6 +1507,66 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "author.project.currency": "\u0412\u0430\u043b\u044e\u0442\u0430"
 });
 
+Object.assign(I18N_TRANSLATIONS.en, {
+    "sponsor.project.supportedOn": "Supported on",
+    "sponsor.project.yourSupport": "Your support",
+    "sponsor.project.paymentStatus": "Payment status",
+    "sponsor.project.viaProvider": "Via {provider}"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "sponsor.project.supportedOn": "\u041f\u043e\u0434\u0434\u0435\u0440\u0436\u0430\u043d\u043e",
+    "sponsor.project.yourSupport": "\u0412\u0430\u0448 \u0432\u043a\u043b\u0430\u0434",
+    "sponsor.project.paymentStatus": "\u0421\u0442\u0430\u0442\u0443\u0441 \u043f\u043b\u0430\u0442\u0435\u0436\u0430",
+    "sponsor.project.viaProvider": "\u0427\u0435\u0440\u0435\u0437 {provider}"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "avatar.crop.kicker": "Avatar",
+    "avatar.crop.title": "Adjust visible area",
+    "avatar.crop.hint": "Drag the image and choose which part will be shown.",
+    "avatar.crop.zoom": "Zoom",
+    "avatar.crop.reset": "Reset",
+    "avatar.crop.cancel": "Cancel",
+    "avatar.crop.save": "Apply",
+    "avatar.crop.error": "Could not open avatar editor",
+    "avatar.crop.unavailable": "Avatar editor is unavailable, uploading original image"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "avatar.crop.kicker": "\u0410\u0432\u0430\u0442\u0430\u0440",
+    "avatar.crop.title": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u0442\u0435 \u0432\u0438\u0434\u0438\u043c\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c",
+    "avatar.crop.hint": "\u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0438 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435, \u043a\u0430\u043a\u0430\u044f \u0447\u0430\u0441\u0442\u044c \u0431\u0443\u0434\u0435\u0442 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u0430.",
+    "avatar.crop.zoom": "\u041c\u0430\u0441\u0448\u0442\u0430\u0431",
+    "avatar.crop.reset": "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",
+    "avatar.crop.cancel": "\u041e\u0442\u043c\u0435\u043d\u0430",
+    "avatar.crop.save": "\u041f\u0440\u0438\u043c\u0435\u043d\u0438\u0442\u044c",
+    "avatar.crop.error": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0430\u0432\u0430\u0442\u0430\u0440\u0430",
+    "avatar.crop.unavailable": "\u0420\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0430\u0432\u0430\u0442\u0430\u0440\u0430 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u0435\u043d, \u0437\u0430\u0433\u0440\u0443\u0436\u0430\u0435\u043c \u0438\u0441\u0445\u043e\u0434\u043d\u043e\u0435 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.crop.kicker": "Project cover",
+    "project.crop.title": "Adjust visible area",
+    "project.crop.hint": "Drag the image and choose which part will be shown on the project cover.",
+    "project.crop.zoom": "Zoom",
+    "project.crop.reset": "Reset",
+    "project.crop.cancel": "Cancel",
+    "project.crop.save": "Apply",
+    "project.crop.error": "Could not open cover editor"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.crop.kicker": "\u041e\u0431\u043b\u043e\u0436\u043a\u0430 \u043f\u0440\u043e\u0435\u043a\u0442\u0430",
+    "project.crop.title": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u0442\u0435 \u0432\u0438\u0434\u0438\u043c\u0443\u044e \u043e\u0431\u043b\u0430\u0441\u0442\u044c",
+    "project.crop.hint": "\u041f\u0435\u0440\u0435\u0442\u0430\u0449\u0438\u0442\u0435 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0438 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435, \u043a\u0430\u043a\u0430\u044f \u0447\u0430\u0441\u0442\u044c \u0431\u0443\u0434\u0435\u0442 \u043f\u043e\u043a\u0430\u0437\u0430\u043d\u0430 \u043d\u0430 \u043e\u0431\u043b\u043e\u0436\u043a\u0435.",
+    "project.crop.zoom": "\u041c\u0430\u0441\u0448\u0442\u0430\u0431",
+    "project.crop.reset": "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",
+    "project.crop.cancel": "\u041e\u0442\u043c\u0435\u043d\u0430",
+    "project.crop.save": "\u041f\u0440\u0438\u043c\u0435\u043d\u0438\u0442\u044c",
+    "project.crop.error": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u043e\u0431\u043b\u043e\u0436\u043a\u0438"
+});
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {
