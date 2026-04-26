@@ -223,32 +223,38 @@ function renderCatalogPageProjects(projects) {
 
     catalogGridNode.innerHTML = projects.map((project) => {
         const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
+        const coverMarkup = renderCatalogProjectCover(project, "project-card-cover");
         return `
             <article class="project-card">
-                <div class="project-card-header">
-                    <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
-                    <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
-                </div>
-                <h4>${escapeCatalogHtml(project.title)}</h4>
-                <p>${escapeCatalogHtml(project.shortDescription ?? "")}</p>
-                <div class="project-meta">
-                    <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
-                    <span>${formatCatalogMoney(project.goalAmount)}</span>
-                </div>
-                <div class="project-progress">
-                    <div class="project-progress-head">
-                        <span>${formatCatalogMoney(project.collectedAmount)} ${catalogT("app.raised", "raised")}</span>
-                        <span>${percent}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
+                <div class="project-card-media">
+                    ${coverMarkup}
+                    <div class="project-card-header project-card-header-overlay">
+                        <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
+                        <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
                     </div>
                 </div>
-                <div class="project-card-footer">
-                    <strong>${escapeCatalogHtml(project.currency ?? "RUB")}</strong>
-                    <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
-                        <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
+                <div class="project-card-content">
+                    <h4>${escapeCatalogHtml(project.title)}</h4>
+                    <p>${escapeCatalogHtml(project.shortDescription ?? "")}</p>
+                    <div class="project-meta">
+                        <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
+                        <span>${formatCatalogMoney(project.goalAmount)}</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-head">
+                            <span>${formatCatalogMoney(project.collectedAmount)} ${catalogT("app.raised", "raised")}</span>
+                            <span>${percent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="project-card-footer">
+                        <strong>${escapeCatalogHtml(project.currency ?? "RUB")}</strong>
+                        <div class="project-card-footer-actions">
+                            <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
+                            <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -288,10 +294,16 @@ async function openCatalogProjectModal(projectId) {
 
 function renderCatalogProjectModal(project, reviews) {
     const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
+    const coverMarkup = renderCatalogProjectCover(project, "project-modal-cover");
     document.getElementById("modal-body").innerHTML = `
         <p class="panel-kicker">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
-        <h3>${escapeCatalogHtml(project.title)}</h3>
-        <p class="modal-copy">${escapeCatalogHtml(project.description || project.shortDescription || "")}</p>
+        <div class="project-modal-hero">
+            ${coverMarkup}
+            <div class="project-modal-copy">
+                <h3>${escapeCatalogHtml(project.title)}</h3>
+                <p class="modal-copy">${escapeCatalogHtml(project.description || project.shortDescription || "")}</p>
+            </div>
+        </div>
         <div class="modal-metrics">
             <div class="metric-box">
                 <span>${catalogT("app.raisedCap", "Raised")}</span>
@@ -438,6 +450,55 @@ function formatCatalogMoney(value) {
         currency: "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
+}
+
+function renderCatalogProjectCover(project, className) {
+    if (project?.hasCoverImage && project?.id) {
+        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeCatalogHtml(project.title ?? "Project")}">`;
+    }
+
+    const category = translateCatalogCategoryTitle(project?.categoryTitle, "app.project", "Project");
+    const initials = getCatalogProjectInitials(project?.title);
+    const tone = getCatalogProjectCoverTone(project);
+
+    return `
+        <div class="${className} ${tone}">
+            <div class="project-cover-glow"></div>
+            <div class="project-cover-copy">
+                <strong>${escapeCatalogHtml(initials)}</strong>
+                <span>${escapeCatalogHtml(category)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function getCatalogProjectInitials(title) {
+    const parts = String(title ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (!parts.length) {
+        return "PR";
+    }
+
+    return parts
+        .slice(0, 2)
+        .map((part) => Array.from(part)[0] ?? "")
+        .join("")
+        .toUpperCase();
+}
+
+function getCatalogProjectCoverTone(project) {
+    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
 }
 
 function escapeCatalogHtml(value) {

@@ -23,6 +23,7 @@ public class ProjectResponse {
     private BigDecimal goalAmount;
     private BigDecimal collectedAmount;
     private String currency;
+    private boolean hasCoverImage;
 
     private ProjectStatus status;
     private String rejectionReason;
@@ -65,6 +66,9 @@ public class ProjectResponse {
 
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
+
+    public boolean isHasCoverImage() { return hasCoverImage; }
+    public void setHasCoverImage(boolean hasCoverImage) { this.hasCoverImage = hasCoverImage; }
 
     public ProjectStatus getStatus() { return status; }
     public void setStatus(ProjectStatus status) { this.status = status; }

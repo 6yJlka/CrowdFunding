@@ -1,6 +1,7 @@
 package com.example.crowdfunding.service.impl;
 
 import com.example.crowdfunding.api.dto.ProjectCreateRequest;
+import com.example.crowdfunding.api.dto.ProjectImageResponse;
 import com.example.crowdfunding.api.dto.ProjectUpdateRequest;
 import com.example.crowdfunding.domain.entity.CategoryEntity;
 import com.example.crowdfunding.domain.entity.ProjectEntity;
@@ -15,13 +16,25 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class ProjectServiceImpl implements ProjectService {
+
+    private static final long MAX_PROJECT_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
+    private static final int PROJECT_IMAGE_WIDTH = 1600;
+    private static final int PROJECT_IMAGE_HEIGHT = 900;
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
@@ -92,6 +105,52 @@ public class ProjectServiceImpl implements ProjectService {
 
         ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
+    }
+
+    @Override
+    @Transactional
+    public void updateCoverImage(UUID authorId, UUID projectId, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Project image file is required");
+        }
+        if (file.getSize() > MAX_PROJECT_IMAGE_SIZE_BYTES) {
+            throw new IllegalArgumentException("Project image must be 5 MB or smaller");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("Project image must be an image");
+        }
+
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
+
+        if (!project.getAuthor().getId().equals(authorId)) {
+            throw new IllegalStateException("Only author can update this project image");
+        }
+
+        try {
+            ProjectCoverImage image = normalizeProjectCoverImage(file.getBytes());
+            project.setCoverImageContentType(image.contentType());
+            project.setCoverImageBytes(image.bytes());
+            projectRepository.save(project);
+        } catch (IOException ex) {
+            throw new IllegalStateException("Could not read project image file");
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ProjectImageResponse getCoverImage(UUID projectId) {
+        ProjectEntity project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
+
+        byte[] image = project.getCoverImageBytes();
+        if (image == null || image.length == 0) {
+            throw new EntityNotFoundException("Project image not found");
+        }
+
+        return new ProjectImageResponse(image, project.getCoverImageContentType());
     }
 
     @Override
@@ -232,5 +291,40 @@ public class ProjectServiceImpl implements ProjectService {
 
         ProjectEntity saved = projectRepository.save(project);
         return loadForResponse(saved.getId());
+    }
+
+    private ProjectCoverImage normalizeProjectCoverImage(byte[] sourceBytes) throws IOException {
+        BufferedImage source = ImageIO.read(new ByteArrayInputStream(sourceBytes));
+        if (source == null) {
+            throw new IllegalArgumentException("Project image file must be a valid image");
+        }
+
+        BufferedImage fitted = renderProjectCover(source);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(fitted, "png", outputStream);
+        return new ProjectCoverImage(outputStream.toByteArray(), "image/png");
+    }
+
+    private BufferedImage renderProjectCover(BufferedImage source) {
+        BufferedImage target = new BufferedImage(PROJECT_IMAGE_WIDTH, PROJECT_IMAGE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = target.createGraphics();
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        int sourceWidth = source.getWidth();
+        int sourceHeight = source.getHeight();
+        double scale = Math.max((double) PROJECT_IMAGE_WIDTH / sourceWidth, (double) PROJECT_IMAGE_HEIGHT / sourceHeight);
+        int drawWidth = Math.max(1, (int) Math.round(sourceWidth * scale));
+        int drawHeight = Math.max(1, (int) Math.round(sourceHeight * scale));
+        int drawX = (PROJECT_IMAGE_WIDTH - drawWidth) / 2;
+        int drawY = (PROJECT_IMAGE_HEIGHT - drawHeight) / 2;
+
+        graphics.drawImage(source, drawX, drawY, drawWidth, drawHeight, null);
+        graphics.dispose();
+        return target;
+    }
+
+    private record ProjectCoverImage(byte[] bytes, String contentType) {
     }
 }

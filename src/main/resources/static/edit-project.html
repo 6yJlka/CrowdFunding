@@ -25,41 +25,62 @@
         <div class="project-rejection-note hidden" id="project-rejection-note"></div>
 
         <form class="project-form" id="project-form">
+            <section class="project-cover-field">
+                <div class="project-cover-preview-shell">
+                    <div class="project-cover-preview" id="project-cover-preview-fallback">
+                        <div class="project-cover-glow"></div>
+                        <div class="project-cover-copy">
+                            <strong id="project-cover-preview-title">PR</strong>
+                            <span id="project-cover-preview-category">Project</span>
+                        </div>
+                    </div>
+                    <img id="project-cover-preview-image" class="project-cover-preview-image hidden" alt="Project cover preview">
+                </div>
+                <label class="project-cover-upload-group">
+                    <span id="project-image-label">Project image</span>
+                    <input class="hidden" type="file" name="projectImage" id="project-image-input" accept="image/*">
+                    <span class="project-cover-upload-box">
+                        <span class="project-cover-upload-action" id="project-image-action">Choose image</span>
+                        <span class="project-cover-upload-name" id="project-image-name">No file selected</span>
+                    </span>
+                    <small class="field-hint" id="project-image-hint">Optional. Upload a new image to replace the current one.</small>
+                </label>
+            </section>
             <label>
-                <span>Title</span>
+                <span id="project-title-label">Title</span>
                 <input type="text" name="title" maxlength="180" required>
             </label>
             <label>
-                <span>Short description</span>
+                <span id="project-short-description-label">Short description</span>
                 <textarea name="shortDescription" maxlength="300" rows="3" required></textarea>
             </label>
             <label>
-                <span>Description</span>
+                <span id="project-description-label">Description</span>
                 <textarea name="description" rows="7" required></textarea>
             </label>
             <div class="form-row">
                 <label>
-                    <span>Goal amount</span>
+                    <span id="project-goal-label">Goal amount</span>
                     <input type="number" name="goalAmount" min="0.01" step="0.01" required>
                 </label>
                 <label>
-                    <span>Currency</span>
+                    <span id="project-currency-label">Currency</span>
                     <input type="text" name="currency" value="RUB" minlength="3" maxlength="3" required>
                 </label>
             </div>
             <div class="form-row">
                 <label>
-                    <span>Category</span>
+                    <span id="project-category-label">Category</span>
                     <select name="categoryId" id="category-select">
                         <option value="">Without category</option>
                     </select>
                 </label>
                 <label>
-                    <span>Start at</span>
+                    <span id="project-start-at-label">Start at</span>
                     <input type="datetime-local" name="startAt">
                 </label>
                 <label>
-                    <span>End at</span>
+                    <span id="project-end-at-label">End at</span>
                     <input type="datetime-local" name="endAt">
                 </label>
             </div>

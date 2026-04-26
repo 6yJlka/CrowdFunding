@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.sql.Types;
@@ -54,6 +55,14 @@ public class ProjectEntity {
 
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
+
+    @Column(name = "cover_image_content_type", length = 120)
+    private String coverImageContentType;
+
+    @Basic(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "cover_image_bytes")
+    private byte[] coverImageBytes;
 
     @Column(name = "start_at")
     private OffsetDateTime startAt;

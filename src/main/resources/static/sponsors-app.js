@@ -86,7 +86,7 @@ function renderSponsors(items) {
     }
 
     grid.innerHTML = items.map((sponsor) => `
-        <article class="project-card sponsor-card founder-card">
+        <article class="community-card sponsor-card founder-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeSponsorsHtml(sponsorsT("sponsors.label", "Sponsor"))}</span>
                 <span class="meta-pill">${escapeSponsorsHtml(formatSponsorsDate(sponsor.lastSupportedAt))}</span>

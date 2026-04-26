@@ -1,10 +1,12 @@
 package com.example.crowdfunding.service;
 
 import com.example.crowdfunding.api.dto.ProjectCreateRequest;
+import com.example.crowdfunding.api.dto.ProjectImageResponse;
 import com.example.crowdfunding.api.dto.ProjectUpdateRequest;
 import com.example.crowdfunding.domain.entity.ProjectEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.UUID;
 
@@ -13,6 +15,10 @@ public interface ProjectService {
     ProjectEntity create(UUID authorId, ProjectCreateRequest req);
 
     ProjectEntity update(UUID authorId, UUID projectId, ProjectUpdateRequest req);
+
+    void updateCoverImage(UUID authorId, UUID projectId, MultipartFile file);
+
+    ProjectImageResponse getCoverImage(UUID projectId);
 
     ProjectEntity submitToModeration(UUID authorId, UUID projectId);
 

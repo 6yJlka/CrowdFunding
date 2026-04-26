@@ -5,7 +5,14 @@ const statusNode = document.getElementById("project-status");
 const categorySelect = document.getElementById("category-select");
 const startAtInput = projectForm.elements.startAt;
 const endAtInput = projectForm.elements.endAt;
+const projectImageInput = document.getElementById("project-image-input");
+const projectImageName = document.getElementById("project-image-name");
+const projectCoverPreviewImage = document.getElementById("project-cover-preview-image");
+const projectCoverPreviewFallback = document.getElementById("project-cover-preview-fallback");
+const projectCoverPreviewTitle = document.getElementById("project-cover-preview-title");
+const projectCoverPreviewCategory = document.getElementById("project-cover-preview-category");
 const createI18n = window.AppI18n;
+let createProjectImageObjectUrl = "";
 
 const auth = readAuth();
 if (!auth?.accessToken) {
@@ -15,9 +22,16 @@ if (!auth?.accessToken) {
 loadCategories().catch((error) => setStatus(error.message, "error"));
 applyCreateDateConstraints();
 applyCreateDateInputLocale();
+wireCreateProjectPreview();
+syncCreateProjectImageName();
+renderCreateProjectCoverFallback();
 document.addEventListener("app:lang-changed", () => {
     applyCreateDateInputLocale();
     loadCategories().catch((error) => setStatus(error.message, "error"));
+    syncCreateProjectImageName(projectImageInput.files?.[0]?.name);
+    if (!projectImageInput.files?.[0]) {
+        renderCreateProjectCoverFallback();
+    }
 });
 
 projectForm.addEventListener("submit", async (event) => {
@@ -50,6 +64,10 @@ projectForm.addEventListener("submit", async (event) => {
             throw new Error(body.message || body.error || createT("create.status.error", "Could not create project"));
         }
 
+        if (projectImageInput.files?.[0]) {
+            await uploadCreateProjectImage(body.id, projectImageInput.files[0]);
+        }
+
         setStatus(createT("create.status.created", "Project created: {title}").replace("{title}", body.title ?? ""), "success");
         window.setTimeout(() => {
             window.location.href = "/author-dashboard.html";
@@ -63,6 +81,12 @@ projectForm.addEventListener("submit", async (event) => {
     }
 });
 
+function wireCreateProjectPreview() {
+    projectForm.title.addEventListener("input", renderCreateProjectCoverFallback);
+    categorySelect.addEventListener("change", renderCreateProjectCoverFallback);
+    projectImageInput.addEventListener("change", handleCreateProjectImageChange);
+}
+
 async function loadCategories() {
     const selectedCategoryId = categorySelect.value;
     const response = await fetch("/api/categories");
@@ -75,6 +99,114 @@ async function loadCategories() {
         <option value="${category.id}">${escapeHtml(translateCreateCategoryTitle(category.title))}</option>
     `).join("")}`;
     categorySelect.value = selectedCategoryId;
+    renderCreateProjectCoverFallback();
+}
+
+async function uploadCreateProjectImage(projectId, file) {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(`/api/projects/${projectId}/image`, {
+        method: "POST",
+        headers: {
+            "Authorization": `${auth.tokenType || "Bearer"} ${auth.accessToken}`
+        },
+        body: formData
+    });
+
+    if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body.message || body.error || createT("create.image.uploadError", "Project image could not be uploaded"));
+    }
+}
+
+function handleCreateProjectImageChange(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+        clearCreateProjectImagePreview();
+        renderCreateProjectCoverFallback();
+        syncCreateProjectImageName();
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+        event.target.value = "";
+        clearCreateProjectImagePreview();
+        renderCreateProjectCoverFallback();
+        syncCreateProjectImageName();
+        setStatus(createT("create.image.tooLarge", "Project image must be 5 MB or smaller"), "error");
+        return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+        event.target.value = "";
+        clearCreateProjectImagePreview();
+        renderCreateProjectCoverFallback();
+        syncCreateProjectImageName();
+        setStatus(createT("create.image.imageOnly", "Project image must be an image"), "error");
+        return;
+    }
+
+    syncCreateProjectImageName(file.name);
+    showCreateProjectImagePreview(URL.createObjectURL(file));
+}
+
+function showCreateProjectImagePreview(url) {
+    clearCreateProjectImagePreview();
+    createProjectImageObjectUrl = url;
+    projectCoverPreviewImage.src = url;
+    projectCoverPreviewImage.classList.remove("hidden");
+    projectCoverPreviewFallback.classList.add("hidden");
+}
+
+function clearCreateProjectImagePreview() {
+    if (createProjectImageObjectUrl) {
+        URL.revokeObjectURL(createProjectImageObjectUrl);
+        createProjectImageObjectUrl = "";
+    }
+    projectCoverPreviewImage.removeAttribute("src");
+    projectCoverPreviewImage.classList.add("hidden");
+    projectCoverPreviewFallback.classList.remove("hidden");
+}
+
+function renderCreateProjectCoverFallback() {
+    if (projectImageInput.files?.[0]) {
+        return;
+    }
+    const title = projectForm.title.value.trim();
+    const categoryTitle = categorySelect.options[categorySelect.selectedIndex]?.textContent?.trim()
+        || createT("app.project", "Project");
+    projectCoverPreviewTitle.textContent = resolveProjectCoverInitials(title);
+    projectCoverPreviewCategory.textContent = categoryTitle;
+    projectCoverPreviewFallback.className = `project-cover-preview ${resolveProjectCoverToneClass(title, categoryTitle)}`;
+}
+
+function syncCreateProjectImageName(fileName = "") {
+    projectImageName.textContent = fileName || createT("create.image.none", "No file selected");
+}
+
+function resolveProjectCoverInitials(title) {
+    const parts = String(title ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return "PR";
+    }
+
+    return parts.slice(0, 2)
+        .map((part) => Array.from(part)[0] ?? "")
+        .join("")
+        .toUpperCase();
+}
+
+function resolveProjectCoverToneClass(title, categoryTitle) {
+    const source = `${categoryTitle ?? ""}:${title ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
 }
 
 function applyCreateDateConstraints() {

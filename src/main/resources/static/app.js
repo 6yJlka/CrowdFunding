@@ -327,32 +327,38 @@ function renderCatalog(projects) {
 
     grid.innerHTML = projects.map((project) => {
         const percent = getProgress(project.collectedAmount, project.goalAmount);
+        const coverMarkup = renderProjectCover(project, "project-card-cover");
         return `
             <article class="project-card">
-                <div class="project-card-header">
-                    <span class="status-badge">${escapeHtml(project.status ?? "ACTIVE")}</span>
-                    <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
-                </div>
-                <h4>${escapeHtml(project.title)}</h4>
-                <p>${escapeHtml(project.shortDescription ?? "")}</p>
-                <div class="project-meta">
-                    <span>${escapeHtml(project.authorDisplayName ?? appT("app.unknownAuthor", "Unknown author"))}</span>
-                    <span>${formatMoney(project.goalAmount)}</span>
-                </div>
-                <div class="project-progress">
-                    <div class="project-progress-head">
-                        <span>${formatMoney(project.collectedAmount)} ${appT("app.raised", "raised")}</span>
-                        <span>${percent}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
+                <div class="project-card-media">
+                    ${coverMarkup}
+                    <div class="project-card-header project-card-header-overlay">
+                        <span class="status-badge">${escapeHtml(project.status ?? "ACTIVE")}</span>
+                        <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
                     </div>
                 </div>
-                <div class="project-card-footer">
-                    <strong>${escapeHtml(project.currency ?? "RUB")}</strong>
-                    <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
-                        <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
+                <div class="project-card-content">
+                    <h4>${escapeHtml(project.title)}</h4>
+                    <p>${escapeHtml(project.shortDescription ?? "")}</p>
+                    <div class="project-meta">
+                        <span>${escapeHtml(project.authorDisplayName ?? appT("app.unknownAuthor", "Unknown author"))}</span>
+                        <span>${formatMoney(project.goalAmount)}</span>
+                    </div>
+                    <div class="project-progress">
+                        <div class="project-progress-head">
+                            <span>${formatMoney(project.collectedAmount)} ${appT("app.raised", "raised")}</span>
+                            <span>${percent}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="project-card-footer">
+                        <strong>${escapeHtml(project.currency ?? "RUB")}</strong>
+                        <div class="project-card-footer-actions">
+                            <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
+                            <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
+                        </div>
                     </div>
                 </div>
             </article>
@@ -393,10 +399,16 @@ async function openProjectModal(projectId) {
 function renderProjectModal(project, reviews) {
     const percent = getProgress(project.collectedAmount, project.goalAmount);
     const body = document.getElementById("modal-body");
+    const coverMarkup = renderProjectCover(project, "project-modal-cover");
     body.innerHTML = `
         <p class="panel-kicker">${escapeHtml(translateAppCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
-        <h3>${escapeHtml(project.title)}</h3>
-        <p class="modal-copy">${escapeHtml(project.description || project.shortDescription || "")}</p>
+        <div class="project-modal-hero">
+            ${coverMarkup}
+            <div class="project-modal-copy">
+                <h3>${escapeHtml(project.title)}</h3>
+                <p class="modal-copy">${escapeHtml(project.description || project.shortDescription || "")}</p>
+            </div>
+        </div>
         <div class="modal-metrics">
             <div class="metric-box">
                 <span>${appT("app.raisedCap", "Raised")}</span>
@@ -463,6 +475,55 @@ function formatMoney(value) {
         currency: "RUB",
         maximumFractionDigits: 0
     }).format(Number(value ?? 0));
+}
+
+function renderProjectCover(project, className) {
+    if (project?.hasCoverImage && project?.id) {
+        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
+    }
+
+    const category = translateAppCategoryTitle(project?.categoryTitle, "app.project", "Project");
+    const tone = getProjectCoverTone(project);
+    const initials = getProjectCoverInitials(project?.title);
+
+    return `
+        <div class="${className} ${tone}">
+            <div class="project-cover-glow"></div>
+            <div class="project-cover-copy">
+                <strong>${escapeHtml(initials)}</strong>
+                <span>${escapeHtml(category)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function getProjectCoverInitials(title) {
+    const parts = String(title ?? "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean);
+
+    if (!parts.length) {
+        return "PR";
+    }
+
+    return parts
+        .slice(0, 2)
+        .map((part) => Array.from(part)[0] ?? "")
+        .join("")
+        .toUpperCase();
+}
+
+function getProjectCoverTone(project) {
+    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
 }
 
 function formatCompactMoney(value) {
@@ -995,4 +1056,3 @@ function formatChartRangeBadge(label) {
         ? `${sinceText} ${localizedMonth} ${yearToken}`
         : `${sinceText} ${localizedMonth}`;
 }
-

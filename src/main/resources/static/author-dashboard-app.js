@@ -58,7 +58,7 @@ document.addEventListener("app:lang-changed", () => {
 
 async function initializeAuthorDashboard() {
     applyAuthorStaticTranslations();
-    setAuthorStatus(t("author.status.loadingProfile", "Загружаем профиль..."), "info");
+    setAuthorStatus(t("author.status.loadingProfile", "Loading profile..."), "info");
 
     const [profile, projects] = await Promise.all([
         loadAuthorProfile(),
@@ -83,7 +83,7 @@ async function loadAuthorProfile() {
     });
 
     if (!response.ok) {
-        throw new Error(t("author.status.profileError", "Не удалось загрузить профиль автора"));
+        throw new Error(t("author.status.profileError", "Could not load author profile"));
     }
 
     return response.json();
@@ -97,7 +97,7 @@ async function loadAuthorProjects() {
     });
 
     if (!response.ok) {
-        throw new Error(t("author.status.projectsError", "Не удалось загрузить проекты автора"));
+        throw new Error(t("author.status.projectsError", "Could not load author projects"));
     }
 
     const payload = await response.json();
@@ -110,7 +110,7 @@ function renderAuthorProfile(profile) {
 
     document.title = t("author.title", "Author Dashboard | RiseUp");
     authorNameNode.textContent = displayName;
-    authorBioNode.textContent = profile.bio || t("author.bio", "Ведущий разработчик, создаю open-source проекты.");
+    authorBioNode.textContent = profile.bio || t("author.bio", "Lead developer, building open-source projects.");
     authorBioInputNode.value = profile.bio || "";
     syncBioCounter();
     authorEmailNode.textContent = profile.email || "-";
@@ -145,11 +145,11 @@ async function saveBio(event) {
 
     const bio = authorBioInputNode.value.trim();
     if (!bio) {
-        setAuthorStatus(t("author.status.bioRequired", "Заполните описание профиля"), "error");
+        setAuthorStatus(t("author.status.bioRequired", "Please fill in your profile description"), "error");
         return;
     }
 
-    setAuthorStatus(t("author.status.bioSaving", "Сохраняем описание..."), "info");
+    setAuthorStatus(t("author.status.bioSaving", "Saving description..."), "info");
 
     const response = await fetch("/api/me/profile", {
         method: "PATCH",
@@ -161,7 +161,7 @@ async function saveBio(event) {
     });
 
     if (!response.ok) {
-        setAuthorStatus(t("author.status.bioSaveError", "Не удалось сохранить описание"), "error");
+        setAuthorStatus(t("author.status.bioSaveError", "Could not save description"), "error");
         return;
     }
 
@@ -169,7 +169,7 @@ async function saveBio(event) {
     renderAuthorProfile(currentAuthorProfile);
     await loadAuthorAvatar(currentProfileHasAvatar);
     closeBioEditor();
-    setAuthorStatus(t("author.status.bioSaved", "Описание сохранено"), "success");
+    setAuthorStatus(t("author.status.bioSaved", "Description saved"), "success");
 }
 
 function renderDashboardStats(projects) {
@@ -180,10 +180,10 @@ function renderDashboardStats(projects) {
     const currency = resolveCurrency(projects);
 
     const stats = [
-        { title: t("author.stats.totalProjects", "Всего проектов"), value: String(totalProjects), icon: "◼", accentClass: "accent-violet" },
-        { title: t("author.stats.successfulProjects", "Успешных сборов"), value: String(successfulProjects), icon: "↗", accentClass: "accent-green" },
-        { title: t("author.stats.successRate", "Процент успеха"), value: `${successRate}%`, icon: "%", accentClass: "accent-cyan" },
-        { title: t("author.stats.totalRaised", "Собрано всего"), value: formatMoney(totalCollected, currency), icon: resolveCurrencyIcon(currency), accentClass: "accent-orange" }
+        { title: t("author.stats.totalProjects", "Total projects"), value: String(totalProjects), icon: "◥", accentClass: "accent-violet" },
+        { title: t("author.stats.successfulProjects", "Successful campaigns"), value: String(successfulProjects), icon: "↗", accentClass: "accent-green" },
+        { title: t("author.stats.successRate", "Success rate"), value: `${successRate}%`, icon: "%", accentClass: "accent-cyan" },
+        { title: t("author.stats.totalRaised", "Total raised"), value: formatMoney(totalCollected, currency), icon: resolveCurrencyIcon(currency), accentClass: "accent-orange" }
     ];
 
     authorStatsNode.innerHTML = stats.map((stat) => `
@@ -212,13 +212,13 @@ function renderRecentActivities(projects) {
         .map((project) => {
             const dateLabel = formatAuthorDate(project.updatedAt || project.createdAt);
             const verb = project.updatedAt && project.updatedAt !== project.createdAt
-                ? t("author.activity.updated", "обновлен")
-                : t("author.activity.created", "создан");
+                ? t("author.activity.updated", "updated")
+                : t("author.activity.created", "created");
             return `
                 <li class="author-activity-item">
                     <div class="author-activity-dot"></div>
                     <div>
-                        <strong>${escapeHtml(project.title || t("author.project.untitled", "Без названия"))}</strong>
+                        <strong>${escapeHtml(project.title || t("author.project.untitled", "Untitled"))}</strong>
                         <p>${escapeHtml(formatActivityDescription(verb, project.status))}</p>
                         <span>${escapeHtml(dateLabel)}</span>
                     </div>
@@ -228,41 +228,103 @@ function renderRecentActivities(projects) {
 
     authorActivitiesNode.innerHTML = activities.length
         ? activities.join("")
-        : `<li class="empty-state">${escapeHtml(t("author.activity.empty", "Пока нет активности. Создайте первый проект, чтобы кабинет ожил."))}</li>`;
+        : `<li class="empty-state">${escapeHtml(t("author.activity.empty", "No activity yet. Create your first project to bring this dashboard to life."))}</li>`;
 }
 
 function renderAuthorProjects(projects) {
     if (!projects.length) {
-        authorProjectsNode.innerHTML = `<div class="empty-state">${escapeHtml(t("author.projects.empty", "У вас пока нет проектов."))}</div>`;
+        authorProjectsNode.innerHTML = `<div class="empty-state">${escapeHtml(t("author.projects.empty", "You do not have any projects yet."))}</div>`;
         return;
     }
 
     authorProjectsNode.innerHTML = projects.map((project) => {
-        const canEdit = project.status === "DRAFT" || project.status === "REJECTED";
-        const canSubmit = canEdit;
+        const canSubmit = project.status === "DRAFT" || project.status === "REJECTED";
+        const progress = resolveAuthorProjectProgress(project);
         return `
-            <article class="project-card">
-                <div class="project-card-header">
-                    <span class="status-badge">${escapeHtml(formatProjectStatus(project.status))}</span>
-                    <span class="meta-pill">${escapeHtml(project.categoryTitle ?? t("app.general", "General"))}</span>
-                </div>
-                <h4>${escapeHtml(project.title)}</h4>
-                <p>${escapeHtml(project.shortDescription ?? "")}</p>
-                <div class="project-meta">
-                    <span>${escapeHtml(t("author.project.raised", "Собрано"))}: ${escapeHtml(formatMoney(project.collectedAmount, project.currency))}</span>
-                    <span>${escapeHtml(t("author.project.goal", "Цель"))}: ${escapeHtml(formatMoney(project.goalAmount, project.currency))}</span>
-                </div>
-                ${project.rejectionReason ? `<div class="project-rejection-note"><strong>${escapeHtml(t("author.project.moderationNote", "Комментарий модерации"))}:</strong> ${escapeHtml(project.rejectionReason)}</div>` : ""}
-                <div class="project-card-footer">
-                    <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${project.id}">${escapeHtml(t("author.project.open", "Открыть"))}</a>
-                        ${canEdit ? `<a class="ghost-btn" href="/edit-project.html?id=${project.id}">${escapeHtml(t("author.project.edit", "Редактировать"))}</a>` : ""}
+            <article class="project-card author-project-card">
+                <div class="project-card-media author-project-card-media">
+                    ${renderAuthorProjectCover(project)}
+                    <div class="project-card-header project-card-header-overlay">
+                        <span class="status-badge">${escapeHtml(formatProjectStatus(project.status))}</span>
+                        <span class="meta-pill">${escapeHtml(project.categoryTitle ?? t("app.general", "General"))}</span>
                     </div>
-                    ${canSubmit ? `<button class="primary-btn small-btn" type="button" data-submit-id="${project.id}">${escapeHtml(t("author.project.submit", "На модерацию"))}</button>` : ""}
+                </div>
+                <div class="project-card-content author-project-card-content">
+                    <div class="author-project-card-topline">
+                        <div class="author-project-card-copy">
+                            <h4>${escapeHtml(project.title || t("author.project.untitled", "Untitled"))}</h4>
+                            <p>${escapeHtml(project.shortDescription ?? "")}</p>
+                        </div>
+                        <div class="author-project-card-goal">
+                            <span>${escapeHtml(t("author.project.goal", "Goal"))}</span>
+                            <strong>${escapeHtml(formatMoney(project.goalAmount, project.currency))}</strong>
+                        </div>
+                    </div>
+                    <div class="project-progress author-project-progress">
+                        <div class="project-progress-head">
+                            <span>${escapeHtml(t("author.project.raised", "Raised"))}: ${escapeHtml(formatMoney(project.collectedAmount, project.currency))}</span>
+                            <span>${progress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-value" style="width:${Math.min(progress, 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="author-project-card-meta">
+                        <span>${escapeHtml(t("author.project.updated", "Updated"))}: ${escapeHtml(formatAuthorDate(project.updatedAt || project.createdAt))}</span>
+                        <span>${escapeHtml(t("author.project.currency", "Currency"))}: ${escapeHtml(project.currency ?? "RUB")}</span>
+                    </div>
+                    ${project.rejectionReason ? `<div class="project-rejection-note"><strong>${escapeHtml(t("author.project.moderationNote", "Moderation note"))}:</strong> ${escapeHtml(project.rejectionReason)}</div>` : ""}
+                    <div class="project-card-footer author-project-card-footer">
+                        <div class="project-card-footer-actions">
+                            <a class="ghost-btn" href="/project.html?id=${project.id}">${escapeHtml(t("author.project.open", "Open"))}</a>
+                            <a class="ghost-btn" href="/edit-project.html?id=${project.id}">${escapeHtml(t("author.project.edit", "Edit"))}</a>
+                        </div>
+                        ${canSubmit ? `<button class="primary-btn small-btn" type="button" data-submit-id="${project.id}">${escapeHtml(t("author.project.submit", "Submit"))}</button>` : ""}
+                    </div>
                 </div>
             </article>
         `;
     }).join("");
+}
+
+function renderAuthorProjectCover(project) {
+    const className = "project-card-cover author-project-card-cover";
+    if (project?.hasCoverImage && project?.id) {
+        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
+    }
+
+    const category = project.categoryTitle ?? t("app.project", "Project");
+    const initials = getInitials(project.title || "PR");
+    const tone = resolveAuthorProjectTone(project);
+    return `
+        <div class="${className} ${tone}">
+            <div class="project-cover-glow"></div>
+            <div class="project-cover-copy">
+                <strong>${escapeHtml(initials)}</strong>
+                <span>${escapeHtml(category)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function resolveAuthorProjectProgress(project) {
+    const goal = normalizeNumber(project.goalAmount);
+    if (!goal) {
+        return 0;
+    }
+    return Math.round((normalizeNumber(project.collectedAmount) / goal) * 100);
+}
+
+function resolveAuthorProjectTone(project) {
+    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
 }
 
 authorProjectsNode.addEventListener("click", async (event) => {
@@ -271,7 +333,7 @@ authorProjectsNode.addEventListener("click", async (event) => {
         return;
     }
 
-    setAuthorStatus(t("author.status.submitting", "Отправляем проект на модерацию..."), "info");
+    setAuthorStatus(t("author.status.submitting", "Submitting project for moderation..."), "info");
     const response = await fetch(`/api/me/projects/${button.getAttribute("data-submit-id")}/submit`, {
         method: "POST",
         headers: {
@@ -280,11 +342,11 @@ authorProjectsNode.addEventListener("click", async (event) => {
     });
 
     if (!response.ok) {
-        setAuthorStatus(t("author.status.submitError", "Не удалось отправить проект на модерацию"), "error");
+        setAuthorStatus(t("author.status.submitError", "Could not submit project for moderation"), "error");
         return;
     }
 
-    setAuthorStatus(t("author.status.submitted", "Проект отправлен на модерацию"), "success");
+    setAuthorStatus(t("author.status.submitted", "Project submitted for moderation"), "success");
     const projects = await loadAuthorProjects();
     currentAuthorProjects = projects;
     renderDashboardStats(projects);
@@ -312,19 +374,19 @@ async function handleAvatarChange(event) {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        setAuthorStatus(t("author.status.avatarTooLarge", "Аватар должен быть не больше 5 МБ"), "error");
+        setAuthorStatus(t("author.status.avatarTooLarge", "Avatar must be 5 MB or smaller"), "error");
         event.target.value = "";
         return;
     }
 
     if (!file.type.startsWith("image/")) {
-        setAuthorStatus(t("author.status.avatarImageOnly", "Можно выбрать только изображение"), "error");
+        setAuthorStatus(t("author.status.avatarImageOnly", "Please choose an image file"), "error");
         event.target.value = "";
         return;
     }
 
     setAvatarPreviewUrl(URL.createObjectURL(file));
-    setAuthorStatus(t("author.status.avatarSaving", "Сохраняем аватар..."), "info");
+    setAuthorStatus(t("author.status.avatarSaving", "Saving avatar..."), "info");
 
     const formData = new FormData();
     formData.append("avatar", file);
@@ -339,14 +401,14 @@ async function handleAvatarChange(event) {
 
     if (!response.ok) {
         await loadAuthorAvatar(currentProfileHasAvatar);
-        setAuthorStatus(t("author.status.avatarSaveError", "Не удалось сохранить аватар"), "error");
+        setAuthorStatus(t("author.status.avatarSaveError", "Could not save avatar"), "error");
         event.target.value = "";
         return;
     }
 
     currentProfileHasAvatar = true;
     await loadAuthorAvatar(true);
-    setAuthorStatus(t("author.status.avatarSaved", "Аватар сохранен"), "success");
+    setAuthorStatus(t("author.status.avatarSaved", "Avatar saved"), "success");
     event.target.value = "";
 }
 
@@ -456,35 +518,35 @@ function formatProjectStatus(status) {
 }
 
 function formatActivityDescription(verb, status) {
-    return t("author.activity.description", "Проект {verb}, статус: {status}.")
+    return t("author.activity.description", "Project {verb}, status: {status}.")
         .replace("{verb}", verb)
         .replace("{status}", formatProjectStatus(status || "UNKNOWN"));
 }
 
 function applyAuthorStaticTranslations() {
     document.title = t("author.title", "Author Dashboard | RiseUp");
-    authorAvatarPreviewNode.alt = t("author.avatar.alt", "Аватар пользователя");
-    authorAvatarUploadLabelNode.setAttribute("aria-label", t("author.avatar.upload", "Загрузить аватар"));
-    authorProfileKickerNode.textContent = t("author.profile.kicker", "Профиль автора");
-    authorRegistrationLabelNode.textContent = t("author.profile.registeredAt", "Дата регистрации");
+    authorAvatarPreviewNode.alt = t("author.avatar.alt", "User avatar");
+    authorAvatarUploadLabelNode.setAttribute("aria-label", t("author.avatar.upload", "Upload avatar"));
+    authorProfileKickerNode.textContent = t("author.profile.kicker", "Author profile");
+    authorRegistrationLabelNode.textContent = t("author.profile.registeredAt", "Registration date");
     authorEmailLabelNode.textContent = t("author.profile.email", "Email");
-    authorHomeLinkNode.textContent = t("author.action.home", "На главную");
-    authorNewProjectLinkNode.textContent = t("author.action.newProject", "Новый проект");
-    authorBioEditButtonNode.textContent = t("author.bio.edit", "Редактировать");
-    authorBioSaveButtonNode.textContent = t("author.bio.save", "Сохранить");
-    authorBioCancelButtonNode.textContent = t("author.bio.cancel", "Отмена");
-    authorActivityKickerNode.textContent = t("author.activity.kicker", "Активность");
-    authorActivityTitleNode.textContent = t("author.activity.title", "Последние действия");
-    authorGuideKickerNode.textContent = t("author.guide.kicker", "Статусы");
-    authorGuideTitleNode.textContent = t("author.guide.title", "Что происходит с проектами");
-    authorProjectsKickerNode.textContent = t("author.projects.kicker", "Проекты");
-    authorProjectsTitleNode.textContent = t("author.projects.title", "Ваши кампании");
-    authorBioFormNode.querySelector(".author-bio-label").textContent = t("author.bio.label", "О себе");
+    authorHomeLinkNode.textContent = t("author.action.home", "Back home");
+    authorNewProjectLinkNode.textContent = t("author.action.newProject", "New project");
+    authorBioEditButtonNode.textContent = t("author.bio.edit", "Edit");
+    authorBioSaveButtonNode.textContent = t("author.bio.save", "Save");
+    authorBioCancelButtonNode.textContent = t("author.bio.cancel", "Cancel");
+    authorActivityKickerNode.textContent = t("author.activity.kicker", "Activity");
+    authorActivityTitleNode.textContent = t("author.activity.title", "Recent activity");
+    authorGuideKickerNode.textContent = t("author.guide.kicker", "Statuses");
+    authorGuideTitleNode.textContent = t("author.guide.title", "What happens to projects");
+    authorProjectsKickerNode.textContent = t("author.projects.kicker", "Projects");
+    authorProjectsTitleNode.textContent = t("author.projects.title", "Your campaigns");
+    authorBioFormNode.querySelector(".author-bio-label").textContent = t("author.bio.label", "About");
     authorGuideListNode.innerHTML = `
-        <li><strong>DRAFT</strong> - ${escapeHtml(t("author.guide.tip1", "проект еще редактируется и не виден публично."))}</li>
-        <li><strong>MODERATION</strong> - ${escapeHtml(t("author.guide.tip2", "проект ожидает проверки администратором."))}</li>
-        <li><strong>ACTIVE</strong> - ${escapeHtml(t("author.guide.tip3", "проект опубликован и собирает средства."))}</li>
-        <li><strong>FUNDED</strong> / <strong>CLOSED</strong> - ${escapeHtml(t("author.guide.tip4", "финальные состояния кампании."))}</li>
+        <li><strong>DRAFT</strong> - ${escapeHtml(t("author.guide.tip1", "the project is still being edited and is not public yet."))}</li>
+        <li><strong>MODERATION</strong> - ${escapeHtml(t("author.guide.tip2", "the project is waiting for admin review."))}</li>
+        <li><strong>ACTIVE</strong> - ${escapeHtml(t("author.guide.tip3", "the project is published and collecting funds."))}</li>
+        <li><strong>FUNDED</strong> / <strong>CLOSED</strong> - ${escapeHtml(t("author.guide.tip4", "final campaign states."))}</li>
     `;
 }
 

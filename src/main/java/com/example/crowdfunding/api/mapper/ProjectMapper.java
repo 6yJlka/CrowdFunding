@@ -18,6 +18,7 @@ public final class ProjectMapper {
         dto.setGoalAmount(p.getGoalAmount());
         dto.setCollectedAmount(p.getCollectedAmount());
         dto.setCurrency(p.getCurrency());
+        dto.setHasCoverImage(p.getCoverImageContentType() != null && !p.getCoverImageContentType().isBlank());
 
         dto.setStatus(p.getStatus());
         dto.setRejectionReason(p.getRejectionReason());

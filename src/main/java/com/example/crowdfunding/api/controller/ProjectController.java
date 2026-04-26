@@ -1,6 +1,7 @@
 package com.example.crowdfunding.api.controller;
 
 import com.example.crowdfunding.api.dto.ProjectCreateRequest;
+import com.example.crowdfunding.api.dto.ProjectImageResponse;
 import com.example.crowdfunding.api.dto.ProjectResponse;
 import com.example.crowdfunding.api.dto.ProjectUpdateRequest;
 import com.example.crowdfunding.api.mapper.ProjectMapper;
@@ -8,10 +9,13 @@ import com.example.crowdfunding.domain.enums.ProjectStatus;
 import com.example.crowdfunding.security.AppUserDetails;
 import com.example.crowdfunding.service.ProjectService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -47,6 +51,17 @@ public class ProjectController {
         return ProjectMapper.toResponse(projectService.update(user.getId(), projectId, req));
     }
 
+    @PreAuthorize("hasRole('AUTHOR')")
+    @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> uploadProjectImage(
+            @AuthenticationPrincipal AppUserDetails user,
+            @PathVariable("id") UUID projectId,
+            @RequestParam("image") MultipartFile image
+    ) {
+        projectService.updateCoverImage(user.getId(), projectId, image);
+        return ResponseEntity.noContent().build();
+    }
+
     // Отправить на модерацию (AUTHOR)
     @PreAuthorize("hasRole('AUTHOR')")
     @PostMapping("/{id}/submit")
@@ -77,5 +92,14 @@ public class ProjectController {
     @GetMapping("/{id}")
     public ProjectResponse getById(@PathVariable("id") UUID projectId) {
         return ProjectMapper.toResponse(projectService.getById(projectId));
+    }
+
+    @GetMapping("/{id}/image")
+    public ResponseEntity<byte[]> getProjectImage(@PathVariable("id") UUID projectId) {
+        ProjectImageResponse image = projectService.getCoverImage(projectId);
+        MediaType mediaType = MediaType.parseMediaType(image.getContentType());
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(image.getBytes());
     }
 }

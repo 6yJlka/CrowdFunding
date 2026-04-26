@@ -37,7 +37,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<?> maxUpload(MaxUploadSizeExceededException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(error("BAD_REQUEST", "Avatar must be 5 MB or smaller"));
+                .body(error("BAD_REQUEST", "Image must be 5 MB or smaller"));
     }
 
     private static HashMap<String, Object> error(String code, String message) {

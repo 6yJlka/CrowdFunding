@@ -86,7 +86,7 @@ function renderFoundersPage(items) {
     }
 
     grid.innerHTML = items.map((founder) => `
-        <article class="project-card sponsor-card founder-card">
+        <article class="community-card sponsor-card founder-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeFoundersHtml(foundersT("founders.label", "Founder"))}</span>
                 <span class="meta-pill">${escapeFoundersHtml(formatFoundersDate(founder.latestProjectCreatedAt))}</span>

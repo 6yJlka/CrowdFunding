@@ -152,6 +152,7 @@ function renderProjectPage(project, stats, reviews, donations, updates, comments
     const progress = resolveProjectProgress(project, stats);
     document.getElementById("project-category").textContent = project.categoryTitle ?? projectT("app.project", "Project");
     document.getElementById("project-title").textContent = project.title;
+    document.getElementById("project-cover-slot").innerHTML = renderProjectPageCover(project);
     document.getElementById("project-description").textContent = project.description || project.shortDescription || "";
     document.getElementById("project-progress-value").textContent = `${progress}%`;
     document.getElementById("project-progress-bar").style.width = `${Math.min(progress, 100)}%`;
@@ -166,6 +167,51 @@ function renderProjectPage(project, stats, reviews, donations, updates, comments
     renderReviews(reviews);
     renderUpdates(updates);
     renderComments(comments);
+}
+
+function renderProjectPageCover(project) {
+    const className = "project-modal-cover project-page-cover";
+    if (project?.hasCoverImage && project?.id) {
+        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
+    }
+
+    const category = project.categoryTitle ?? projectT("app.project", "Project");
+    const initials = getProjectPageCoverInitials(project?.title);
+    const tone = getProjectPageCoverTone(project);
+
+    return `
+        <div class="${className} ${tone}">
+            <div class="project-cover-glow"></div>
+            <div class="project-cover-copy">
+                <strong>${escapeHtml(initials)}</strong>
+                <span>${escapeHtml(category)}</span>
+            </div>
+        </div>
+    `;
+}
+
+function getProjectPageCoverInitials(title) {
+    const parts = String(title ?? "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) {
+        return "PR";
+    }
+
+    return parts.slice(0, 2)
+        .map((part) => Array.from(part)[0] ?? "")
+        .join("")
+        .toUpperCase();
+}
+
+function getProjectPageCoverTone(project) {
+    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
+    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
+    let hash = 0;
+
+    for (const symbol of source) {
+        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    }
+
+    return tones[hash % tones.length];
 }
 
 function renderDonations(donations) {
