@@ -56,7 +56,7 @@ function renderModerationQueue(projects) {
     adminProjectsNode.innerHTML = projects.map((project) => `
         <article class="project-card">
             <div class="project-card-header">
-                <span class="status-badge">${escapeAdminHtml(project.status ?? "MODERATION")}</span>
+                <span class="status-badge">${escapeAdminHtml(formatAdminProjectStatus(project.status ?? "MODERATION"))}</span>
                 <span class="meta-pill">${escapeAdminHtml(project.categoryTitle ?? adminT("app.general", "General"))}</span>
             </div>
             <h4>${escapeAdminHtml(project.title)}</h4>
@@ -451,4 +451,8 @@ function debounce(callback, delayMs) {
 
 function adminT(key, fallback) {
     return adminI18n?.t(key) ?? fallback;
+}
+
+function formatAdminProjectStatus(status) {
+    return adminT(`project.status.${status}`, status || "UNKNOWN");
 }

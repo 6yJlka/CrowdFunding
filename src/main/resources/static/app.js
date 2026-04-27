@@ -340,10 +340,6 @@ function renderCatalog(projects) {
                         <span>${escapeHtml(project.authorDisplayName ?? appT("app.unknownAuthor", "Unknown author"))}</span>
                         <span>${formatMoney(project.goalAmount)}</span>
                     </div>
-                    <div class="project-card-header project-card-badges">
-                        <span class="status-badge">${escapeHtml(project.status ?? "ACTIVE")}</span>
-                        <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
-                    </div>
                     <div class="project-progress">
                         <div class="project-progress-head">
                             <span>${formatMoney(project.collectedAmount)} ${appT("app.raised", "raised")}</span>
@@ -354,7 +350,10 @@ function renderCatalog(projects) {
                         </div>
                     </div>
                     <div class="project-card-footer">
-                        <strong>${escapeHtml(project.currency ?? "RUB")}</strong>
+                        <div class="project-card-badges">
+                            <span class="status-badge">${escapeHtml(formatAppProjectStatus(project.status ?? "ACTIVE"))}</span>
+                            <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
+                        </div>
                         <div class="project-card-footer-actions">
                             <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
                             <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
@@ -882,6 +881,10 @@ function debounce(callback, delayMs) {
 
 function appT(key, fallback) {
     return appI18n?.t(key) ?? fallback;
+}
+
+function formatAppProjectStatus(status) {
+    return appT(`project.status.${status}`, status || "UNKNOWN");
 }
 
 function translateAppCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {

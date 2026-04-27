@@ -236,10 +236,6 @@ function renderCatalogPageProjects(projects) {
                         <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
                         <span>${formatCatalogMoney(project.goalAmount)}</span>
                     </div>
-                    <div class="project-card-header project-card-badges">
-                        <span class="status-badge">${escapeCatalogHtml(project.status ?? catalogPageState.status)}</span>
-                        <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
-                    </div>
                     <div class="project-progress">
                         <div class="project-progress-head">
                             <span>${formatCatalogMoney(project.collectedAmount)} ${catalogT("app.raised", "raised")}</span>
@@ -250,7 +246,10 @@ function renderCatalogPageProjects(projects) {
                         </div>
                     </div>
                     <div class="project-card-footer">
-                        <strong>${escapeCatalogHtml(project.currency ?? "RUB")}</strong>
+                        <div class="project-card-badges">
+                            <span class="status-badge">${escapeCatalogHtml(formatCatalogProjectStatus(project.status ?? catalogPageState.status))}</span>
+                            <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
+                        </div>
                         <div class="project-card-footer-actions">
                             <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
                             <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
@@ -520,6 +519,10 @@ function debounce(callback, delayMs) {
 
 function catalogT(key, fallback) {
     return catalogI18n?.t(key) ?? fallback;
+}
+
+function formatCatalogProjectStatus(status) {
+    return catalogT(`project.status.${status}`, status || "UNKNOWN");
 }
 
 function translateCatalogCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
