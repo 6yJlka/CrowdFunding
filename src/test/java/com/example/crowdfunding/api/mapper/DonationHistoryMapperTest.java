@@ -24,6 +24,7 @@ class DonationHistoryMapperTest {
         ProjectEntity project = new ProjectEntity();
         project.setId(projectId);
         project.setTitle("Robot");
+        project.setCoverImageContentType("image/png");
 
         DonationEntity donation = new DonationEntity();
         donation.setId(donationId);
@@ -40,6 +41,7 @@ class DonationHistoryMapperTest {
         assertThat(response.getId()).isEqualTo(donationId);
         assertThat(response.getProjectId()).isEqualTo(projectId);
         assertThat(response.getProjectTitle()).isEqualTo("Robot");
+        assertThat(response.isHasProjectCoverImage()).isTrue();
         assertThat(response.getAmount()).isEqualByComparingTo("150");
         assertThat(response.getStatus()).isEqualTo("SUCCEEDED");
         assertThat(response.getProvider()).isEqualTo("FAKE");

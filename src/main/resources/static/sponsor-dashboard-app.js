@@ -200,8 +200,12 @@ function renderSponsorProjects(items) {
 
 function renderSponsorProjectCover(item) {
     const title = item?.projectTitle ?? t("sponsor.project.untitled", "Project");
-    const provider = item?.provider ?? t("sponsor.project.provider", "Provider");
     const className = "project-card-cover sponsor-support-card-cover";
+    if (item?.hasProjectCoverImage && item?.projectId) {
+        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(item.projectId)}/image" alt="${escapeSponsorHtml(title)}">`;
+    }
+
+    const provider = item?.provider ?? t("sponsor.project.provider", "Provider");
     const tone = resolveSponsorProjectTone(item);
     const initials = getSponsorProjectInitials(title);
     return `

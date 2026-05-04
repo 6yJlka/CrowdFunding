@@ -11,6 +11,8 @@ public class DonationHistoryMapper {
         r.setId(d.getId());
         r.setProjectId(d.getProject().getId());
         r.setProjectTitle(d.getProject().getTitle());
+        r.setHasProjectCoverImage(d.getProject().getCoverImageContentType() != null
+                && !d.getProject().getCoverImageContentType().isBlank());
         r.setAmount(d.getAmount());
         r.setStatus(d.getStatus().name()); // если status enum
         r.setProvider(d.getProvider());

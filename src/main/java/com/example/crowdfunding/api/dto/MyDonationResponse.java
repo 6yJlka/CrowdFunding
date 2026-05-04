@@ -9,6 +9,7 @@ public class MyDonationResponse {
 
     private UUID projectId;
     private String projectTitle;
+    private boolean hasProjectCoverImage;
 
     private BigDecimal amount;
     private String status;
@@ -27,6 +28,9 @@ public class MyDonationResponse {
 
     public String getProjectTitle() { return projectTitle; }
     public void setProjectTitle(String projectTitle) { this.projectTitle = projectTitle; }
+
+    public boolean isHasProjectCoverImage() { return hasProjectCoverImage; }
+    public void setHasProjectCoverImage(boolean hasProjectCoverImage) { this.hasProjectCoverImage = hasProjectCoverImage; }
 
     public BigDecimal getAmount() { return amount; }
     public void setAmount(BigDecimal amount) { this.amount = amount; }
