@@ -11,7 +11,7 @@
 </head>
 <body>
 <div id="site-shell"></div>
-<main class="create-layout">
+<main class="create-layout admin-layout">
     <section class="panel form-panel">
         <div class="panel-header">
             <div>
@@ -21,7 +21,7 @@
             <a class="ghost-btn" href="/">Dashboard</a>
         </div>
         <div class="auth-status" id="admin-status"></div>
-        <div class="author-projects" id="admin-projects"></div>
+        <div class="admin-list admin-project-list" id="admin-projects"></div>
         <div class="catalog-pagination">
             <button class="ghost-btn" type="button" id="admin-projects-prev-btn">Previous</button>
             <span class="catalog-pagination-copy" id="admin-projects-pagination-copy">Page 1</span>
@@ -48,7 +48,7 @@
             <button class="dark-btn" type="button" id="admin-users-search-btn">Search</button>
         </div>
         <div class="auth-status" id="admin-users-status"></div>
-        <div class="author-projects" id="admin-users"></div>
+        <div class="admin-list admin-users-list" id="admin-users"></div>
         <div class="catalog-pagination">
             <button class="ghost-btn" type="button" id="admin-users-prev-btn">Previous</button>
             <span class="catalog-pagination-copy" id="admin-users-pagination-copy">Page 1</span>
@@ -83,7 +83,7 @@
                 <button class="dark-btn" type="button" id="admin-comments-search-btn">Search</button>
             </div>
             <div class="auth-status" id="admin-comments-status"></div>
-            <div class="author-projects admin-comments-list" id="admin-comments"></div>
+            <div class="admin-list admin-comments-list" id="admin-comments"></div>
             <div class="catalog-pagination admin-sidebar-pagination">
                 <button class="ghost-btn" type="button" id="admin-comments-prev-btn">Previous</button>
                 <span class="catalog-pagination-copy" id="admin-comments-pagination-copy">Page 1</span>

@@ -2779,7 +2779,66 @@ html[data-theme="dark"] .author-profile-card .primary-btn-light:hover {
    ===================== */
 .admin-subsection  { margin-top: 28px; }
 .admin-toolbar     { margin-top: 10px; }
-.admin-toolbar-stack { flex-direction: column; align-items: stretch; }
+.admin-layout {
+    grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.62fr);
+}
+
+.admin-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 18px;
+}
+
+.admin-project-list,
+.admin-comments-list {
+    grid-template-columns: 1fr;
+}
+
+.admin-card {
+    padding: 18px 20px;
+}
+
+.admin-card .project-card-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.admin-card .meta-pill {
+    max-width: min(100%, 340px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-card h4 {
+    margin-top: 14px;
+}
+
+.admin-card p {
+    margin: 12px 0 0;
+    line-height: 1.6;
+}
+
+.admin-card .form-actions {
+    flex-wrap: wrap;
+    margin-top: 16px;
+}
+
+.admin-toolbar .compact-search {
+    min-width: 240px;
+}
+
+.admin-toolbar-stack {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+}
+
+.admin-toolbar-stack .compact-search {
+    min-width: 0;
+}
+
 .admin-comments-panel { align-self: start; }
 
 .moderation-review-page {
@@ -2903,7 +2962,7 @@ html[data-theme="dark"] .moderation-side-block textarea::placeholder {
 
 .admin-comments-list { gap: 14px; }
 
-.admin-comment-card { padding: 18px; border-radius: 18px; }
+.admin-comment-card { border-radius: 18px; }
 
 .admin-comment-card h4 { margin-top: 8px; font-size: 0.95rem; font-weight: 800; }
 
@@ -3109,6 +3168,7 @@ html[data-theme="dark"] .sponsor-support-card-meta span {
     .author-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .author-info-grid { grid-template-columns: 1fr; }
     .author-projects { grid-template-columns: 1fr; }
+    .admin-layout { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
@@ -3147,6 +3207,8 @@ html[data-theme="dark"] .sponsor-support-card-meta span {
     .project-cover-cropper-stage { width: min(100%, 100%); }
     .catalog-hero,
     .catalog-toolbar { flex-direction: column; align-items: stretch; }
+    .admin-list,
+    .admin-toolbar-stack { grid-template-columns: 1fr; }
     .admin-side-column { gap: 18px; }
     .shell-header {
         flex-direction: column;

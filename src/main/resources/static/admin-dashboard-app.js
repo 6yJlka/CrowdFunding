@@ -11,7 +11,7 @@ const adminCommentsSearchNode = document.getElementById("admin-comments-search")
 const adminI18n = window.AppI18n;
 
 const moderationState = {page: 0, size: 3, totalPages: 0};
-const userState = {page: 0, size: 3, totalPages: 0, query: "", status: ""};
+const userState = {page: 0, size: 4, totalPages: 0, query: "", status: ""};
 const commentState = {page: 0, size: 3, totalPages: 0, query: ""};
 document.addEventListener("app:lang-changed", () => {
     loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
@@ -54,7 +54,7 @@ function renderModerationQueue(projects) {
     }
 
     adminProjectsNode.innerHTML = projects.map((project) => `
-        <article class="project-card">
+        <article class="project-card admin-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeAdminHtml(formatAdminProjectStatus(project.status ?? "MODERATION"))}</span>
                 <span class="meta-pill">${escapeAdminHtml(project.categoryTitle ?? adminT("app.general", "General"))}</span>
@@ -137,7 +137,7 @@ function renderUsers(users) {
     }
 
     adminUsersNode.innerHTML = users.map((user) => `
-        <article class="project-card">
+        <article class="project-card admin-card admin-user-card">
             <div class="project-card-header">
                 <span class="status-badge">${escapeAdminHtml(user.status ?? "ACTIVE")}</span>
                 <span class="meta-pill">${escapeAdminHtml(user.role ?? "USER")}</span>
@@ -223,7 +223,7 @@ function renderComments(comments) {
     }
 
     adminCommentsNode.innerHTML = comments.map((comment) => `
-        <article class="project-card admin-comment-card">
+        <article class="project-card admin-card admin-comment-card">
             <div class="project-card-header">
                 <span class="status-badge">VISIBLE</span>
                 <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? adminT("app.project", "Project"))}</span>
