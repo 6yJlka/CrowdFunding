@@ -78,6 +78,7 @@ class CommentServiceImplTest {
     void createPersistsCommentForSameProjectParent() {
         UUID userId = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
+        UUID parentId = UUID.randomUUID();
 
         UserEntity user = new UserEntity();
         user.setId(userId);
@@ -85,17 +86,24 @@ class CommentServiceImplTest {
         ProjectEntity project = new ProjectEntity();
         project.setId(projectId);
 
+        CommentEntity parent = new CommentEntity();
+        parent.setId(parentId);
+        parent.setProject(project);
+
         CommentCreateRequest request = new CommentCreateRequest();
         request.setContent("Hello");
+        request.setParentId(parentId);
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(projectRepository.findById(projectId)).thenReturn(Optional.of(project));
+        when(commentRepository.findById(parentId)).thenReturn(Optional.of(parent));
         when(commentRepository.save(any(CommentEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         CommentEntity saved = service.create(userId, projectId, request);
 
         assertThat(saved.getUser()).isEqualTo(user);
         assertThat(saved.getProject()).isEqualTo(project);
+        assertThat(saved.getParent()).isEqualTo(parent);
         assertThat(saved.getContent()).isEqualTo("Hello");
         assertThat(saved.isDeleted()).isFalse();
     }

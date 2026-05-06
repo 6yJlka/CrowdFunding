@@ -49,6 +49,7 @@ const I18N_TRANSLATIONS = {
         "index.footer.version": "Version 1.0.52",
         "index.footer.copy": "© RiseUp 2026",
         "common.recently": "Recently",
+        "common.cancel": "Cancel",
 
         "app.noData": "No data",
         "app.noCampaigns": "No campaigns available",
@@ -268,6 +269,8 @@ const I18N_TRANSLATIONS = {
         "project.update.publishError": "Could not publish update",
         "project.update.published": "Update published",
         "project.comment.delete": "Delete comment",
+        "project.comment.deleteTitle": "Delete comment",
+        "project.comment.deleteDescription": "The comment will be hidden from the discussion.",
         "project.comment.none": "No comments yet.",
         "project.comment.login": "Log in to join the discussion.",
         "project.comment.loginManage": "Log in to manage comments",
@@ -362,6 +365,7 @@ const I18N_TRANSLATIONS = {
         "index.footer.version": "Версия 1.0.52",
         "index.footer.copy": "© RiseUp 2026",
         "common.recently": "Недавно",
+        "common.cancel": "Отмена",
 
         "app.noData": "Нет данных",
         "app.noCampaigns": "Кампании не найдены",
@@ -510,6 +514,8 @@ const I18N_TRANSLATIONS = {
         "project.update.publishError": "Не удалось опубликовать обновление",
         "project.update.published": "Обновление опубликовано",
         "project.comment.delete": "Удалить комментарий",
+        "project.comment.deleteTitle": "Удаление комментария",
+        "project.comment.deleteDescription": "Комментарий будет скрыт из обсуждения.",
         "project.comment.none": "Комментариев пока нет.",
         "project.comment.login": "Войдите, чтобы участвовать в обсуждении.",
         "project.comment.loginManage": "Войдите, чтобы управлять комментариями",
@@ -1565,6 +1571,18 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "project.crop.cancel": "\u041e\u0442\u043c\u0435\u043d\u0430",
     "project.crop.save": "\u041f\u0440\u0438\u043c\u0435\u043d\u0438\u0442\u044c",
     "project.crop.error": "\u041d\u0435 \u0443\u0434\u0430\u043b\u043e\u0441\u044c \u043e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u043e\u0431\u043b\u043e\u0436\u043a\u0438"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.comment.reply": "Reply",
+    "project.comment.postReply": "Post reply",
+    "project.comment.replyingTo": "Replying to {name}"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.comment.reply": "\u041e\u0442\u0432\u0435\u0442\u0438\u0442\u044c",
+    "project.comment.postReply": "\u041e\u0442\u043f\u0440\u0430\u0432\u0438\u0442\u044c \u043e\u0442\u0432\u0435\u0442",
+    "project.comment.replyingTo": "\u041e\u0442\u0432\u0435\u0442 \u0434\u043b\u044f {name}"
 });
 
 function i18nDetectLanguage() {

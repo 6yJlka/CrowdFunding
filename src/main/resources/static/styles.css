@@ -2780,6 +2780,79 @@ html[data-theme="dark"] .author-profile-card .primary-btn-light:hover {
 
 .comment-card-deleted { opacity: 0.7; }
 
+.comment-actions {
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.comment-replies {
+    display: grid;
+    gap: 12px;
+    margin-top: 14px;
+    padding-left: 16px;
+    border-left: 2px solid var(--line);
+}
+
+.comment-replies .comment-card {
+    background: var(--bg-white);
+}
+
+.comment-replying-card {
+    border-color: var(--brand-light);
+    color: var(--brand);
+    background: var(--brand-pale);
+}
+
+.confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1600;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.54);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.confirm-dialog {
+    width: min(100%, 420px);
+    padding: 24px;
+    border: 1.5px solid var(--line);
+    border-radius: 22px;
+    background: var(--bg-white);
+    box-shadow: var(--shadow-xl);
+}
+
+.confirm-dialog h3 {
+    margin: 10px 0 8px;
+    color: var(--text);
+    font-size: 1.2rem;
+    line-height: 1.25;
+}
+
+.confirm-dialog p:not(.panel-kicker) {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.55;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.confirm-danger-btn {
+    background: linear-gradient(135deg, #e11d48 0%, #f43f5e 100%);
+    box-shadow: 0 8px 20px rgba(225, 29, 72, 0.24);
+}
+
+.confirm-danger-btn:hover {
+    box-shadow: 0 12px 28px rgba(225, 29, 72, 0.34);
+}
+
 /* =====================
    ADMIN
    ===================== */

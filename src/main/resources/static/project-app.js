@@ -15,6 +15,7 @@ const reviewForm = document.getElementById("review-form");
 const reviewStatusNode = document.getElementById("review-status");
 const reviewNoteNode = document.getElementById("review-note");
 const commentForm = document.getElementById("comment-form");
+const commentReplyCancelButton = document.getElementById("comment-reply-cancel");
 const commentStatusNode = document.getElementById("comment-status");
 const commentNoteNode = document.getElementById("comment-note");
 const commentsNode = document.getElementById("project-comments");
@@ -26,7 +27,8 @@ const projectPageState = {
     currentReviews: [],
     currentDonations: [],
     currentUpdates: [],
-    currentComments: []
+    currentComments: [],
+    replyToCommentId: null
 };
 document.addEventListener("app:lang-changed", () => {
     if (!projectPageState.currentProject) {
@@ -52,6 +54,16 @@ if (!projectId) {
 }
 
 commentsNode.addEventListener("click", async (event) => {
+    const replyButton = event.target.closest("[data-comment-reply]");
+    if (replyButton) {
+        const commentId = replyButton.getAttribute("data-comment-reply");
+        const comment = projectPageState.currentComments.find((item) => item.id === commentId);
+        if (comment) {
+            setActiveCommentReply(comment);
+        }
+        return;
+    }
+
     const button = event.target.closest("[data-comment-delete]");
     if (!button) {
         return;
@@ -63,7 +75,12 @@ commentsNode.addEventListener("click", async (event) => {
     }
 
     const commentId = button.getAttribute("data-comment-delete");
-    if (!commentId || !window.confirm(projectT("project.comment.deleteConfirm", "Delete this comment?"))) {
+    if (!commentId) {
+        return;
+    }
+
+    const confirmed = await confirmCommentDelete(projectT);
+    if (!confirmed) {
         return;
     }
 
@@ -87,6 +104,10 @@ commentsNode.addEventListener("click", async (event) => {
     } catch (error) {
         setCommentStatus(error.message, "error");
     }
+});
+
+commentReplyCancelButton?.addEventListener("click", () => {
+    clearActiveCommentReply();
 });
 
 async function bootstrapProjectPage() {
@@ -274,22 +295,51 @@ function renderUpdates(updates) {
 }
 
 function renderComments(comments) {
-    commentsNode.innerHTML = comments.length
-        ? comments.map((comment) => `
+    if (!comments.length) {
+        commentsNode.innerHTML = `<div class="empty-state">${projectT("project.comment.none", "No comments yet.")}</div>`;
+        return;
+    }
+
+    commentsNode.innerHTML = buildCommentTree(comments).map(renderCommentCard).join("");
+}
+
+function buildCommentTree(comments) {
+    const nodes = comments.map((comment) => ({...comment, replies: []}));
+    const byId = new Map(nodes.map((comment) => [comment.id, comment]));
+    const roots = [];
+
+    nodes.forEach((comment) => {
+        const parent = comment.parentId ? byId.get(comment.parentId) : null;
+        if (parent) {
+            parent.replies.push(comment);
+            return;
+        }
+        roots.push(comment);
+    });
+
+    return roots;
+}
+
+function renderCommentCard(comment) {
+    const isReplyTarget = comment.id === projectPageState.replyToCommentId;
+    return `
             <article class="review-card comment-card${comment.deleted ? " comment-card-deleted" : ""}">
                 <div class="review-head">
                     <strong>${escapeHtml(comment.userDisplayName ?? projectT("app.anonymous", "Anonymous"))}</strong>
                     <span>${formatDateTime(comment.createdAt)}</span>
                 </div>
                 <p>${escapeHtml(comment.content ?? "")}</p>
-                ${canDeleteComment(comment) ? `
-                    <div class="form-actions">
+                <div class="form-actions comment-actions">
+                    ${canReplyToComment(comment) ? `
+                        <button class="ghost-btn small-btn${isReplyTarget ? " comment-replying-card" : ""}" type="button" data-comment-reply="${comment.id}">${projectT("project.comment.reply", "Reply")}</button>
+                    ` : ""}
+                    ${canDeleteComment(comment) ? `
                         <button class="ghost-btn small-btn" type="button" data-comment-delete="${comment.id}">${projectT("project.comment.delete", "Delete comment")}</button>
-                    </div>
-                ` : ""}
+                    ` : ""}
+                </div>
+                ${comment.replies?.length ? `<div class="comment-replies">${comment.replies.map(renderCommentCard).join("")}</div>` : ""}
             </article>
-        `).join("")
-        : `<div class="empty-state">${projectT("project.comment.none", "No comments yet.")}</div>`;
+        `;
 }
 
 function initializeRoleAwarePanels() {
@@ -333,6 +383,7 @@ function initializeRoleAwarePanels() {
     commentForm.classList.remove("hidden");
     commentNoteNode.textContent = projectT("project.comment.invite", "Share feedback or ask a question.");
     commentForm.onsubmit = submitCommentForm;
+    syncCommentReplyControls();
 
     if (user.roles.includes("SPONSOR")) {
         donationForm.classList.remove("hidden");
@@ -394,6 +445,7 @@ async function submitCommentForm(event) {
 
     const form = event.currentTarget;
     const content = form.content.value.trim();
+    const parentId = projectPageState.replyToCommentId;
     if (!content) {
         setCommentStatus(projectT("project.comment.empty", "Comment cannot be empty"), "error");
         return;
@@ -408,7 +460,7 @@ async function submitCommentForm(event) {
                 "Content-Type": "application/json",
                 "Authorization": `${projectAuth.tokenType || "Bearer"} ${projectAuth.accessToken}`
             },
-            body: JSON.stringify({content})
+            body: JSON.stringify(parentId ? {content, parentId} : {content})
         });
 
         const body = await response.json().catch(() => ({}));
@@ -417,6 +469,7 @@ async function submitCommentForm(event) {
         }
 
         form.reset();
+        clearActiveCommentReply();
         setCommentStatus(projectT("project.comment.posted", "Comment posted"), "success");
         await refreshComments();
     } catch (error) {
@@ -609,6 +662,96 @@ function setUpdateStatus(message, type = "") {
 function setReviewStatus(message, type = "") {
     reviewStatusNode.textContent = message;
     reviewStatusNode.className = `auth-status ${type}`.trim();
+}
+
+function confirmCommentDelete(t) {
+    return new Promise((resolve) => {
+        const modal = document.createElement("div");
+        modal.className = "confirm-modal";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.innerHTML = `
+            <section class="confirm-dialog" aria-labelledby="comment-delete-confirm-title">
+                <p class="panel-kicker">${escapeHtml(t("project.comment.deleteTitle", "Delete comment"))}</p>
+                <h3 id="comment-delete-confirm-title">${escapeHtml(t("project.comment.deleteConfirm", "Delete this comment?"))}</h3>
+                <p>${escapeHtml(t("project.comment.deleteDescription", "The comment will be hidden from the discussion."))}</p>
+                <div class="confirm-actions">
+                    <button class="ghost-btn small-btn" type="button" data-confirm-cancel>${escapeHtml(t("common.cancel", "Cancel"))}</button>
+                    <button class="primary-btn small-btn confirm-danger-btn" type="button" data-confirm-accept>${escapeHtml(t("project.comment.delete", "Delete comment"))}</button>
+                </div>
+            </section>
+        `;
+
+        const cleanup = (result) => {
+            document.removeEventListener("keydown", onKeydown);
+            modal.remove();
+            resolve(result);
+        };
+
+        const onKeydown = (event) => {
+            if (event.key === "Escape") {
+                cleanup(false);
+            }
+        };
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal || event.target.closest("[data-confirm-cancel]")) {
+                cleanup(false);
+                return;
+            }
+            if (event.target.closest("[data-confirm-accept]")) {
+                cleanup(true);
+            }
+        });
+
+        document.addEventListener("keydown", onKeydown);
+        document.body.appendChild(modal);
+        modal.querySelector("[data-confirm-cancel]")?.focus();
+    });
+}
+
+function setActiveCommentReply(comment) {
+    if (!projectAuth?.accessToken) {
+        setCommentStatus(projectT("project.comment.login", "Log in to join the discussion."), "error");
+        return;
+    }
+
+    projectPageState.replyToCommentId = comment.id;
+    syncCommentReplyControls(comment);
+    renderComments(projectPageState.currentComments);
+    commentForm?.content?.focus();
+}
+
+function clearActiveCommentReply() {
+    projectPageState.replyToCommentId = null;
+    syncCommentReplyControls();
+    renderComments(projectPageState.currentComments);
+}
+
+function syncCommentReplyControls(comment = null) {
+    if (!commentForm || !commentReplyCancelButton) {
+        return;
+    }
+
+    const activeComment = comment
+        ?? projectPageState.currentComments.find((item) => item.id === projectPageState.replyToCommentId);
+    const submitButton = commentForm.querySelector("button[type='submit']");
+    const isReplying = Boolean(activeComment);
+
+    commentReplyCancelButton.classList.toggle("hidden", !isReplying);
+    if (submitButton) {
+        submitButton.textContent = isReplying
+            ? projectT("project.comment.postReply", "Post reply")
+            : projectT("project.action.postComment", "Post comment");
+    }
+    commentNoteNode.textContent = isReplying
+        ? projectT("project.comment.replyingTo", "Replying to {name}")
+            .replace("{name}", activeComment.userDisplayName ?? projectT("app.anonymous", "Anonymous"))
+        : projectT("project.comment.invite", "Share feedback or ask a question.");
+}
+
+function canReplyToComment(comment) {
+    return Boolean(projectPageState.currentUser && !comment?.deleted);
 }
 
 function canDeleteComment(comment) {

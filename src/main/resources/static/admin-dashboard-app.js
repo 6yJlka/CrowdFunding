@@ -248,7 +248,12 @@ adminCommentsNode.addEventListener("click", async (event) => {
     }
 
     const commentId = button.getAttribute("data-comment-remove");
-    if (!commentId || !window.confirm(adminT("project.comment.deleteConfirm", "Delete this comment?"))) {
+    if (!commentId) {
+        return;
+    }
+
+    const confirmed = await confirmCommentDelete(adminT);
+    if (!confirmed) {
         return;
     }
 
@@ -409,6 +414,52 @@ function setAdminUsersStatus(message, type = "") {
 function setAdminCommentsStatus(message, type = "") {
     adminCommentsStatusNode.textContent = message;
     adminCommentsStatusNode.className = `auth-status ${type}`.trim();
+}
+
+function confirmCommentDelete(t) {
+    return new Promise((resolve) => {
+        const modal = document.createElement("div");
+        modal.className = "confirm-modal";
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.innerHTML = `
+            <section class="confirm-dialog" aria-labelledby="comment-delete-confirm-title">
+                <p class="panel-kicker">${escapeAdminHtml(t("project.comment.deleteTitle", "Delete comment"))}</p>
+                <h3 id="comment-delete-confirm-title">${escapeAdminHtml(t("project.comment.deleteConfirm", "Delete this comment?"))}</h3>
+                <p>${escapeAdminHtml(t("project.comment.deleteDescription", "The comment will be hidden from the discussion."))}</p>
+                <div class="confirm-actions">
+                    <button class="ghost-btn small-btn" type="button" data-confirm-cancel>${escapeAdminHtml(t("common.cancel", "Cancel"))}</button>
+                    <button class="primary-btn small-btn confirm-danger-btn" type="button" data-confirm-accept>${escapeAdminHtml(t("project.comment.delete", "Delete comment"))}</button>
+                </div>
+            </section>
+        `;
+
+        const cleanup = (result) => {
+            document.removeEventListener("keydown", onKeydown);
+            modal.remove();
+            resolve(result);
+        };
+
+        const onKeydown = (event) => {
+            if (event.key === "Escape") {
+                cleanup(false);
+            }
+        };
+
+        modal.addEventListener("click", (event) => {
+            if (event.target === modal || event.target.closest("[data-confirm-cancel]")) {
+                cleanup(false);
+                return;
+            }
+            if (event.target.closest("[data-confirm-accept]")) {
+                cleanup(true);
+            }
+        });
+
+        document.addEventListener("keydown", onKeydown);
+        document.body.appendChild(modal);
+        modal.querySelector("[data-confirm-cancel]")?.focus();
+    });
 }
 
 function formatAdminDateTime(value) {
