@@ -100,6 +100,8 @@ function updateReviewsPagination() {
     document.getElementById("reviews-pagination-copy").textContent = reviewsT("catalog.pageOf", "Page {page} of {total}")
         .replace("{page}", `${reviewsState.page + 1}`)
         .replace("{total}", `${Math.max(reviewsState.totalPages, 1)}`);
+    document.getElementById("reviews-prev-btn").textContent = window.AppI18n.t("projects.prev");
+    document.getElementById("reviews-next-btn").textContent = window.AppI18n.t("projects.next");
     document.getElementById("reviews-prev-btn").disabled = reviewsState.page <= 0;
     document.getElementById("reviews-next-btn").disabled = reviewsState.page >= Math.max(reviewsState.totalPages - 1, 0);
 }

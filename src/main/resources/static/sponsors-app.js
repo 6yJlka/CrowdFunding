@@ -123,6 +123,8 @@ function updateSponsorsPagination() {
     document.getElementById("sponsors-pagination-copy").textContent = sponsorsT("catalog.pageOf", "Page {page} of {total}")
         .replace("{page}", `${sponsorsState.page + 1}`)
         .replace("{total}", `${Math.max(sponsorsState.totalPages, 1)}`);
+    document.getElementById("sponsors-prev-btn").textContent = window.AppI18n.t("projects.prev");
+    document.getElementById("sponsors-next-btn").textContent = window.AppI18n.t("projects.next");
     document.getElementById("sponsors-prev-btn").disabled = sponsorsState.page <= 0;
     document.getElementById("sponsors-next-btn").disabled = sponsorsState.page >= Math.max(sponsorsState.totalPages - 1, 0);
 }

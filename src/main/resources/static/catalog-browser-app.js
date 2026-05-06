@@ -6,7 +6,7 @@ const catalogPageState = {
     page: 0,
     size: 9,
     status: document.body.dataset.catalogStatus || "ACTIVE",
-    emptyMessage: document.body.dataset.catalogEmpty || "No projects found.",
+    emptyMessage: document.body.dataset.catalogEmpty || window.AppI18n.t("catalog.empty"),
     totalPages: 0,
     totalElements: 0
 };
@@ -31,6 +31,7 @@ let currentModalReviews = [];
 bootstrapCatalogPage().catch((error) => setCatalogPageStatus(error.message, "error"));
 document.addEventListener("app:lang-changed", () => {
     hydrateCatalogHeading();
+    catalogPageState.emptyMessage = document.body.dataset.catalogEmpty || window.AppI18n.t("catalog.empty");
     loadCatalogCategories()
         .then(() => loadCatalogPageProjects())
         .catch((error) => setCatalogPageStatus(error.message, "error"));
@@ -381,6 +382,8 @@ function updateCatalogPagination() {
     catalogPaginationCopyNode.textContent = catalogT("catalog.pageOf", "Page {page} of {total}")
         .replace("{page}", `${currentPage}`)
         .replace("{total}", `${totalPages}`);
+    catalogPrevNode.textContent = window.AppI18n.t("projects.prev");
+    catalogNextNode.textContent = window.AppI18n.t("projects.next");
     catalogPrevNode.disabled = catalogPageState.page <= 0;
     catalogNextNode.disabled = catalogPageState.page >= Math.max(catalogPageState.totalPages - 1, 0);
 }

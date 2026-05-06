@@ -148,17 +148,27 @@ function renderUsers(users) {
                 <label>
                     <span>${adminT("admin.role", "Role")}</span>
                     <select data-user-role="${user.id}">
-                        ${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => `
-                            <option value="${role}" ${role === user.role ? "selected" : ""}>${role}</option>
-                        `).join("")}
+                        ${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => {
+                            const label = {
+                                AUTHOR: window.AppI18n.t("shell.role.author"),
+                                SPONSOR: window.AppI18n.t("shell.role.sponsor"),
+                                ADMIN: window.AppI18n.t("shell.role.admin")
+                            }[role] ?? role;
+                            return `<option value="${role}" ${role === user.role ? "selected" : ""}>${escapeAdminHtml(label)}</option>`;
+                        }).join("")}
                     </select>
                 </label>
                 <label>
                     <span>${adminT("admin.status", "Status")}</span>
                     <select data-user-status="${user.id}">
-                        ${["ACTIVE", "BLOCKED", "DELETED"].map((status) => `
-                            <option value="${status}" ${status === user.status ? "selected" : ""}>${status}</option>
-                        `).join("")}
+                        ${["ACTIVE", "BLOCKED", "DELETED"].map((status) => {
+                            const label = {
+                                ACTIVE: window.AppI18n.t("admin.filter.active"),
+                                BLOCKED: window.AppI18n.t("admin.filter.blocked"),
+                                DELETED: window.AppI18n.t("admin.status.deleted")
+                            }[status] ?? status;
+                            return `<option value="${status}" ${status === user.status ? "selected" : ""}>${escapeAdminHtml(label)}</option>`;
+                        }).join("")}
                     </select>
                 </label>
             </div>
@@ -225,7 +235,7 @@ function renderComments(comments) {
     adminCommentsNode.innerHTML = comments.map((comment) => `
         <article class="project-card admin-card admin-comment-card">
             <div class="project-card-header">
-                <span class="status-badge">VISIBLE</span>
+                <span class="status-badge">${escapeAdminHtml(window.AppI18n.t("admin.comment.visible"))}</span>
                 <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? adminT("app.project", "Project"))}</span>
             </div>
             <h4>${escapeAdminHtml(comment.userDisplayName ?? adminT("app.anonymous", "Anonymous"))}</h4>
@@ -363,6 +373,8 @@ function updatePagination(prefix, state) {
     document.getElementById(`admin-${prefix}-pagination-copy`).textContent = adminT("catalog.pageOf", "Page {page} of {total}")
         .replace("{page}", `${currentPage}`)
         .replace("{total}", `${totalPages}`);
+    document.getElementById(`admin-${prefix}-prev-btn`).textContent = window.AppI18n.t("projects.prev");
+    document.getElementById(`admin-${prefix}-next-btn`).textContent = window.AppI18n.t("projects.next");
     document.getElementById(`admin-${prefix}-prev-btn`).disabled = state.page <= 0;
     document.getElementById(`admin-${prefix}-next-btn`).disabled = state.page >= Math.max(state.totalPages - 1, 0);
 }

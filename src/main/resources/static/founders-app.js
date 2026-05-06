@@ -123,6 +123,8 @@ function updateFoundersPagination() {
     document.getElementById("founders-pagination-copy").textContent = foundersT("catalog.pageOf", "Page {page} of {total}")
         .replace("{page}", `${foundersState.page + 1}`)
         .replace("{total}", `${Math.max(foundersState.totalPages, 1)}`);
+    document.getElementById("founders-prev-btn").textContent = window.AppI18n.t("projects.prev");
+    document.getElementById("founders-next-btn").textContent = window.AppI18n.t("projects.next");
     document.getElementById("founders-prev-btn").disabled = foundersState.page <= 0;
     document.getElementById("founders-next-btn").disabled = foundersState.page >= Math.max(foundersState.totalPages - 1, 0);
 }

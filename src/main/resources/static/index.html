@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CrowdFunding Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -61,7 +62,7 @@
             <article class="stat-card accent-violet clickable-card" data-nav="/projects.html">
                 <div class="stat-head">
                     <span class="stat-icon stat-icon-soft">#</span>
-                    <button class="stat-link" type="button" data-nav="/projects.html" aria-label="Open all active campaigns">GO</button>
+                    <button class="stat-link" type="button" data-nav="/projects.html" data-i18n-aria="aria.goToCampaigns">GO</button>
                 </div>
                 <div class="stat-copy">
                     <h2 id="active-projects">0</h2>
@@ -75,7 +76,7 @@
             <article class="stat-card accent-orange clickable-card" data-nav="/sponsors.html">
                 <div class="stat-head">
                     <span class="stat-icon stat-icon-soft">@</span>
-                    <button class="stat-link" type="button" data-nav="/sponsors.html" aria-label="Open sponsors page">GO</button>
+                    <button class="stat-link" type="button" data-nav="/sponsors.html" data-i18n-aria="aria.goToSponsors">GO</button>
                 </div>
                 <div class="stat-copy">
                     <h2 id="total-backers">0</h2>
@@ -89,7 +90,7 @@
             <article class="stat-card accent-cyan clickable-card" data-nav="/funded-projects.html">
                 <div class="stat-head">
                     <span class="stat-icon stat-icon-soft">+</span>
-                    <button class="stat-link" type="button" data-nav="/funded-projects.html" aria-label="Open funded projects">GO</button>
+                    <button class="stat-link" type="button" data-nav="/funded-projects.html" data-i18n-aria="aria.goToFunded">GO</button>
                 </div>
                 <div class="stat-copy">
                     <h2 id="funded-projects">0</h2>
@@ -204,7 +205,7 @@
 <div class="modal hidden" id="project-modal">
     <div class="modal-backdrop" id="modal-backdrop"></div>
     <section class="modal-card">
-        <button class="modal-close" type="button" id="modal-close" aria-label="Close">x</button>
+        <button class="modal-close" type="button" id="modal-close" data-i18n-aria="aria.closeModal">x</button>
         <div class="modal-body" id="modal-body">
             <p class="panel-kicker">Project</p>
             <h3>Select a campaign</h3>
