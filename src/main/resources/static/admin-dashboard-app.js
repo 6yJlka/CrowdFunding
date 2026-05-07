@@ -479,7 +479,8 @@ function formatAdminDateTime(value) {
         return adminT("common.recently", "Recently");
     }
 
-    return new Intl.DateTimeFormat("en-US", {
+    const locale = window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+    return new Intl.DateTimeFormat(locale, {
         month: "short",
         day: "numeric",
         hour: "2-digit",

@@ -212,7 +212,7 @@ function renderRecentActivities(projects) {
         .map((project) => {
             const dateLabel = formatAuthorDate(project.updatedAt || project.createdAt);
             const verb = project.updatedAt && project.updatedAt !== project.createdAt
-                ? t("author.activity.updated", "updated")
+                ? formatActivityVerb(t("author.activity.updated", "updated"))
                 : t("author.activity.created", "created");
             return `
                 <li class="author-activity-item">
@@ -535,6 +535,17 @@ function formatProjectStatus(status) {
     return t(`project.status.${status}`, status || "UNKNOWN");
 }
 
+function formatAuthorGuideTip(key, fallback, statusCodes) {
+    return statusCodes.reduce(
+        (text, statusCode) => text.replaceAll(statusCode, formatProjectStatus(statusCode)),
+        t(key, fallback)
+    );
+}
+
+function formatActivityVerb(verb) {
+    return String(verb ?? "").replaceAll("обновлен", "обновлён");
+}
+
 function formatActivityDescription(verb, status) {
     return t("author.activity.description", "Project {verb}, status: {status}.")
         .replace("{verb}", verb)
@@ -561,10 +572,10 @@ function applyAuthorStaticTranslations() {
     authorProjectsTitleNode.textContent = t("author.projects.title", "Your campaigns");
     authorBioFormNode.querySelector(".author-bio-label").textContent = t("author.bio.label", "About");
     authorGuideListNode.innerHTML = `
-        <li><strong>DRAFT</strong> - ${escapeHtml(t("author.guide.tip1", "the project is still being edited and is not public yet."))}</li>
-        <li><strong>MODERATION</strong> - ${escapeHtml(t("author.guide.tip2", "the project is waiting for admin review."))}</li>
-        <li><strong>ACTIVE</strong> - ${escapeHtml(t("author.guide.tip3", "the project is published and collecting funds."))}</li>
-        <li><strong>FUNDED</strong> / <strong>CLOSED</strong> - ${escapeHtml(t("author.guide.tip4", "final campaign states."))}</li>
+        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip1", "DRAFT — the project is still being edited and is not public yet.", ["DRAFT"]))}</li>
+        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip2", "MODERATION — the project is waiting for admin review.", ["MODERATION"]))}</li>
+        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip3", "ACTIVE — the project is published and accepting support.", ["ACTIVE"]))}</li>
+        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip4", "FUNDED and CLOSED — final campaign states.", ["FUNDED", "CLOSED"]))}</li>
     `;
 }
 

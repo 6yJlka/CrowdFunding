@@ -3,7 +3,8 @@ const reviewsState = {
     page: 0,
     size: 12,
     totalPages: 0,
-    query: ""
+    query: "",
+    items: []
 };
 
 bootstrapReviewsPage().catch((error) => setReviewsStatus(error.message, "error"));
@@ -30,6 +31,10 @@ function wireReviewsEvents() {
     });
     document.getElementById("reviews-prev-btn").addEventListener("click", () => changeReviewsPage(-1));
     document.getElementById("reviews-next-btn").addEventListener("click", () => changeReviewsPage(1));
+    document.addEventListener("app:lang-changed", () => {
+        renderReviews(reviewsState.items);
+        updateReviewsPagination();
+    });
 }
 
 function submitReviewsSearch() {
@@ -65,7 +70,8 @@ async function loadReviews() {
 
     const payload = await response.json();
     reviewsState.totalPages = payload.totalPages ?? 0;
-    renderReviews(payload.content ?? []);
+    reviewsState.items = payload.content ?? [];
+    renderReviews(reviewsState.items);
     updateReviewsPagination();
     setReviewsStatus(
         reviewsT("reviews.found", "Found reviews: {count}").replace("{count}", `${payload.totalElements ?? 0}`),
@@ -131,7 +137,8 @@ function formatReviewsDate(value) {
     if (!value) {
         return reviewsT("common.recently", "Recently");
     }
-    return new Intl.DateTimeFormat("en-US", {month: "short", day: "numeric", year: "numeric"}).format(new Date(value));
+    const locale = window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+    return new Intl.DateTimeFormat(locale, {month: "short", day: "numeric", year: "numeric"}).format(new Date(value));
 }
 
 function escapeReviewsHtml(value) {
