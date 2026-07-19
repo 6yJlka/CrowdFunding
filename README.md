@@ -208,3 +208,21 @@ build/reports/jacoco/test/html/index.html
 ## Статус проекта
 
 Проект разработан как выпускная квалификационная работа в МГТУ им. Н. Э. Баумана. Репозиторий демонстрирует практическую реализацию backend-приложения на Java и Spring Boot: REST API, аутентификацию и авторизацию, работу с PostgreSQL, миграции базы данных, тестирование, контейнеризацию и CI/CD.
+
+## Интерфейс
+
+### Главная страница
+
+![Главная страница и аналитика](src/main/resources/docs/images/home-dashboard.png)
+
+### Каталог проектов
+
+![Каталог активных проектов](src/main/resources/docs/images/projects-catalog.png)
+
+### Страница проекта
+
+![Подробная страница проекта](src/main/resources/docs/images/project-details.png)
+
+### Панель администратора
+
+![Модерация проектов и управление пользователями](src/main/resources/docs/images/admin-panel.png)
