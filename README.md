@@ -86,7 +86,7 @@ CrowdFunding — веб-платформа для создания, модера
 - `payment` — абстракция платёжного провайдера.
 
 ```text
-src/main/java/com/example/crowdfunding/
+src/main/java/ru/donskikh/crowdfunding/
 ├── api/
 │   ├── controller/
 │   ├── dto/

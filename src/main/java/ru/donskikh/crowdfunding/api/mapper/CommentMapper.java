@@ -1,0 +1,21 @@
+package ru.donskikh.crowdfunding.api.mapper;
+
+import ru.donskikh.crowdfunding.api.dto.CommentResponse;
+import ru.donskikh.crowdfunding.domain.entity.CommentEntity;
+
+public class CommentMapper {
+
+    public static CommentResponse toResponse(CommentEntity e) {
+        CommentResponse r = new CommentResponse();
+        r.setId(e.getId());
+        r.setProjectId(e.getProject().getId());
+        r.setUserId(e.getUser().getId());
+        r.setUserDisplayName(e.getUser().getDisplayName());
+        r.setParentId(e.getParent() == null ? null : e.getParent().getId());
+        r.setDeleted(e.isDeleted());
+        r.setCreatedAt(e.getCreatedAt());
+
+        r.setContent(e.isDeleted() ? null : e.getContent());
+        return r;
+    }
+}
