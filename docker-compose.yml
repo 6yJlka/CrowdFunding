@@ -2,6 +2,7 @@ services:
   db:
     image: postgres:16
     container_name: crowdfunding-db
+    restart: unless-stopped
     environment:
       POSTGRES_DB: crowdfunding
       POSTGRES_USER: crowdfunding
@@ -14,6 +15,7 @@ services:
   app:
     image: 6yjlka/crowdfunding:latest
     container_name: crowdfunding-app
+    restart: unless-stopped
     depends_on:
       - db
     ports:
