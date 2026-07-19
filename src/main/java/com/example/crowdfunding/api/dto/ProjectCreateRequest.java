@@ -26,14 +26,11 @@ public class ProjectCreateRequest {
     @Size(min = 3, max = 3)
     private String currency = "RUB";
 
-    // category_id может быть null
     private Long categoryId;
 
-    // даты можно не задавать на старте
     private OffsetDateTime startAt;
     private OffsetDateTime endAt;
 
-    // getters/setters
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 

@@ -23,7 +23,6 @@ public class ProjectReviewController {
         this.projectReviewService = projectReviewService;
     }
 
-    // Создание отзыва (спонсор или автор проекта)
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public ProjectReviewResponse create(
@@ -34,7 +33,6 @@ public class ProjectReviewController {
         return ProjectReviewMapper.toResponse(projectReviewService.create(user.getId(), projectId, request));
     }
 
-    // Получить все отзывы для проекта (публично)
     @GetMapping
     public List<ProjectReviewResponse> getAll(@PathVariable UUID projectId) {
         return projectReviewService.getAllByProject(projectId)

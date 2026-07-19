@@ -13,7 +13,7 @@ public class PaymentWebhookController {
         this.donationService = donationService;
     }
 
-    // DEMO webhook: /api/payments/webhook/FAKE/{externalPaymentId}?success=true
+    // Demo webhook endpoint format: /api/payments/webhook/FAKE/{externalPaymentId}?success=true
     @PostMapping("/webhook/{provider}/{externalPaymentId}")
     public void webhook(@PathVariable String provider,
                         @PathVariable String externalPaymentId,

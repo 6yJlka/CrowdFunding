@@ -18,7 +18,6 @@ public class RegisterRequest {
     @Size(max = 120)
     private String displayName;
 
-    // "AUTHOR" или "SPONSOR"
     @NotBlank
     private String role;
 

@@ -23,7 +23,6 @@ public class ProjectUpdateController {
         this.projectUpdateService = projectUpdateService;
     }
 
-    // Создать обновление (только AUTHOR)
     @PreAuthorize("hasRole('AUTHOR')")
     @PostMapping
     public ProjectUpdateResponse create(
@@ -34,7 +33,6 @@ public class ProjectUpdateController {
         return ProjectUpdateMapper.toResponse(projectUpdateService.create(user.getId(), projectId, req));
     }
 
-    // Список обновлений (публично)
     @GetMapping
     public List<ProjectUpdateResponse> list(@PathVariable UUID projectId) {
         return projectUpdateService.listByProject(projectId)

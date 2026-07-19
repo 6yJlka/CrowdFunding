@@ -33,7 +33,6 @@ public class ProjectResponse {
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
-    // getters/setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
 

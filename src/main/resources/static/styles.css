@@ -420,7 +420,7 @@ body.modal-open { overflow: hidden; }
 
 .sidebar::-webkit-scrollbar { display: none; }
 
-/* Shared flex utility (preserve original) */
+/* Shared flex utility */
 .brand,
 .topbar,
 .hero,

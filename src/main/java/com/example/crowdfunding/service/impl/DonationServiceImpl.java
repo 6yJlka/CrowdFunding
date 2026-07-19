@@ -26,7 +26,7 @@ public class DonationServiceImpl implements DonationService {
     private final DonationRepository donationRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
-    private final PaymentProvider paymentProvider; // пока один (FAKE)
+    private final PaymentProvider paymentProvider; // Demo payment provider used for local development.
 
     public DonationServiceImpl(DonationRepository donationRepository,
                                ProjectRepository projectRepository,
@@ -63,7 +63,6 @@ public class DonationServiceImpl implements DonationService {
         var start = paymentProvider.startPayment(saved.getId(), saved.getAmount());
         saved.setExternalPaymentId(start.externalPaymentId());
 
-        // сохраняем external id
         donationRepository.save(saved);
 
         PaymentStartResponse resp = new PaymentStartResponse();
@@ -82,7 +81,7 @@ public class DonationServiceImpl implements DonationService {
                 .orElseThrow(() -> new EntityNotFoundException("Donation not found for " + provider + ":" + externalPaymentId));
 
         if (d.getStatus() != DonationStatus.PENDING) {
-            return; // уже обработано (идемпотентность)
+            return; // Webhook processing is idempotent.
         }
 
         if (!success) {
@@ -95,12 +94,10 @@ public class DonationServiceImpl implements DonationService {
         d.setConfirmedAt(OffsetDateTime.now());
         donationRepository.save(d);
 
-        // Обновляем collected_amount
         ProjectEntity p = d.getProject();
         BigDecimal newCollected = p.getCollectedAmount().add(d.getAmount());
         p.setCollectedAmount(newCollected);
 
-        // Если достигли цели — можно поставить FUNDED (по желанию)
         if (newCollected.compareTo(p.getGoalAmount()) >= 0 && p.getStatus() == ProjectStatus.ACTIVE) {
             p.setStatus(ProjectStatus.FUNDED);
         }

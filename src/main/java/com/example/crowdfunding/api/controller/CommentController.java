@@ -18,7 +18,6 @@ public class CommentController {
         this.commentService = commentService;
     }
 
-    // Удалить комментарий (владелец или ADMIN)
     @PreAuthorize("isAuthenticated()")
     @DeleteMapping("/{id}")
     public void delete(

@@ -33,7 +33,6 @@ public class AppUserDetails implements UserDetails {
     @Override public boolean isEnabled() { return true; }
 
     public static SimpleGrantedAuthority role(String roleCode) {
-        // Spring Security ждёт префикс ROLE_
         return new SimpleGrantedAuthority("ROLE_" + roleCode);
     }
 }

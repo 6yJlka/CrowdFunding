@@ -19,8 +19,6 @@ import java.util.UUID;
 public class UserEntity {
 
     @Id
-    // В БД стоит DEFAULT gen_random_uuid(). Мы можем НЕ генерить в Java и позволить БД сделать это.
-    // Но JPA должен понимать, что id появится при вставке.
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
@@ -62,7 +60,6 @@ public class UserEntity {
     )
     private Set<RoleEntity> roles = new HashSet<>();
 
-    // --- lifecycle (чтобы created_at/updated_at заполнялись без триггеров) ---
     @PrePersist
     public void prePersist() {
         var now = OffsetDateTime.now();
