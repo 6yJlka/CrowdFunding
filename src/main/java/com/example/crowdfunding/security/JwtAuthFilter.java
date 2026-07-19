@@ -51,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (Exception e) {
-            // если токен плохой — просто не аутентифицируем
+            // Invalid tokens are treated as unauthenticated requests.
             SecurityContextHolder.clearContext();
         }
 

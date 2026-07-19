@@ -4,12 +4,10 @@ import java.math.BigDecimal;
 
 public class ProjectStatisticsResponse {
 
-    private BigDecimal totalAmount;  // Общая сумма пожертвований
-    private Integer totalDonors;     // Количество доноров
-    private BigDecimal goalAmount;   // Целевая сумма проекта
-    private BigDecimal progress;     // Прогресс по сбору средств (сумма / цель)
-
-    // Геттеры и сеттеры
+    private BigDecimal totalAmount;
+    private Integer totalDonors;
+    private BigDecimal goalAmount;
+    private BigDecimal progress;
 
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }

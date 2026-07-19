@@ -15,7 +15,6 @@ public class CommentMapper {
         r.setDeleted(e.isDeleted());
         r.setCreatedAt(e.getCreatedAt());
 
-        // если удалён — прячем контент
         r.setContent(e.isDeleted() ? null : e.getContent());
         return r;
     }

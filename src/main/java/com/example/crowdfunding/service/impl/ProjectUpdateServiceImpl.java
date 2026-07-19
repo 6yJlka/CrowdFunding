@@ -40,13 +40,10 @@ public class ProjectUpdateServiceImpl implements ProjectUpdateService {
         ProjectEntity project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new EntityNotFoundException("Project not found: " + projectId));
 
-        // только автор проекта
         if (!project.getAuthor().getId().equals(authorId)) {
             throw new IllegalStateException("Only project author can post updates");
         }
 
-        // логика: обновления обычно имеют смысл после отправки/публикации
-        // разрешим для MODERATION/ACTIVE/FUNDED/CLOSED, запретим для DRAFT
         if (project.getStatus() == ProjectStatus.DRAFT) {
             throw new IllegalStateException("Cannot post updates for DRAFT project");
         }
@@ -63,7 +60,7 @@ public class ProjectUpdateServiceImpl implements ProjectUpdateService {
     @Override
     @Transactional(readOnly = true)
     public List<ProjectUpdateEntity> listByProject(UUID projectId) {
-        // если проекта нет — 404 (чтобы не светить пустым списком несуществующий id)
+        // Missing projects return 404 instead of an empty update list.
         if (!projectRepository.existsById(projectId)) {
             throw new EntityNotFoundException("Project not found: " + projectId);
         }

@@ -23,7 +23,6 @@ public class ProjectCommentController {
         this.commentService = commentService;
     }
 
-    // Написать комментарий (любая роль, но нужен логин)
     @PreAuthorize("isAuthenticated()")
     @PostMapping
     public CommentResponse create(
@@ -34,7 +33,6 @@ public class ProjectCommentController {
         return CommentMapper.toResponse(commentService.create(user.getId(), projectId, req));
     }
 
-    // Список комментариев (публично)
     @GetMapping
     public List<CommentResponse> list(@PathVariable UUID projectId) {
         return commentService.listByProject(projectId).stream()

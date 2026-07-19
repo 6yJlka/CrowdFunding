@@ -46,7 +46,6 @@ public class CommentServiceImpl implements CommentService {
             parent = commentRepository.findById(req.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("Parent comment not found: " + req.getParentId()));
 
-            // запретить отвечать на комментарий другого проекта
             if (!parent.getProject().getId().equals(projectId)) {
                 throw new IllegalArgumentException("Parent comment belongs to another project");
             }

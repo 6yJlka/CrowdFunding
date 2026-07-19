@@ -14,7 +14,7 @@ public class DonationHistoryMapper {
         r.setHasProjectCoverImage(d.getProject().getCoverImageContentType() != null
                 && !d.getProject().getCoverImageContentType().isBlank());
         r.setAmount(d.getAmount());
-        r.setStatus(d.getStatus().name()); // если status enum
+        r.setStatus(d.getStatus().name());
         r.setProvider(d.getProvider());
         r.setExternalPaymentId(d.getExternalPaymentId());
         r.setCreatedAt(d.getCreatedAt());
@@ -28,7 +28,7 @@ public class DonationHistoryMapper {
         r.setSponsorId(d.getSponsor().getId());
         r.setSponsorDisplayName(d.getSponsor().getDisplayName());
         r.setAmount(d.getAmount());
-        r.setStatus(d.getStatus().name()); // если enum
+        r.setStatus(d.getStatus().name());
         r.setCreatedAt(d.getCreatedAt());
         r.setConfirmedAt(d.getConfirmedAt());
         return r;

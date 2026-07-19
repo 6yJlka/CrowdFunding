@@ -19,7 +19,6 @@ public class DonationController {
         this.donationService = donationService;
     }
 
-    // Спонсор создаёт донат и получает "ссылку на оплату"
     @PreAuthorize("hasRole('SPONSOR')")
     @PostMapping
     public PaymentStartResponse create(

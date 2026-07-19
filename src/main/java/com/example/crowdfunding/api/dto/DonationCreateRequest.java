@@ -15,7 +15,6 @@ public class DonationCreateRequest {
     @DecimalMin("0.01")
     private BigDecimal amount;
 
-    // getters/setters
     public UUID getProjectId() { return projectId; }
     public void setProjectId(UUID projectId) { this.projectId = projectId; }
 

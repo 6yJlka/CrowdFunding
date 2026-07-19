@@ -30,7 +30,6 @@ public class ProjectController {
         this.projectService = projectService;
     }
 
-    // Создать проект (AUTHOR)
     @PreAuthorize("hasRole('AUTHOR')")
     @PostMapping
     public ProjectResponse create(
@@ -40,7 +39,6 @@ public class ProjectController {
         return ProjectMapper.toResponse(projectService.create(user.getId(), req));
     }
 
-    // Обновить проект (AUTHOR)
     @PreAuthorize("hasRole('AUTHOR')")
     @PutMapping("/{id}")
     public ProjectResponse update(
@@ -62,7 +60,6 @@ public class ProjectController {
         return ResponseEntity.noContent().build();
     }
 
-    // Отправить на модерацию (AUTHOR)
     @PreAuthorize("hasRole('AUTHOR')")
     @PostMapping("/{id}/submit")
     public ProjectResponse submit(
@@ -72,7 +69,6 @@ public class ProjectController {
         return ProjectMapper.toResponse(projectService.submitToModeration(user.getId(), projectId));
     }
 
-    // Каталог активных проектов (публично)
     @GetMapping
     public Page<ProjectResponse> catalog(
             @RequestParam(name = "q", required = false) String q,
@@ -88,7 +84,6 @@ public class ProjectController {
         return projectService.getCatalog(q, categoryId, uncategorized, authorId, status, pageable).map(ProjectMapper::toResponse);
     }
 
-    // Карточка проекта (публично)
     @GetMapping("/{id}")
     public ProjectResponse getById(@PathVariable("id") UUID projectId) {
         return ProjectMapper.toResponse(projectService.getById(projectId));
