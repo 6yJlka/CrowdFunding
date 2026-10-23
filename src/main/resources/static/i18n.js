@@ -1676,6 +1676,38 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "auth.statsUnavailable": "Statistics are temporarily unavailable. You can still sign in or register."
 });
 
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "count.sponsor.one": "спонсор", "count.sponsor.few": "спонсора", "count.sponsor.many": "спонсоров", "count.sponsor.other": "спонсора",
+    "count.rating.one": "оценка", "count.rating.few": "оценки", "count.rating.many": "оценок", "count.rating.other": "оценки",
+    "count.day.one": "день", "count.day.few": "дня", "count.day.many": "дней", "count.day.other": "дня",
+    "count.project.one": "проект", "count.project.few": "проекта", "count.project.many": "проектов", "count.project.other": "проекта",
+    "count.comment.one": "комментарий", "count.comment.few": "комментария", "count.comment.many": "комментариев", "count.comment.other": "комментария",
+    "count.activeProject.one": "активный проект", "count.activeProject.few": "активных проекта", "count.activeProject.many": "активных проектов", "count.activeProject.other": "активного проекта",
+    "count.fundedProject.one": "достиг цели", "count.fundedProject.few": "достигли цели", "count.fundedProject.many": "достигли цели", "count.fundedProject.other": "достигли цели",
+    "count.daysLeft.one": "день остался", "count.daysLeft.few": "дня осталось", "count.daysLeft.many": "дней осталось", "count.daysLeft.other": "дня осталось",
+    "catalog.found.one": "Найден {count} проект", "catalog.found.few": "Найдено {count} проекта", "catalog.found.many": "Найдено {count} проектов", "catalog.found.other": "Найдено {count} проекта",
+    "project.comment.invite": "Задайте вопрос автору или оставьте обратную связь",
+    "project.reviewSummary": "{average} / 5 · {count}"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "count.sponsor.one": "sponsor", "count.sponsor.other": "sponsors",
+    "count.rating.one": "rating", "count.rating.other": "ratings",
+    "count.day.one": "day", "count.day.other": "days",
+    "count.project.one": "project", "count.project.other": "projects",
+    "count.comment.one": "comment", "count.comment.other": "comments",
+    "count.activeProject.one": "active project", "count.activeProject.other": "active projects",
+    "count.fundedProject.one": "reached its goal", "count.fundedProject.other": "reached their goals",
+    "count.daysLeft.one": "day left", "count.daysLeft.other": "days left",
+    "catalog.found.one": "{count} project found", "catalog.found.other": "{count} projects found",
+    "project.comment.invite": "Ask the author a question or leave feedback",
+    "project.reviewSummary": "{average} / 5 · {count}"
+});
+
+function i18nPlural(key, count) {
+    const form = new Intl.PluralRules(i18nCurrentLanguage).select(Number(count));
+    return i18nTranslate(`${key}.${form}`).replaceAll("{count}", new Intl.NumberFormat(i18nCurrentLanguage).format(count));
+}
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {
@@ -1746,6 +1778,9 @@ window.AppI18n = {
     },
     t(key) {
         return i18nTranslate(key);
+    },
+    plural(key, count) {
+        return i18nPlural(key, count);
     },
     apply() {
         i18nApplyPageTranslations();

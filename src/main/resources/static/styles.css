@@ -3339,9 +3339,9 @@ progress.progress::-moz-progress-bar { background: var(--lime); border-radius: v
 .home-metrics .home-metric-highlight { background: var(--orange); color: var(--bg); }
 .home-metric-highlight dt { color: var(--bg); font-weight: 600; }
 .home-projects { padding-top: 24px; padding-bottom: 56px; }
-.home-featured { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; border-radius: var(--radius-xl); overflow: hidden; background: var(--lime); color: var(--bg); }
+.home-featured { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 32px; border-radius: var(--radius-xl); overflow: hidden; background: var(--lime); color: var(--bg); }
 .home-featured .home-featured-placeholder { grid-column: 1 / -1; margin: 0; padding: 44px; color: var(--bg); }
-.home-featured-cover { display: block; min-height: 320px; background: var(--bg); }
+.home-featured-cover { display: block; min-height: 320px; background: var(--surface); }
 .home-featured-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .home-featured-body { display: flex; flex-direction: column; justify-content: space-between; gap: 24px; min-width: 0; padding: clamp(24px, 4vw, 44px); }
 .home-featured-intro { display: flex; flex-direction: column; gap: 14px; }
@@ -3495,7 +3495,7 @@ html:not(.using-pointer) :is(.home-featured a, .home-amount-chip, .home-launch a
 .project-funding-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
 .project-funding-metrics > div { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 4px; min-width: 0; }
 .project-funding-metrics dt { font-size: 13px; font-weight: 600; }
-.project-funding-metrics dd { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+.project-funding-metrics dd { margin: 0; min-height: 26px; font-family: var(--font-heading); font-size: clamp(16px, 1.5vw, 20px); line-height: 1.3; font-weight: 700; white-space: nowrap; }
 .project-donation-form { display: grid; gap: 16px; }
 .project-quick-amounts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .project-quick-amounts button { min-height: 44px; padding: 8px 14px; border: 2px solid var(--bg); border-radius: var(--radius-pill); background: transparent; color: var(--bg); font-weight: 800; cursor: pointer; }

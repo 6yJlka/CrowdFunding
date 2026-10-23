@@ -90,6 +90,8 @@ function renderHomepage() {
         document.getElementById("total-raised").textContent = homePresentation.formatMoney(currentDashboardData.totalRaised, "RUB", true);
         document.getElementById("active-projects").textContent = String(currentDashboardData.activeProjects ?? 0);
         document.getElementById("funded-projects").textContent = String(currentDashboardData.fundedProjects ?? 0);
+        document.querySelector('[data-i18n-key="home.active"]').textContent = appI18n.plural("count.activeProject", currentDashboardData.activeProjects ?? 0);
+        document.querySelector('[data-i18n-key="home.funded"]').textContent = appI18n.plural("count.fundedProject", currentDashboardData.fundedProjects ?? 0);
     }
     document.getElementById("home-metrics").setAttribute("aria-busy", "false");
     const status = document.getElementById("home-status");

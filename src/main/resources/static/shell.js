@@ -227,6 +227,8 @@ function syncCreateLinks({href, visible}) {
         link.hidden = !visible;
         link.classList.toggle("hidden", !visible);
         link.setAttribute("aria-hidden", String(!visible));
+        const launch = link.closest(".home-launch");
+        if (launch) launch.hidden = !visible;
     });
 }
 

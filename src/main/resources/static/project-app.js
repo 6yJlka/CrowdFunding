@@ -225,14 +225,18 @@ function renderProjectPage(project, stats, reviews, donations, updates, comments
     document.getElementById("project-progress-value").textContent = `${percent}%`;
     document.getElementById("project-progress-bar").value = Math.min(percent, 100);
     document.getElementById("project-donors").textContent = String(stats?.totalDonors ?? 0);
+    document.querySelector("#project-donors").previousElementSibling.textContent = projectI18n.plural("count.sponsor", stats?.totalDonors ?? 0);
     const end = project.endAt ? new Date(project.endAt).getTime() : NaN;
     document.getElementById("project-days-metric").hidden = !Number.isFinite(end);
     const expired = Number.isFinite(end) && end <= Date.now();
     const daysLabel = document.querySelector("#project-days-metric dt");
-    daysLabel.dataset.i18nKey = expired ? "project.deadlineExpired" : "project.daysLeft";
-    daysLabel.textContent = projectT(daysLabel.dataset.i18nKey);
-    document.getElementById("project-days").hidden = expired;
-    if (Number.isFinite(end) && !expired) document.getElementById("project-days").textContent = String(Math.ceil((end - Date.now()) / 86400000));
+    const days = Math.ceil((end - Date.now()) / 86400000);
+    daysLabel.removeAttribute("data-i18n-key");
+    daysLabel.textContent = expired ? projectT("project.deadlineExpired") : projectI18n.plural("count.daysLeft", Number.isFinite(days) ? days : 0);
+    document.getElementById("project-days").hidden = false;
+    if (Number.isFinite(end)) document.getElementById("project-days").textContent = expired
+        ? new Intl.DateTimeFormat(resolveProjectLocale(), {day: "numeric", month: "long"}).format(new Date(end))
+        : String(days);
     const badge = document.getElementById("project-status");
     badge.dataset.status = project.status;
     badge.textContent = projectT(`project.status.${project.status}`, project.status);
@@ -271,14 +275,14 @@ function renderReviews(reviews) {
         reviewNoteNode.textContent = isProjectAuthor ? getProjectReviewAuthorBlockedText()
             : projectT(hasOwnReview ? "project.review.already" : "project.review.rate");
     }
-    document.getElementById("project-reviews-count").textContent = ` · ${reviews.length}`;
+    document.getElementById("project-reviews-count").textContent = ` · ${reviews.length} ${projectI18n.plural("count.rating", reviews.length)}`;
     const summary = document.getElementById("project-review-summary");
     summary.hidden = !reviews.length;
     if (reviews.length) {
         const average = reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length;
         summary.textContent = projectT("project.reviewSummary")
             .replace("{average}", new Intl.NumberFormat(resolveProjectLocale(), {maximumFractionDigits: 1}).format(average))
-            .replace("{count}", String(reviews.length));
+            .replace("{count}", `${reviews.length} ${projectI18n.plural("count.rating", reviews.length)}`);
     }
     document.getElementById("project-reviews").innerHTML = reviews.length
         ? reviews.map((review) => `<article class="project-review-card"><div><strong>${escapeHtml(review.userDisplayName || projectT("project.unknownUser"))}</strong><b>${Number(review.rating || 0)} / 5</b></div><p>${escapeHtml(review.reviewText ?? "")}</p></article>`).join("")

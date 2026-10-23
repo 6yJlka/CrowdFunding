@@ -298,8 +298,7 @@ function updateCatalogPagination() {
 
 function updateCatalogCount() {
     document.getElementById("catalog-result-count").innerHTML = catalogLoaded
-        ? catalogPresentation.escapeHtml(catalogI18n.t("catalog.found"))
-            .replace("{count}", `<b>${catalogPresentation.escapeHtml(catalogPageState.totalElements)}</b>`) : "";
+        ? catalogPresentation.escapeHtml(catalogI18n.plural("catalog.found", catalogPageState.totalElements)) : "";
 }
 
 function syncCatalogUrl() {

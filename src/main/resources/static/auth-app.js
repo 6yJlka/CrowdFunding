@@ -181,6 +181,8 @@ function renderAuthStats() {
     const number = (value) => value == null ? "—" : new Intl.NumberFormat(locale).format(value);
     document.getElementById("auth-stat-campaigns").textContent = number(authDashboard?.activeProjects);
     document.getElementById("auth-stat-backers").textContent = number(authDashboard?.totalBackers);
+    document.querySelector('[data-i18n-key="auth.stat.backers"]').textContent = authI18n.plural("count.sponsor", authDashboard?.totalBackers ?? 0);
+    document.querySelector('[data-i18n-key="auth.stat.active"]').textContent = authI18n.plural("count.activeProject", authDashboard?.activeProjects ?? 0);
     document.getElementById("auth-stat-raised").textContent = authDashboard?.totalRaised == null ? "—" : window.RiseUpProjects.formatMoney(authDashboard.totalRaised, "RUB", true);
     const note = document.getElementById("auth-stats-note");
     note.hidden = !authStatsFailed;
