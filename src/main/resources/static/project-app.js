@@ -4,6 +4,12 @@ const paymentResult = projectQuery.get("payment");
 const projectAuth = readProjectAuth();
 const projectI18n = window.AppI18n;
 
+// The storefront only pre-fills the amount; authorization and donation submission stay here.
+const suggestedDonationAmount = Number(projectQuery.get("amount"));
+if (Number.isFinite(suggestedDonationAmount) && suggestedDonationAmount > 0) {
+    document.getElementById("donation-amount").value = String(suggestedDonationAmount);
+}
+
 const donationForm = document.getElementById("donation-form");
 const donationStatusNode = document.getElementById("donation-status");
 const donationNoteNode = document.getElementById("donation-note");

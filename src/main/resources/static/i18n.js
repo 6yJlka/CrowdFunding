@@ -648,56 +648,7 @@ function i18nResolvePath(pathname) {
 }
 
 const I18N_PAGE_TRANSLATIONS = {
-    "/index.html": [
-        {selector: "title", type: "text", key: "index.title"},
-        {selector: ".brand p", type: "text", key: "index.tagline"},
-        {selector: ".menu:first-of-type .menu-label", type: "text", key: "index.menu"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(1) span", type: "text", key: "index.menu.dashboard"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(2) span", type: "text", key: "index.menu.projects"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(3) span", type: "text", key: "index.menu.backers"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(4) span", type: "text", key: "index.menu.reviews"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(5) span", type: "text", key: "index.menu.analytics"},
-        {selector: "#global-search", type: "placeholder", key: "index.search.global"},
-        {selector: ".hero .eyebrow", type: "text", key: "index.hero.overview"},
-        {selector: ".hero h1", type: "text", key: "index.hero.title"},
-        {selector: "#create-campaign-link", type: "text", key: "index.hero.create"},
-        {selector: ".stat-card:nth-of-type(1) .stat-copy p", type: "text", key: "index.stats.totalRaised"},
-        {selector: ".stat-card:nth-of-type(2) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(2) .stat-copy p", type: "text", key: "index.stats.activeCampaigns"},
-        {selector: ".stat-card:nth-of-type(3) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(3) .stat-copy p", type: "text", key: "index.stats.monthlyBackers"},
-        {selector: ".stat-card:nth-of-type(4) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(4) .stat-copy p", type: "text", key: "index.stats.fundedProjects"},
-        {selector: ".partner-pills span:nth-of-type(1)", type: "text", key: "index.stats.publicApi"},
-        {selector: ".partner-pills span:nth-of-type(2)", type: "text", key: "index.stats.liveData"},
-        {selector: ".partner-pills span:nth-of-type(3)", type: "text", key: "index.stats.dashboard"},
-        {selector: "#overview-chart .panel-kicker", type: "text", key: "index.chart.kicker"},
-        {selector: "#overview-chart h3", type: "text", key: "index.chart.title"},
-        {selector: "#leaderboard-search", type: "placeholder", key: "index.search.leaderboard"},
-        {selector: "#leaderboard-search-btn", type: "text", key: "index.search.button"},
-        {selector: ".leaderboard-head h3", type: "text", key: "index.panel.top"},
-        {selector: ".leaderboard-head .filters button[data-filter='all']", type: "text", key: "index.filters.allTime"},
-        {selector: ".leaderboard-head .filters button[data-filter='year']", type: "text", key: "index.filters.thisYear"},
-        {selector: ".leaderboard-head .filters button[data-filter='month']", type: "text", key: "index.filters.thisMonth"},
-        {selector: "#top-campaigns thead th:nth-of-type(1)", type: "text", key: "index.table.pos"},
-        {selector: "#top-campaigns thead th:nth-of-type(2)", type: "text", key: "index.table.campaign"},
-        {selector: "#top-campaigns thead th:nth-of-type(3)", type: "text", key: "index.table.owner"},
-        {selector: "#new-founders .panel-kicker", type: "text", key: "index.panel.community"},
-        {selector: "#new-founders h3", type: "text", key: "index.panel.founders"},
-        {selector: "#new-founders .panel-header a", type: "text", key: "index.panel.seeMore"},
-        {selector: "#active-campaigns .panel-kicker", type: "text", key: "index.panel.discover"},
-        {selector: "#active-campaigns h3", type: "text", key: "index.panel.active"},
-        {selector: "#catalog-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-search-btn", type: "text", key: "index.search.button"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "index.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "index.modal.details"},
-        {selector: ".sidebar-footer p", type: "text", key: "index.footer.version"},
-        {selector: ".sidebar-footer small", type: "text", key: "index.footer.copy"},
-        {selector: ".stat-card:nth-of-type(2) .stat-link", type: "aria", key: "aria.goToCampaigns"},
-        {selector: ".stat-card:nth-of-type(3) .stat-link", type: "aria", key: "aria.goToSponsors"},
-        {selector: ".stat-card:nth-of-type(4) .stat-link", type: "aria", key: "aria.goToFunded"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
+    "/index.html": [],
     "/auth.html": [
         {selector: "title", type: "text", key: "auth.title"},
         {selector: ".auth-hero .eyebrow", type: "text", key: "auth.eyebrow"},
@@ -719,42 +670,8 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: "#login-form .auth-submit", type: "text", key: "auth.tab.login"},
         {selector: "#register-form .auth-submit", type: "text", key: "auth.tab.register"}
     ],
-    "/projects.html": [
-        {selector: "title", type: "text", key: "index.menu.projects"},
-        {selector: ".catalog-subtitle", type: "text", key: "projects.subtitle.active"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "projects.createCampaign"},
-        {selector: "#catalog-page-search-btn", type: "text", key: "projects.search"},
-        {selector: "#catalog-page-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-category-filter option[value='']", type: "text", key: "projects.allCategories"},
-        {selector: "#catalog-sort-filter option[value='createdAt,desc']", type: "text", key: "projects.sort.newest"},
-        {selector: "#catalog-sort-filter option[value='collectedAmount,desc']", type: "text", key: "projects.sort.funded"},
-        {selector: "#catalog-sort-filter option[value='goalAmount,desc']", type: "text", key: "projects.sort.goal"},
-        {selector: "#catalog-sort-filter option[value='title,asc']", type: "text", key: "projects.sort.az"},
-        {selector: "#catalog-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#catalog-next-btn", type: "text", key: "projects.next"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "projects.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "projects.modal.details"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
-    "/funded-projects.html": [
-        {selector: "title", type: "text", key: "index.menu.projects"},
-        {selector: ".catalog-subtitle", type: "text", key: "projects.subtitle.funded"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "projects.exploreActive"},
-        {selector: "#catalog-page-search-btn", type: "text", key: "projects.search"},
-        {selector: "#catalog-page-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-category-filter option[value='']", type: "text", key: "projects.allCategories"},
-        {selector: "#catalog-sort-filter option[value='createdAt,desc']", type: "text", key: "projects.sort.newest"},
-        {selector: "#catalog-sort-filter option[value='collectedAmount,desc']", type: "text", key: "projects.sort.funded"},
-        {selector: "#catalog-sort-filter option[value='goalAmount,desc']", type: "text", key: "projects.sort.goal"},
-        {selector: "#catalog-sort-filter option[value='title,asc']", type: "text", key: "projects.sort.az"},
-        {selector: "#catalog-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#catalog-next-btn", type: "text", key: "projects.next"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "projects.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "projects.modal.details"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
+    "/projects.html": [],
+    "/funded-projects.html": [],
     "/sponsors.html": [
         {selector: "title", type: "text", key: "showcase.sponsors.title"},
         {selector: ".catalog-hero .panel-kicker", type: "text", key: "showcase.sponsors.kicker"},
@@ -1623,6 +1540,80 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "shell.language.en": "English"
 });
 
+Object.assign(I18N_TRANSLATIONS.en, {
+    "home.title": "RiseUp — backing the bold",
+    "home.heading": "Backing",
+    "home.headingOn": "the",
+    "home.headingBold": "bold",
+    "home.intro": "Technology, art, education and good causes — from creators who just need your support.",
+    "home.raised": "raised",
+    "home.active": "raising funds",
+    "home.funded": "reached their goal",
+    "home.featured": "Project of the week",
+    "home.amountLabel": "Support amount",
+    "home.supportAmount": "Support with {amount}",
+    "home.empty": "No projects are raising funds yet.",
+    "home.statsError": "Could not load platform statistics.",
+    "home.step1.title": "Creators launch",
+    "home.step1.text": "A goal, dates, cover and the story behind the project.",
+    "home.step2.title": "Moderators review",
+    "home.step2.text": "Publication follows review. Authors receive a reason if changes are needed.",
+    "home.step3.title": "People support",
+    "home.step3.text": "Donations, reviews and project updates as they happen.",
+    "home.launchHeading": "Have an idea? Launch a campaign",
+    "home.create": "Create project",
+    "catalog.title": "Project catalog | RiseUp",
+    "catalog.heading": "Project catalog",
+    "catalog.searchLabel": "Find a project by title",
+    "catalog.sortLabel": "Sort projects",
+    "catalog.statusLabel": "Funding status",
+    "catalog.status.active": "Raising funds",
+    "catalog.status.funded": "Funded",
+    "catalog.categoriesLabel": "Categories",
+    "catalog.paginationLabel": "Catalog pages",
+    "catalog.found": "Projects found: {count}",
+    "public.goalReached": "Goal reached",
+    "public.progress": "Funding progress",
+    "public.of": "of"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "home.title": "RiseUp — собираем на смелое",
+    "home.heading": "Собираем",
+    "home.headingOn": "на",
+    "home.headingBold": "смелое",
+    "home.intro": "Технологии, творчество, образование и добрые дела — от авторов, которым не хватает только вашей поддержки.",
+    "home.raised": "собрано",
+    "home.active": "сборов идёт",
+    "home.funded": "дошли до цели",
+    "home.featured": "Проект недели",
+    "home.amountLabel": "Сумма поддержки",
+    "home.supportAmount": "Поддержать на {amount}",
+    "home.empty": "Пока нет проектов, на которые идёт сбор.",
+    "home.statsError": "Не удалось загрузить статистику платформы.",
+    "home.step1.title": "Автор запускает",
+    "home.step1.text": "Цель, сроки, обложка и история проекта.",
+    "home.step2.title": "Модератор проверяет",
+    "home.step2.text": "Публикация после проверки, причина отказа — автору.",
+    "home.step3.title": "Люди поддерживают",
+    "home.step3.text": "Донаты, отзывы и новости в реальном времени.",
+    "home.launchHeading": "Есть идея? Запускай сбор",
+    "home.create": "Создать проект",
+    "catalog.title": "Каталог проектов | RiseUp",
+    "catalog.heading": "Каталог проектов",
+    "catalog.searchLabel": "Найти проект по названию",
+    "catalog.sortLabel": "Сортировка",
+    "catalog.statusLabel": "Статус сбора",
+    "catalog.status.active": "Идёт сбор",
+    "catalog.status.funded": "Профинансированы",
+    "catalog.categoriesLabel": "Категории",
+    "catalog.paginationLabel": "Страницы каталога",
+    "catalog.found": "Найдено проектов: {count}",
+    "public.goalReached": "Цель достигнута",
+    "public.progress": "Прогресс сбора",
+    "public.of": "из"
+});
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {
@@ -1660,30 +1651,6 @@ function i18nApplyRule(rule) {
 function i18nApplyPageTranslations() {
     document.documentElement.lang = i18nCurrentLanguage;
     const page = i18nResolvePath(window.location.pathname);
-
-    if (page === "/projects.html") {
-        if (i18nCurrentLanguage === "ru") {
-            document.body.dataset.catalogTitle = "Активные кампании";
-            document.body.dataset.catalogKicker = "Каталог";
-            document.body.dataset.catalogEmpty = "По этому фильтру нет активных кампаний.";
-        } else {
-            document.body.dataset.catalogTitle = "Active campaigns";
-            document.body.dataset.catalogKicker = "Discover";
-            document.body.dataset.catalogEmpty = "No active campaigns found for this filter.";
-        }
-    }
-
-    if (page === "/funded-projects.html") {
-        if (i18nCurrentLanguage === "ru") {
-            document.body.dataset.catalogTitle = "Профинансированные проекты";
-            document.body.dataset.catalogKicker = "Успех";
-            document.body.dataset.catalogEmpty = "Пока нет полностью профинансированных проектов.";
-        } else {
-            document.body.dataset.catalogTitle = "Funded projects";
-            document.body.dataset.catalogKicker = "Success";
-            document.body.dataset.catalogEmpty = "There are no fully funded projects yet.";
-        }
-    }
 
     const rules = I18N_PAGE_TRANSLATIONS[page] || [];
     rules.forEach(i18nApplyRule);

@@ -189,9 +189,15 @@ function wireShellEvents() {
 
 function markActiveShellLink() {
     const path = window.location.pathname;
+    const sectionPath = {
+        "/project.html": "/projects.html",
+        "/create-project.html": "/author-dashboard.html",
+        "/edit-project.html": "/author-dashboard.html",
+        "/admin-project-review.html": "/admin-dashboard.html"
+    }[path] || path;
     document.querySelectorAll("[data-shell-link]").forEach((link) => {
         const href = link.getAttribute("href");
-        const active = href === path || (href === "/projects.html" && ["/", "/index.html", "/project.html", "/funded-projects.html"].includes(path));
+        const active = href === sectionPath;
         link.classList.toggle("active", active);
         if (active) link.setAttribute("aria-current", "page");
         else link.removeAttribute("aria-current");
@@ -263,3 +269,64 @@ function shellT(key, fallback = key) {
 function shellActiveLangClass(lang) {
     return (SHELL_I18N?.getLang() ?? "en") === lang ? "active" : "";
 }
+
+// Shared presentation for public project cards. Category IDs resolve to API slugs.
+window.RiseUpProjects = (() => {
+    const t = (key) => window.AppI18n.t(key);
+    const locale = () => window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+    const escapeHtml = (value) => String(value ?? "")
+        .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+
+    function formatMoney(value, currency = "RUB", compact = false) {
+        return new Intl.NumberFormat(locale(), {
+            style: "currency", currency: /^[A-Z]{3}$/.test(currency) ? currency : "RUB",
+            maximumFractionDigits: compact ? 1 : 0,
+            notation: compact ? "compact" : "standard"
+        }).format(Number(value ?? 0));
+    }
+
+    function category(project, categories) {
+        return categories.find((item) => String(item.id) === String(project.categoryId));
+    }
+
+    function categoryTitle(project, categories) {
+        const item = category(project, categories);
+        const key = `category.${item?.slug}`;
+        const translated = t(key);
+        return translated !== key ? translated : (item?.title || project.categoryTitle || t("category.general"));
+    }
+
+    function categoryColor(project, categories) {
+        return window.RiseUpUI.resolveCategoryColor(category(project, categories)?.slug ?? "");
+    }
+
+    function progress(project) {
+        const goal = Number(project.goalAmount ?? 0);
+        const raw = goal > 0 ? Math.max(0, Number(project.collectedAmount ?? 0) / goal * 100) : 0;
+        return project.status === "ACTIVE" ? Math.min(Math.floor(raw), 99) : Math.round(raw);
+    }
+
+    function renderCard(project, categories = []) {
+        const percent = progress(project);
+        const href = `/project.html?id=${encodeURIComponent(project.id)}`;
+        const money = (value) => escapeHtml(formatMoney(value, project.currency));
+        return `<a class="project-card public-project-card" href="${href}">
+            <div class="project-card-media" style="--category-color:${categoryColor(project, categories)}">
+                ${project.hasCoverImage ? `<img class="project-card-cover project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="" loading="lazy">` : ""}
+                <div class="public-project-badges">
+                    <span class="category-badge">${escapeHtml(categoryTitle(project, categories))}</span>
+                    ${project.status === "FUNDED" ? `<span class="goal-badge">${escapeHtml(t("public.goalReached"))}</span>` : ""}
+                </div>
+            </div>
+            <div class="project-card-content">
+                <h2 class="project-card-title">${escapeHtml(project.title)}</h2>
+                <p class="public-project-description">${escapeHtml(project.shortDescription)}</p>
+                <progress class="progress" value="${Math.min(percent, 100)}" max="100" aria-label="${escapeHtml(t("public.progress"))}"></progress>
+                <div class="public-project-totals"><span><b>${money(project.collectedAmount)}</b> ${escapeHtml(t("public.of"))} ${money(project.goalAmount)}</span><span>${percent}%</span></div>
+            </div>
+        </a>`;
+    }
+
+    return Object.freeze({renderCard, categoryTitle, categoryColor, formatMoney, progress, escapeHtml});
+})();
