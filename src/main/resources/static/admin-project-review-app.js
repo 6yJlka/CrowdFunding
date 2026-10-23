@@ -28,11 +28,12 @@ async function bootstrapModerationReview() {
         throw new Error(moderationT("project.error.missingId", "Project id is missing"));
     }
 
-    const me = await fetch("/api/auth/me", {
+    const me = await window.RiseUpSession.request("/api/auth/me", {
         headers: {
             "Authorization": `${moderationAuth.tokenType || "Bearer"} ${moderationAuth.accessToken}`
         }
     });
+    if (window.RiseUpSession.expiring) return;
     const user = me.ok ? await me.json() : null;
     const roles = Array.isArray(user?.roles) ? user.roles.map((role) => String(role).replace("ROLE_", "")) : [];
     if (!roles.includes("ADMIN")) {
@@ -46,10 +47,10 @@ async function bootstrapModerationReview() {
 
 async function loadModerationProject() {
     const [projectResponse, statsResponse, updatesResponse, commentsResponse] = await Promise.all([
-        fetch(`/api/projects/${moderationProjectId}`),
-        fetch(`/api/projects/${moderationProjectId}/statistics`),
-        fetch(`/api/projects/${moderationProjectId}/updates`),
-        fetch(`/api/projects/${moderationProjectId}/comments`)
+        window.RiseUpSession.request(`/api/projects/${moderationProjectId}`),
+        window.RiseUpSession.request(`/api/projects/${moderationProjectId}/statistics`),
+        window.RiseUpSession.request(`/api/projects/${moderationProjectId}/updates`),
+        window.RiseUpSession.request(`/api/projects/${moderationProjectId}/comments`)
     ]);
 
     if (!projectResponse.ok) {
@@ -165,7 +166,7 @@ function renderModerationComments(comments) {
 
 function wireModerationActions() {
     document.getElementById("moderation-approve-btn").addEventListener("click", async () => {
-        const response = await fetch(`/api/admin/projects/${moderationProjectId}/approve`, {
+        const response = await window.RiseUpSession.request(`/api/admin/projects/${moderationProjectId}/approve`, {
             method: "POST",
             headers: buildModerationHeaders(true)
         });
@@ -187,7 +188,7 @@ function wireModerationActions() {
             return;
         }
 
-        const response = await fetch(`/api/admin/projects/${moderationProjectId}/reject`, {
+        const response = await window.RiseUpSession.request(`/api/admin/projects/${moderationProjectId}/reject`, {
             method: "POST",
             headers: buildModerationHeaders(true),
             body: JSON.stringify({reason})
@@ -255,6 +256,7 @@ function localizeModerationStatus(status) {
 }
 
 function setModerationStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     const node = document.getElementById("moderation-page-status");
     node.textContent = message;
     node.className = `auth-status ${type}`.trim();

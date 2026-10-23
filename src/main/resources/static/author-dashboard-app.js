@@ -43,7 +43,7 @@ authorDialog.addEventListener("cancel", (event) => { if (profileBusy) event.prev
 async function initializeAuthorDashboard() {
     setAuthorStatus("author.status.loadingProfile", "info");
     const [profile, projects, categories] = await Promise.all([
-        fetchAuthorJson("/api/auth/me"), loadAuthorProjects(), fetch("/api/categories").then((r) => r.ok ? r.json() : [])
+        fetchAuthorJson("/api/auth/me"), loadAuthorProjects(), window.RiseUpSession.request("/api/categories").then((r) => r.ok ? r.json() : [])
     ]);
     currentAuthorProfile = profile;
     currentAuthorProjects = projects;
@@ -55,7 +55,7 @@ async function initializeAuthorDashboard() {
 }
 
 async function fetchAuthorJson(url, options = {}) {
-    const response = await fetch(url, {...options, headers: {Authorization: `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`, ...options.headers}});
+    const response = await window.RiseUpSession.request(url, options);
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.message || body.error || t("author.status.projectsError"));
     return body;
@@ -121,7 +121,7 @@ async function saveBio(event) {
     document.getElementById("author-bio-save-btn").disabled = true;
     setAuthorStatus("author.status.bioSaving", "info");
     try {
-        currentAuthorProfile = await fetchAuthorJson("/api/me/profile", {method: "PATCH", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bio})});
+        currentAuthorProfile = await window.RiseUpProfile.saveBio(bio);
         renderAuthorProfile();
         await loadAuthorAvatar(currentProfileHasAvatar);
         authorDialog.close();
@@ -187,6 +187,7 @@ authorProjectsNode.addEventListener("click", async (event) => {
 });
 
 function setAuthorStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     authorStatus = {message, type};
     for (const node of [authorStatusNode, document.getElementById("profile-status")]) {
         node.textContent = t(message, message);
@@ -248,20 +249,13 @@ async function handleAvatarChange(event) {
     setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
     setAuthorStatus(t("author.status.avatarSaving", "Saving avatar..."), "info");
 
-    const formData = new FormData();
-    formData.append("avatar", uploadFile);
-
-    const response = await fetch("/api/me/avatar", {
-        method: "POST",
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        },
-        body: formData
-    });
-
-    if (!response.ok) {
-        await loadAuthorAvatar(currentProfileHasAvatar);
-        setAuthorStatus(t("author.status.avatarSaveError", "Could not save avatar"), "error");
+    try {
+        await window.RiseUpProfile.uploadAvatar(uploadFile);
+    } catch {
+        if (!window.RiseUpSession.expiring) {
+            await loadAuthorAvatar(currentProfileHasAvatar);
+            setAuthorStatus("profile.avatarSaveError", "error");
+        }
         event.target.value = "";
         return;
     }
@@ -279,18 +273,11 @@ async function loadAuthorAvatar(hasAvatar) {
         return;
     }
 
-    const response = await fetch("/api/me/avatar", {
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
+    const blob = await window.RiseUpProfile.loadAvatar();
+    if (!blob) {
         showAvatarFallback(authorNameNode.textContent.trim());
         return;
     }
-
-    const blob = await response.blob();
     setAvatarPreviewUrl(URL.createObjectURL(blob));
 }
 

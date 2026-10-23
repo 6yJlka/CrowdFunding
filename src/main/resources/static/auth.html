@@ -27,6 +27,7 @@
             <button class="auth-tab active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-form" data-tab="login" data-i18n-key="auth.tab.login"></button>
             <button class="auth-tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-form" tabindex="-1" data-tab="register" data-i18n-key="auth.tab.register"></button>
         </div>
+        <p class="auth-status error" id="auth-session-notice" role="alert" hidden data-i18n-key="auth.sessionExpired"></p>
         <form class="auth-access-form" id="login-form" role="tabpanel" aria-labelledby="login-tab" aria-describedby="auth-status">
             <div class="auth-access-heading"><h2 data-i18n-key="auth.welcome"></h2><p data-i18n-key="auth.loginHint"></p></div>
             <div class="field"><label for="login-email" data-i18n-key="auth.email"></label><input id="login-email" type="email" name="email" autocomplete="username" required data-i18n-placeholder="auth.emailPlaceholder"></div>

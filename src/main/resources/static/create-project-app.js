@@ -52,7 +52,7 @@ projectForm.addEventListener("submit", async (event) => {
 
     setStatus("create.status.creating", "info");
     try {
-        const response = await fetch("/api/projects", {
+        const response = await window.RiseUpSession.request("/api/projects", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -88,7 +88,7 @@ function wireCreateProjectPreview() {
 }
 
 async function loadCategories() {
-    const response = await fetch("/api/categories");
+    const response = await window.RiseUpSession.request("/api/categories");
     if (!response.ok) {
         throw new Error(createT("catalog.error.categories", "Could not load categories"));
     }
@@ -102,7 +102,7 @@ async function uploadCreateProjectImage(projectId, file) {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch(`/api/projects/${projectId}/image`, {
+    const response = await window.RiseUpSession.request(`/api/projects/${projectId}/image`, {
         method: "POST",
         headers: {
             "Authorization": `${auth.tokenType || "Bearer"} ${auth.accessToken}`
@@ -240,6 +240,7 @@ function toLocalDateTimeInputValue(value) {
 }
 
 function setStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     editorStatus = {message, type};
     statusNode.textContent = window.AppI18n.t(message);
     statusNode.setAttribute("role", type === "error" ? "alert" : "status");

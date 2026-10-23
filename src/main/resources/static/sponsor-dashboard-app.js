@@ -57,7 +57,7 @@ async function initializeSponsorDashboard() {
 }
 
 async function fetchSponsorJson(url, options = {}) {
-    const response = await fetch(url, {...options, headers: {Authorization: `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`, ...options.headers}});
+    const response = await window.RiseUpSession.request(url, options);
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.message || body.error || "sponsor.status.loadError");
     return body;
@@ -77,9 +77,9 @@ async function loadSponsorDonations() {
 async function loadSponsorProjectPresentation() {
     const ids = [...new Set(currentSponsorDonations.filter((item) => !item.hasProjectCoverImage).map((item) => item.projectId).filter(Boolean))];
     await Promise.allSettled([
-        fetch("/api/categories").then((response) => response.ok ? response.json() : []).then((items) => { sponsorCategories = items; }),
+        window.RiseUpSession.request("/api/categories").then((response) => response.ok ? response.json() : []).then((items) => { sponsorCategories = items; }),
         ...ids.map(async (id) => {
-            const response = await fetch(`/api/projects/${encodeURIComponent(id)}`);
+            const response = await window.RiseUpSession.request(`/api/projects/${encodeURIComponent(id)}`);
             if (response.ok) sponsorProjectDetails.set(String(id), await response.json());
         })
     ]);
@@ -135,7 +135,7 @@ async function saveBio(event) {
     document.getElementById("sponsor-bio-save-btn").disabled = true;
     setSponsorStatus("sponsor.status.bioSaving", "info");
     try {
-        currentSponsorProfile = await fetchSponsorJson("/api/me/profile", {method: "PATCH", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bio})});
+        currentSponsorProfile = await window.RiseUpProfile.saveBio(bio);
         renderSponsorProfile();
         await loadSponsorAvatar(currentProfileHasAvatar);
         sponsorDialog.close();
@@ -187,6 +187,7 @@ function renderSponsorDonation(item) {
 }
 
 function setSponsorStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     sponsorStatus = {message, type};
     for (const node of [sponsorStatusNode, document.getElementById("profile-status")]) {
         node.textContent = t(message, message);
@@ -248,20 +249,13 @@ async function handleAvatarChange(event) {
     setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
     setSponsorStatus("sponsor.status.avatarSaving", "info");
 
-    const formData = new FormData();
-    formData.append("avatar", uploadFile);
-
-    const response = await fetch("/api/me/avatar", {
-        method: "POST",
-        headers: {
-            "Sponsorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        },
-        body: formData
-    });
-
-    if (!response.ok) {
-        await loadSponsorAvatar(currentProfileHasAvatar);
-        setSponsorStatus("sponsor.status.avatarSaveError", "error");
+    try {
+        await window.RiseUpProfile.uploadAvatar(uploadFile);
+    } catch {
+        if (!window.RiseUpSession.expiring) {
+            await loadSponsorAvatar(currentProfileHasAvatar);
+            setSponsorStatus("profile.avatarSaveError", "error");
+        }
         event.target.value = "";
         return;
     }
@@ -279,18 +273,11 @@ async function loadSponsorAvatar(hasAvatar) {
         return;
     }
 
-    const response = await fetch("/api/me/avatar", {
-        headers: {
-            "Sponsorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
+    const blob = await window.RiseUpProfile.loadAvatar();
+    if (!blob) {
         showAvatarFallback(sponsorNameNode.textContent.trim());
         return;
     }
-
-    const blob = await response.blob();
     setAvatarPreviewUrl(URL.createObjectURL(blob));
 }
 

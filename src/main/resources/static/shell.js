@@ -2,6 +2,53 @@ const SHELL_AUTH_KEY = "crowdfunding_auth";
 const SHELL_I18N = window.AppI18n;
 let shellMountVersion = 0;
 
+window.RiseUpSession = (() => {
+    let expiring = false;
+    function expire() {
+        if (expiring) return;
+        expiring = true;
+        localStorage.removeItem(SHELL_AUTH_KEY);
+        window.location.replace("/auth.html?reason=session-expired");
+    }
+    return Object.freeze({
+        get expiring() { return expiring; },
+        async request(url, options = {}) {
+            if (new URL(url, window.location.href).origin !== window.location.origin) throw new TypeError("Authenticated requests must use the application origin");
+            const auth = readShellAuth();
+            if (expiring || !auth?.accessToken?.trim()) {
+                expire();
+                return new Response(null, {status: 401});
+            }
+            const headers = new Headers(options.headers);
+            headers.set("Authorization", `${auth.tokenType || "Bearer"} ${auth.accessToken.trim()}`);
+            const response = await fetch(url, {...options, headers});
+            if (response.status === 401) expire();
+            return response;
+        }
+    });
+})();
+
+window.RiseUpProfile = Object.freeze({
+    async saveBio(bio) {
+        const response = await window.RiseUpSession.request("/api/me/profile", {
+            method: "PATCH", headers: {"Content-Type": "application/json"}, body: JSON.stringify({bio})
+        });
+        if (!response.ok) throw new Error("profile.saveError");
+        return response.json();
+    },
+    async uploadAvatar(file) {
+        const body = new FormData();
+        body.append("avatar", file);
+        // The browser supplies the multipart boundary; only the session adds authentication.
+        const response = await window.RiseUpSession.request("/api/me/avatar", {method: "POST", body});
+        if (!response.ok) throw new Error("profile.avatarSaveError");
+    },
+    async loadAvatar() {
+        const response = await window.RiseUpSession.request("/api/me/avatar");
+        return response.ok ? response.blob() : null;
+    }
+});
+
 const RISEUP_PALETTE = Object.freeze(["#C6F24E", "#FF6A3D", "#FFD23F", "#7C8CFF", "#5FD4C4", "#F2B8E0"]);
 const RISEUP_CATEGORY_FALLBACK_PALETTE = Object.freeze(["#F2B8E0", "#B9A3FF", "#FFB38A", "#9BE7FF"]);
 const RISEUP_CATEGORY_COLORS = Object.freeze({
@@ -104,14 +151,16 @@ async function mountShell() {
     }
 
     try {
-        const response = await fetch("/api/auth/me", {
+        const request = /\/(?:author-dashboard|sponsor-dashboard|admin-dashboard|admin-project-review|create-project|edit-project)\.html$/.test(window.location.pathname)
+            ? window.RiseUpSession.request : fetch;
+        const response = await request("/api/auth/me", {
             headers: {
                 "Authorization": `${auth.tokenType || "Bearer"} ${auth.accessToken}`
             }
         });
 
         if (!response.ok) {
-            const authExpired = response.status === 401 || response.status === 403;
+            const authExpired = response.status === 401;
             throw new Error(authExpired ? "AUTH_EXPIRED" : `AUTH_REQUEST_FAILED_${response.status}`);
         }
 
@@ -137,6 +186,7 @@ async function mountShell() {
             visible: canCreateProjects
         });
     } catch (error) {
+        if (window.RiseUpSession.expiring) return;
         if (version !== shellMountVersion) return;
         if (error?.message === "AUTH_EXPIRED") {
             localStorage.removeItem(SHELL_AUTH_KEY);

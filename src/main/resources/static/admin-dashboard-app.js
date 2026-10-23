@@ -89,7 +89,7 @@ adminProjectsNode.addEventListener("click", async (event) => {
         rejectPayload = JSON.stringify({reason});
     }
 
-    const response = await fetch(
+    const response = await window.RiseUpSession.request(
         action === "approve" ? `/api/admin/projects/${projectId}/approve` : `/api/admin/projects/${projectId}/reject`,
         {
             method: "POST",
@@ -189,7 +189,7 @@ adminUsersNode.addEventListener("click", async (event) => {
     const role = adminUsersNode.querySelector(`[data-user-role="${userId}"]`)?.value;
     const status = adminUsersNode.querySelector(`[data-user-status="${userId}"]`)?.value;
 
-    const response = await fetch(`/api/admin/users/${userId}`, {
+    const response = await window.RiseUpSession.request(`/api/admin/users/${userId}`, {
         method: "PUT",
         headers: buildAdminHeaders(true),
         body: JSON.stringify({role, status})
@@ -267,7 +267,7 @@ adminCommentsNode.addEventListener("click", async (event) => {
         return;
     }
 
-    const response = await fetch(`/api/comments/${commentId}`, {
+    const response = await window.RiseUpSession.request(`/api/comments/${commentId}`, {
         method: "DELETE",
         headers: buildAdminHeaders(false)
     });
@@ -393,7 +393,7 @@ function applyCommentFilters() {
 }
 
 function authAdminFetch(url) {
-    return fetch(url, {
+    return window.RiseUpSession.request(url, {
         headers: buildAdminHeaders(false)
     });
 }
@@ -414,16 +414,19 @@ function readAdminAuth() {
 }
 
 function setAdminStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     adminStatusNode.textContent = message;
     adminStatusNode.className = `auth-status ${type}`.trim();
 }
 
 function setAdminUsersStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     adminUsersStatusNode.textContent = message;
     adminUsersStatusNode.className = `auth-status ${type}`.trim();
 }
 
 function setAdminCommentsStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     adminCommentsStatusNode.textContent = message;
     adminCommentsStatusNode.className = `auth-status ${type}`.trim();
 }

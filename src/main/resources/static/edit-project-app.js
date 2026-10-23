@@ -66,7 +66,7 @@ editForm.addEventListener("submit", async (event) => {
     setEditStatus("editor.saving", "info");
 
     try {
-        const response = await fetch(`/api/projects/${editProjectId}`, {
+        const response = await window.RiseUpSession.request(`/api/projects/${editProjectId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -98,7 +98,7 @@ function wireEditProjectPreview() {
 }
 
 async function loadEditCategories() {
-    const response = await fetch("/api/categories");
+    const response = await window.RiseUpSession.request("/api/categories");
     if (!response.ok) {
         throw new Error(editTranslate("catalog.error.categories"));
     }
@@ -109,7 +109,7 @@ async function loadEditCategories() {
 }
 
 async function loadProjectForEdit(projectId) {
-    const response = await fetch(`/api/projects/${projectId}`, {
+    const response = await window.RiseUpSession.request(`/api/projects/${projectId}`, {
         headers: {
             "Authorization": `${editAuth.tokenType || "Bearer"} ${editAuth.accessToken}`
         }
@@ -157,7 +157,7 @@ async function uploadEditProjectImage(projectId, file) {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch(`/api/projects/${projectId}/image`, {
+    const response = await window.RiseUpSession.request(`/api/projects/${projectId}/image`, {
         method: "POST",
         headers: {
             "Authorization": `${editAuth.tokenType || "Bearer"} ${editAuth.accessToken}`
@@ -343,6 +343,7 @@ function toLocalInputValue(value) {
 }
 
 function setEditStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
     editorStatus = {message, type};
     editStatusNode.textContent = window.AppI18n.t(message);
     editStatusNode.setAttribute("role", type === "error" ? "alert" : "status");

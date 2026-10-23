@@ -8,6 +8,7 @@ let authStatus = {message: "", type: ""};
 let authBusy = false;
 let authDashboard = null;
 let authStatsFailed = false;
+document.getElementById("auth-session-notice").hidden = new URLSearchParams(window.location.search).get("reason") !== "session-expired";
 
 document.querySelectorAll(".auth-tab").forEach((button) => {
     button.addEventListener("click", () => switchTab(button.dataset.tab));

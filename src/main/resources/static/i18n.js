@@ -1715,6 +1715,17 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "sponsor.status.bioRequired": "Write a few words about yourself.", "sponsor.status.bioSaving": "Saving profile…", "sponsor.status.bioSaved": "Profile saved", "sponsor.status.bioSaveError": "Could not save profile"
 });
 
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "auth.sessionExpired": "Сессия истекла, войдите снова",
+    "profile.saveError": "Не удалось сохранить профиль",
+    "profile.avatarSaveError": "Не удалось сохранить аватар"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "auth.sessionExpired": "Your session has expired. Please sign in again",
+    "profile.saveError": "Could not save profile",
+    "profile.avatarSaveError": "Could not save avatar"
+});
+
 const I18N_RU_GENITIVE_MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
 
 function i18nFormatMembershipDate(value) {
