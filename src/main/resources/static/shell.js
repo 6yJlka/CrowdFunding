@@ -237,7 +237,11 @@ window.RiseUpUI = Object.freeze({
         document.body.classList.add("modal-open");
     },
     closeModal(dialog) {
-        if (dialog instanceof HTMLDialogElement) dialog.close();
+        if (!(dialog instanceof HTMLDialogElement)) return;
+        dialog.close();
+        // A caller may remove the dialog before its queued close event reaches document.
+        // Keep the page locked only while another modal (e.g. the profile editor) is open.
+        document.body.classList.toggle("modal-open", Boolean(document.querySelector("dialog.modal-dialog[open]")));
     }
 });
 

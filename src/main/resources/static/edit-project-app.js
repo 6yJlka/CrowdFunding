@@ -458,7 +458,7 @@ async function openProjectCoverCropper(options) {
         }
 
         function close(result) {
-            if (modal.open) modal.close();
+            window.RiseUpUI.closeModal(modal);
             modal.remove();
             document.body.classList.remove("avatar-cropper-open");
             resolve(result);
