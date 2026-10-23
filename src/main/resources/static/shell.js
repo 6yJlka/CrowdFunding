@@ -125,6 +125,109 @@ function resolveCategoryColor(slug) {
         : RISEUP_CATEGORY_FALLBACK_PALETTE[hashRiseUpValue(key) % RISEUP_CATEGORY_FALLBACK_PALETTE.length];
 }
 
+// One listbox implementation for catalog sorting and moderation controls.
+window.RiseUpDropdown = (() => {
+    const instances = new WeakMap();
+    let opened = null;
+    const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (symbol) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[symbol]));
+    const check = '<svg class="dropdown-check" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 4 4 8-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    function markup({id, label, value, options, attribute = "", disabled = false}) {
+        return `<div class="dropdown"><button type="button" class="dropdown-trigger" id="${escape(id)}" value="${escape(value)}" ${attribute} ${disabled ? "disabled" : ""} aria-haspopup="listbox" aria-expanded="false" aria-controls="${escape(id)}-options" aria-label="${escape(label)}"><span class="dropdown-value"></span><span class="dropdown-arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="m3 5 4 4 4-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button><ul class="dropdown-menu" id="${escape(id)}-options" role="listbox" tabindex="-1" aria-label="${escape(label)}" hidden>${options.map(([option, key], index) => `<li class="dropdown-option" id="${escape(id)}-option-${index}" role="option" aria-selected="${String(option === value)}" data-dropdown-value="${escape(option)}"><span data-i18n-key="${escape(key)}">${escape(window.AppI18n.t(key))}</span>${check}</li>`).join("")}</ul></div>`;
+    }
+    function wire(host, {value, onChange} = {}) {
+        if (instances.has(host)) return instances.get(host);
+        const trigger = host.querySelector('[aria-haspopup="listbox"]'), menu = host.querySelector('[role="listbox"]');
+        const options = [...menu.querySelectorAll('[role="option"]')];
+        const optionValue = (option) => option.dataset.dropdownValue ?? option.dataset.sortValue;
+        let active = 0;
+        menu.setAttribute("popover", "manual");
+        function setValue(next) {
+            trigger.value = next;
+            options.forEach((option) => {
+                const selected = optionValue(option) === next;
+                option.setAttribute("aria-selected", String(selected));
+                if (selected) {
+                    const text = option.querySelector("[data-i18n-key]").textContent;
+                    host.querySelector(".dropdown-value").textContent = text;
+                    if (!trigger.hasAttribute("aria-labelledby")) {
+                        trigger.dataset.dropdownLabel ||= trigger.getAttribute("aria-label");
+                        trigger.setAttribute("aria-label", `${trigger.dataset.dropdownLabel}, ${text}`);
+                    }
+                }
+            });
+        }
+        function position() {
+            const rect = trigger.getBoundingClientRect(), width = Math.min(Math.max(rect.width, 190), innerWidth - 16);
+            const height = Math.min(options.length * 44 + 12, innerHeight - 16);
+            const below = innerHeight - rect.bottom - 16, above = rect.top - 16;
+            const up = below < Math.min(height, 144) && above > below;
+            menu.style.setProperty("--dropdown-left", `${Math.max(8, Math.min(rect.left, innerWidth - width - 8))}px`);
+            menu.style.setProperty("--dropdown-top", `${up ? Math.max(8, rect.top - height - 8) : rect.bottom + 8}px`);
+            menu.style.setProperty("--dropdown-width", `${width}px`);
+            menu.style.setProperty("--dropdown-height", `${Math.max(44, up ? above : below)}px`);
+        }
+        function highlight() {
+            options.forEach((option, index) => option.classList.toggle("is-highlighted", index === active));
+            menu.setAttribute("aria-activedescendant", options[active].id);
+            const option = options[active];
+            if (option.offsetTop < menu.scrollTop) menu.scrollTop = option.offsetTop;
+            else if (option.offsetTop + option.offsetHeight > menu.scrollTop + menu.clientHeight) menu.scrollTop = option.offsetTop + option.offsetHeight - menu.clientHeight;
+        }
+        function close(restoreFocus = false) {
+            if (menu.hidden) return;
+            if (menu.matches(":popover-open")) menu.hidePopover();
+            menu.hidden = true;
+            trigger.setAttribute("aria-expanded", "false");
+            if (opened === control) opened = null;
+            if (restoreFocus && trigger.isConnected) trigger.focus({preventScroll: true});
+        }
+        function open() {
+            if (trigger.disabled || !options.length) return;
+            opened?.close(); opened = control;
+            active = Math.max(0, options.findIndex((option) => optionValue(option) === trigger.value));
+            menu.hidden = false;
+            menu.showPopover();
+            position();
+            trigger.setAttribute("aria-expanded", "true");
+            menu.focus({preventScroll: true}); highlight();
+        }
+        function select() {
+            const next = optionValue(options[active]), changed = trigger.value !== next;
+            setValue(next); close(true);
+            if (changed) { onChange?.(next); trigger.dispatchEvent(new Event("change", {bubbles: true})); }
+        }
+        trigger.addEventListener("click", () => menu.hidden ? open() : close(true));
+        trigger.addEventListener("keydown", (event) => {
+            if (["ArrowDown", "ArrowUp"].includes(event.key)) { event.preventDefault(); open(); }
+        });
+        menu.addEventListener("keydown", (event) => {
+            if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+                event.preventDefault();
+                active = event.key === "Home" ? 0 : event.key === "End" ? options.length - 1 : (active + (event.key === "ArrowDown" ? 1 : -1) + options.length) % options.length;
+                highlight();
+            } else if (["Enter", " "].includes(event.key)) { event.preventDefault(); select(); }
+            else if (event.key === "Escape") { event.preventDefault(); close(true); }
+            else if (event.key === "Tab") close(true);
+        });
+        menu.addEventListener("click", (event) => {
+            const option = event.target.closest('[role="option"]');
+            if (option && options.includes(option)) { active = options.indexOf(option); select(); }
+        });
+        const control = {host, menu, close, position, setValue};
+        instances.set(host, control); setValue(value ?? trigger.value);
+        return control;
+    }
+    document.addEventListener("pointerdown", (event) => { if (opened && !opened.host.contains(event.target)) opened.close(); });
+    document.addEventListener("focusin", (event) => { if (opened && !opened.host.contains(event.target)) opened.close(); });
+    document.addEventListener("scroll", (event) => { if (opened && event.target !== opened.menu) opened.close(); }, true);
+    window.addEventListener("resize", () => opened?.close());
+    document.addEventListener("app:lang-changed", () => {
+        opened?.close();
+        document.querySelectorAll(".dropdown").forEach((host) => { const instance = instances.get(host); if (instance) instance.setValue(host.querySelector(".dropdown-trigger").value); });
+    });
+    return Object.freeze({markup, wire, close: () => opened?.close()});
+})();
+
 window.RiseUpUI = Object.freeze({
     resolveCategoryColor,
     resolveProfileColor,

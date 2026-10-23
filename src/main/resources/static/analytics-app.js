@@ -106,9 +106,19 @@ function renderAnalyticsChart(points) {
     document.getElementById("analytics-chart-description").textContent = analyticsT("analytics.chartSummary").replace("{first}", localizeAnalyticsLabel(points[0].label)).replace("{last}", localizeAnalyticsLabel(points.at(-1).label)).replace("{startAmount}", analyticsMoney(values[0])).replace("{endAmount}", analyticsMoney(values.at(-1)));
 }
 function renderAnalyticsPeople() {
-    const founders = analyticsData?.recentFounders ?? [], sponsors = analyticsData?.recentSponsors ?? [];
+    const authors = new Map(), sponsors = analyticsData?.recentSponsors ?? [];
+    for (const item of analyticsData?.recentFounders ?? []) {
+        const id = item.authorId ?? item.id;
+        const name = item.authorDisplayName ?? item.displayName ?? "";
+        const key = id == null ? `name:${name}` : `id:${id}`;
+        const author = authors.get(key) || {id, name, count: 0, hasAvatar: false};
+        author.count += 1;
+        author.hasAvatar ||= Boolean(item.hasAvatar);
+        authors.set(key, author);
+    }
+    const founders = [...authors.values()];
     const avatar = (id, name, hasAvatar, group) => `<span class="analytics-person-avatar" style="--profile-color:${window.RiseUpUI.resolveProfileColor(id)}" aria-hidden="true">${hasAvatar ? `<img src="/api/showcase/${group}/${encodeURIComponent(id)}/avatar" alt="" loading="lazy">` : ""}<span>${escapeAnalyticsHtml(String(name).trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase())}</span></span>`;
-    document.getElementById("analytics-founders").innerHTML = founders.length ? founders.map((item) => `<article class="analytics-founder">${avatar(item.authorId, item.authorDisplayName || "", item.hasAvatar, "founders")}<div><b>${escapeAnalyticsHtml(item.authorDisplayName || analyticsT("app.unknown"))}</b><span>${escapeAnalyticsHtml(item.projectTitle || item.categoryTitle || "")}</span></div></article>`).join("") : `<div class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : "analytics.noAuthors"))}</div>`;
+    document.getElementById("analytics-founders").innerHTML = founders.length ? founders.map((item) => `<li>${avatar(item.id ?? item.name, item.name, item.id != null && item.hasAvatar, "founders")}<div><b>${escapeAnalyticsHtml(item.name || analyticsT("app.unknown"))}</b><span>${escapeAnalyticsHtml(`${new Intl.NumberFormat(analyticsLocale()).format(item.count)} ${analyticsI18n.plural("count.project", item.count)}`)}</span></div></li>`).join("") : `<li class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : "analytics.noAuthors"))}</li>`;
     document.getElementById("analytics-sponsors").innerHTML = sponsors.length ? sponsors.map((item) => `<li>${avatar(item.sponsorId, item.sponsorDisplayName || "", item.hasAvatar, "sponsors")}<div><b>${escapeAnalyticsHtml(item.sponsorDisplayName || analyticsT("app.unknown"))}</b><span>${escapeAnalyticsHtml(analyticsT("analytics.supportedOn").replace("{date}", window.RiseUpModeration.date(item.supportedAt)))}</span></div></li>`).join("") : `<li class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : "analytics.noSponsors"))}</li>`;
     document.querySelectorAll(".analytics-person-avatar img").forEach((image) => image.addEventListener("error", () => image.remove(), {once: true}));
 }

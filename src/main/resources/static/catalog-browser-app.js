@@ -21,7 +21,7 @@ let catalogLoaded = false;
 let catalogErrorKey = "";
 let catalogCategoriesError = false;
 let catalogSearchTimeout;
-let catalogSortActiveIndex = 0;
+let catalogSortControl;
 
 hydrateCatalogStateFromUrl();
 wireCatalogPageEvents();
@@ -105,90 +105,19 @@ function wireCatalogPageEvents() {
 }
 
 function wireCatalogSort() {
-    catalogSortNode.addEventListener("click", () => {
-        if (catalogSortMenu.hidden) openCatalogSort();
-        else closeCatalogSort(true);
-    });
-    catalogSortNode.addEventListener("keydown", (event) => {
-        if (["ArrowDown", "ArrowUp"].includes(event.key)) {
-            event.preventDefault();
-            openCatalogSort();
-        }
-    });
-    catalogSortMenu.addEventListener("keydown", (event) => {
-        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-            event.preventDefault();
-            const count = catalogSortOptions.length;
-            catalogSortActiveIndex = event.key === "Home" ? 0 : event.key === "End" ? count - 1
-                : (catalogSortActiveIndex + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
-            highlightCatalogSort();
-        } else if (["Enter", " "].includes(event.key)) {
-            event.preventDefault();
-            selectCatalogSort(catalogSortOptions[catalogSortActiveIndex]);
-        } else if (event.key === "Escape") {
-            event.preventDefault();
-            closeCatalogSort(true);
-        } else if (event.key === "Tab") {
-            // Return to the trigger before the browser performs its usual Tab navigation.
-            closeCatalogSort(true);
-        }
-    });
-    catalogSortMenu.addEventListener("click", (event) => {
-        const option = event.target.closest("[data-sort-value]");
-        if (option) selectCatalogSort(option);
-    });
-    const host = catalogSortNode.closest(".public-catalog-sort");
-    document.addEventListener("pointerdown", (event) => {
-        if (!host.contains(event.target)) closeCatalogSort();
-    });
-    host.addEventListener("focusout", (event) => {
-        if (!host.contains(event.relatedTarget)) closeCatalogSort();
+    catalogSortControl = window.RiseUpDropdown.wire(catalogSortNode.closest(".dropdown"), {
+        value: catalogPageState.sort,
+        onChange(value) { catalogPageState.sort = value; catalogPageState.page = 0; loadCatalogPageProjects(); }
     });
 }
-
 function syncCatalogSort() {
-    catalogSortOptions.forEach((option) => {
-        const selected = option.dataset.sortValue === catalogPageState.sort;
-        option.setAttribute("aria-selected", String(selected));
-        if (selected) {
-            const key = option.querySelector("[data-i18n-key]").dataset.i18nKey;
-            document.getElementById("catalog-sort-value").textContent = catalogI18n.t(key);
-        }
-    });
-}
-
-function openCatalogSort() {
-    catalogSortActiveIndex = catalogSortOptions.findIndex((option) => option.dataset.sortValue === catalogPageState.sort);
-    catalogSortMenu.hidden = false;
-    catalogSortNode.setAttribute("aria-expanded", "true");
-    highlightCatalogSort();
-    catalogSortMenu.focus({preventScroll: true});
-}
-
-function closeCatalogSort(restoreFocus = false) {
-    if (catalogSortMenu.hidden) return;
-    catalogSortMenu.hidden = true;
-    catalogSortNode.setAttribute("aria-expanded", "false");
-    if (restoreFocus) catalogSortNode.focus({preventScroll: true});
-}
-
-function highlightCatalogSort() {
-    catalogSortOptions.forEach((option, index) => option.classList.toggle("is-highlighted", index === catalogSortActiveIndex));
-    const active = catalogSortOptions[catalogSortActiveIndex];
-    catalogSortMenu.setAttribute("aria-activedescendant", active.id);
-    active.scrollIntoView({block: "nearest"});
-}
-
-function selectCatalogSort(option) {
-    const changed = catalogPageState.sort !== option.dataset.sortValue;
-    catalogPageState.sort = option.dataset.sortValue;
-    syncCatalogSort();
-    closeCatalogSort(true);
-    if (changed) {
-        catalogPageState.page = 0;
-        loadCatalogPageProjects();
+    if (catalogSortControl) catalogSortControl.setValue(catalogPageState.sort);
+    else {
+        const selected = catalogSortOptions.find((option) => option.dataset.sortValue === catalogPageState.sort);
+        document.getElementById("catalog-sort-value").textContent = selected.querySelector("[data-i18n-key]").textContent;
     }
 }
+function closeCatalogSort(restoreFocus = false) { catalogSortControl?.close(restoreFocus); }
 
 function submitCatalogSearch() {
     window.clearTimeout(catalogSearchTimeout);

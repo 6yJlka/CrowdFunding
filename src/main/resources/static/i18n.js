@@ -640,29 +640,6 @@ const I18N_TRANSLATIONS = {
     }
 };
 
-function i18nResolvePath(pathname) {
-    if (pathname === "/") {
-        return "/index.html";
-    }
-    return pathname;
-}
-
-const I18N_PAGE_TRANSLATIONS = {
-    "/index.html": [],
-    "/auth.html": [],
-    "/projects.html": [],
-    "/funded-projects.html": [],
-    "/analytics.html": [],
-    "/author-dashboard.html": [],
-    "/sponsor-dashboard.html": [],
-    "/create-project.html": [],
-    "/edit-project.html": [],
-    "/admin-dashboard.html": [],
-    "/admin-project-review.html": [],
-    "/pay.html": [],
-    "/project.html": []
-};
-
 Object.assign(I18N_TRANSLATIONS.en, {
     "index.stats.live": "LIVE",
     "index.stats.go": "GO",
@@ -1700,29 +1677,8 @@ function i18nTranslate(key) {
         ?? key;
 }
 
-function i18nApplyRule(rule) {
-    const node = document.querySelector(rule.selector);
-    if (!node) {
-        return;
-    }
-    const value = i18nTranslate(rule.key);
-    if (rule.type === "placeholder") {
-        node.setAttribute("placeholder", value);
-        return;
-    }
-    if (rule.type === "aria") {
-        node.setAttribute("aria-label", value);
-        return;
-    }
-    node.textContent = value;
-}
-
 function i18nApplyPageTranslations() {
     document.documentElement.lang = i18nCurrentLanguage;
-    const page = i18nResolvePath(window.location.pathname);
-
-    const rules = I18N_PAGE_TRANSLATIONS[page] || [];
-    rules.forEach(i18nApplyRule);
     document.querySelectorAll("[data-i18n-key]").forEach((node) => {
         node.textContent = i18nTranslate(node.dataset.i18nKey);
     });

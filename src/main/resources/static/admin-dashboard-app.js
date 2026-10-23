@@ -15,6 +15,7 @@ else {
     window.RiseUpSession.request("/api/categories").then((r) => r.ok ? r.json() : []).then((items) => { adminCategories = items; renderModerationQueue(); }).catch(() => {});
 }
 wireAdminTabs();
+renderAdminUserFilter();
 wireAdminSearch();
 for (const [prefix, state, load] of [["projects", moderationState, loadModerationQueue], ["users", userState, loadUsers], ["comments", commentState, loadComments]]) {
     for (const [direction, step] of [["prev", -1], ["next", 1]]) document.getElementById(`admin-${prefix}-${direction}-btn`).addEventListener("click", () => {
@@ -24,7 +25,7 @@ for (const [prefix, state, load] of [["projects", moderationState, loadModeratio
         load();
     });
 }
-document.addEventListener("app:lang-changed", () => { renderModerationQueue(); renderUsers(); renderComments(); });
+document.addEventListener("app:lang-changed", () => { renderAdminUserFilter(); renderModerationQueue(); renderUsers(); renderComments(); });
 
 async function adminRequest(url, options = {}, fallback = "admin.action.error") {
     const response = await window.RiseUpSession.request(url, options);
@@ -121,14 +122,29 @@ document.getElementById("admin-queue-detail").addEventListener("click", async (e
     finally { adminActionBusy = false; renderModerationQueue(); }
 });
 
+function renderAdminUserFilter() {
+    window.RiseUpDropdown.close();
+    const root = document.getElementById("admin-user-filter");
+    root.innerHTML = window.RiseUpDropdown.markup({id: "admin-users-status-filter", label: adminT("admin.status"), value: userState.status,
+        options: [["", "admin.filter.allUsers"], ["ACTIVE", "admin.filter.active"], ["BLOCKED", "admin.filter.blocked"], ["DELETED", "admin.status.deleted"]]});
+    window.RiseUpDropdown.wire(root.querySelector(".dropdown"));
+}
+function adminUserDropdown(user, draft, field) {
+    const id = String(user.id), values = field === "role" ? ["AUTHOR", "SPONSOR", "ADMIN"] : ["ACTIVE", "BLOCKED", "DELETED"];
+    return window.RiseUpDropdown.markup({id: `user-${field}-${id}`, label: `${adminT(`admin.${field}`)}: ${user.displayName || user.email || adminT("admin.user")}`,
+        value: draft[field], disabled: adminUsersSaving.has(id), attribute: `data-user-${field}="${escapeAdminHtml(id)}"`,
+        options: values.map((value) => [value, field === "role" ? `shell.role.${value.toLowerCase()}` : `moderation.userStatus.${value}`])});
+}
 function renderUsers() {
+    window.RiseUpDropdown.close();
     const root = document.getElementById("admin-users");
     root.setAttribute("aria-busy", String(userState.busy));
     root.innerHTML = userState.items.length ? userState.items.map((user) => {
         const draft = adminUserDrafts.get(String(user.id)) || user;
         const id = escapeAdminHtml(user.id), name = user.displayName || user.email || adminT("admin.user");
-        return `<tr><td><div class="admin-user-identity"><span class="admin-user-avatar" style="--profile-color:${window.RiseUpUI.resolveProfileColor(user.id)}" aria-hidden="true">${escapeAdminHtml(initials(name))}</span><span><b>${escapeAdminHtml(name)}</b><span>${escapeAdminHtml(user.email)}</span></span></div></td><td><label class="admin-user-field"><span class="sr-label">${escapeAdminHtml(adminT("admin.role"))}</span><select data-user-role="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => `<option value="${role}" ${draft.role === role ? "selected" : ""}>${escapeAdminHtml(adminT(`shell.role.${role.toLowerCase()}`))}</option>`).join("")}</select></label></td><td><label class="admin-user-field"><span class="sr-label">${escapeAdminHtml(adminT("admin.status"))}</span><select data-user-status="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${["ACTIVE", "BLOCKED", "DELETED"].map((status) => `<option value="${status}" ${draft.status === status ? "selected" : ""}>${escapeAdminHtml(adminT(`moderation.userStatus.${status}`))}</option>`).join("")}</select></label></td><td><button class="secondary-btn" type="button" data-user-save="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${escapeAdminHtml(adminT("profile.save"))}</button></td></tr>`;
+        return `<tr><td><div class="admin-user-identity"><span class="admin-user-avatar" style="--profile-color:${window.RiseUpUI.resolveProfileColor(user.id)}" aria-hidden="true">${escapeAdminHtml(initials(name))}</span><span><b>${escapeAdminHtml(name)}</b><span>${escapeAdminHtml(user.email)}</span></span></div></td><td>${adminUserDropdown(user, draft, "role")}</td><td>${adminUserDropdown(user, draft, "status")}</td><td><button class="secondary-btn" type="button" data-user-save="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${escapeAdminHtml(adminT("profile.save"))}</button></td></tr>`;
     }).join("") : `<tr><td colspan="4"><div class="empty-state">${escapeAdminHtml(adminT(userState.failed ? "app.unavailable" : userState.loaded ? "admin.users.empty" : "app.loading"))}</div></td></tr>`;
+    root.querySelectorAll(".dropdown").forEach((host) => window.RiseUpDropdown.wire(host));
     updatePagination("users", userState);
 }
 document.getElementById("admin-users").addEventListener("change", (event) => {
@@ -207,7 +223,7 @@ function wireAdminSearch() {
         input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(apply, 250); });
         input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); apply(); } });
         document.getElementById(`admin-${prefix}-search-btn`).addEventListener("click", apply);
-        if (prefix === "users") document.getElementById("admin-users-status-filter").addEventListener("change", apply);
+        if (prefix === "users") document.getElementById("admin-user-filter").addEventListener("change", apply);
     }
 }
 function initials(value) { return String(value || "").trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase(); }
