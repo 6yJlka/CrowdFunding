@@ -137,7 +137,7 @@ function renderFeaturedProject() {
                 <p>${escape(project.shortDescription)}</p>
             </div>
             <div class="home-featured-funding">
-                <div class="home-featured-totals"><strong>${money(project.collectedAmount)}</strong><b>${homePresentation.progress(project)}%</b></div>
+                <div class="home-featured-totals"><span><strong>${money(project.collectedAmount)}</strong> <span>${escape(appI18n.t("public.of"))} ${money(project.goalAmount)}</span></span><b>${homePresentation.progress(project)}%</b></div>
                 <progress class="progress" value="${homePresentation.progress(project)}" max="100" aria-label="${escape(appI18n.t("public.progress"))}"></progress>
                 <div class="home-amounts" role="group" aria-label="${escape(appI18n.t("home.amountLabel"))}">
                     ${[300, 1000, 3000, 10000].map((amount) => `<button type="button" class="home-amount-chip" data-featured-amount="${amount}" aria-pressed="${amount === homeSelectedAmount}">${money(amount)}</button>`).join("")}

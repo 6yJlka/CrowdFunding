@@ -22,6 +22,7 @@
             <p id="project-short-description"></p>
         </div>
     </header>
+    <div class="project-payment-result" id="project-payment-result" hidden><span id="payment-result-icon" aria-hidden="true"></span><p id="payment-result-message"></p><button type="button" id="payment-result-close" data-i18n-aria-label="project.dismissPaymentResult"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
     <div class="auth-status" id="project-page-status" role="status"></div>
 
     <div class="project-detail-grid" id="project-details" hidden>
@@ -41,36 +42,36 @@
 
             <section class="project-detail-section" id="news" aria-labelledby="news-heading">
                 <h2 id="news-heading" data-i18n-key="project.news">Новости</h2>
+                <p class="project-detail-note" id="update-note"></p>
                 <div class="auth-status" id="update-status" role="status"></div>
                 <form class="project-form project-detail-form hidden" id="update-form">
                     <div class="field"><div class="field-heading"><label for="update-title" data-i18n-key="project.field.updateTitle">Заголовок новости</label><output class="field-counter" for="update-title" data-character-counter="update-title">0 / 180</output></div><input id="update-title" type="text" name="title" maxlength="180" required data-i18n-placeholder="project.field.updateTitlePlaceholder" aria-describedby="update-status"></div>
                     <div class="field"><div class="field-heading"><label for="update-content" data-i18n-key="project.field.updateContent">Содержание</label><output class="field-counter" for="update-content" data-character-counter="update-content">0 / 10000</output></div><textarea id="update-content" name="content" rows="5" maxlength="10000" required data-i18n-placeholder="project.field.updateContentPlaceholder" aria-describedby="update-status"></textarea></div>
                     <button class="primary-btn" type="submit" data-i18n-key="project.action.publishUpdate">Опубликовать новость</button>
                 </form>
-                <p class="project-detail-note" id="update-note"></p>
                 <div class="project-news-list" id="project-updates"></div>
             </section>
 
             <section class="project-detail-section" id="reviews" aria-labelledby="reviews-heading">
                 <div class="project-section-heading"><h2 id="reviews-heading" data-i18n-key="project.reviews">Отзывы</h2><span class="project-review-summary" id="project-review-summary" hidden></span></div>
+                <p class="project-detail-note" id="review-note"></p>
                 <div class="auth-status" id="review-status" role="status"></div>
                 <form class="project-form project-detail-form hidden" id="review-form">
-                    <div class="field"><label for="review-rating" data-i18n-key="project.field.rating">Оценка</label><select id="review-rating" name="rating" required><option value="5" data-i18n-key="project.rating.5">5</option><option value="4" data-i18n-key="project.rating.4">4</option><option value="3" data-i18n-key="project.rating.3">3</option><option value="2" data-i18n-key="project.rating.2">2</option><option value="1" data-i18n-key="project.rating.1">1</option></select></div>
+                    <div class="field"><span id="review-rating-label" data-i18n-key="project.field.rating"></span><input id="review-rating" type="hidden" name="rating" value="5"><div class="project-rating-options" role="radiogroup" aria-labelledby="review-rating-label"><button type="button" role="radio" data-review-rating="1" aria-checked="false" tabindex="-1" data-i18n-aria-label="project.rating.1">1</button><button type="button" role="radio" data-review-rating="2" aria-checked="false" tabindex="-1" data-i18n-aria-label="project.rating.2">2</button><button type="button" role="radio" data-review-rating="3" aria-checked="false" tabindex="-1" data-i18n-aria-label="project.rating.3">3</button><button type="button" role="radio" data-review-rating="4" aria-checked="false" tabindex="-1" data-i18n-aria-label="project.rating.4">4</button><button type="button" role="radio" data-review-rating="5" aria-checked="true" tabindex="0" data-i18n-aria-label="project.rating.5">5</button></div></div>
                     <div class="field"><div class="field-heading"><label for="review-text" data-i18n-key="project.field.review">Ваш отзыв</label><output class="field-counter" for="review-text" data-character-counter="review-text">0 / 10000</output></div><textarea id="review-text" name="reviewText" rows="4" maxlength="10000" required data-i18n-placeholder="project.field.reviewPlaceholder" aria-describedby="review-status review-note"></textarea></div>
                     <button class="primary-btn" type="submit" data-i18n-key="project.action.postReview">Оставить отзыв</button>
                 </form>
-                <p class="project-detail-note" id="review-note"></p>
                 <div class="project-review-grid" id="project-reviews"></div>
             </section>
 
             <section class="project-detail-section" id="comments" aria-labelledby="comments-heading">
                 <h2 id="comments-heading" data-i18n-key="project.comments">Комментарии</h2>
+                <p class="project-detail-note" id="comment-note"></p>
                 <div class="auth-status" id="comment-status" role="status"></div>
                 <form class="project-form project-detail-form hidden" id="comment-form">
                     <div class="field"><div class="field-heading"><label for="comment-content" data-i18n-key="project.field.comment">Ваш комментарий</label><output class="field-counter" for="comment-content" data-character-counter="comment-content">0 / 5000</output></div><textarea id="comment-content" name="content" rows="3" maxlength="5000" required data-i18n-placeholder="project.field.commentPlaceholder" aria-describedby="comment-status comment-note"></textarea></div>
-                    <div class="project-detail-actions"><button class="secondary-btn" type="submit" data-i18n-key="project.action.postComment">Отправить</button><button class="ghost-btn hidden" type="button" id="comment-reply-cancel" data-i18n-key="project.comment.cancelReply">Отмена ответа</button></div>
+                    <div class="project-detail-actions"><button class="primary-btn" type="submit" data-i18n-key="project.action.postComment">Отправить</button><button class="ghost-btn hidden" type="button" id="comment-reply-cancel" data-i18n-key="project.comment.cancelReply">Отмена ответа</button></div>
                 </form>
-                <p class="project-detail-note" id="comment-note"></p>
                 <div class="project-comment-list" id="project-comments"></div>
             </section>
         </div>
@@ -80,10 +81,10 @@
                 <span class="status-badge" id="project-status"></span>
                 <div><h2 id="project-raised">—</h2><p id="project-goal"></p></div>
                 <progress class="progress" id="project-progress-bar" value="0" max="100" data-i18n-aria-label="public.progress" aria-label="Прогресс сбора"></progress>
-                <dl class="project-funding-metrics"><div><dt data-i18n-key="project.goalFraction">цели</dt><dd id="project-progress-value">—</dd></div><div><dt data-i18n-key="project.backers">Спонсоры</dt><dd id="project-donors">—</dd></div><div id="project-days-metric" hidden><dt data-i18n-key="project.daysLeft">дней осталось</dt><dd id="project-days">—</dd></div></dl>
+                <dl class="project-funding-metrics"><div><dt data-i18n-key="project.goalFraction">цели</dt><dd id="project-progress-value">—</dd></div><div><dt data-i18n-key="project.sponsorCountLabel">Спонсоры</dt><dd id="project-donors">—</dd></div><div id="project-days-metric" hidden><dt data-i18n-key="project.daysLeft">дней осталось</dt><dd id="project-days">—</dd></div></dl>
                 <form class="project-donation-form hidden" id="donation-form">
                     <div class="project-quick-amounts" role="group" data-i18n-aria-label="home.amountLabel" aria-label="Сумма поддержки"><button type="button" data-donation-amount="500" aria-pressed="false"></button><button type="button" data-donation-amount="1000" aria-pressed="true"></button><button type="button" data-donation-amount="3000" aria-pressed="false"></button><button type="button" data-donation-amount="10000" aria-pressed="false"></button></div>
-                    <div class="field"><label for="donation-amount" data-i18n-key="project.customAmount">Или своя сумма</label><input id="donation-amount" name="amount" type="number" inputmode="numeric" min="1" step="1" value="1000" required aria-describedby="donation-status donation-note"></div>
+                    <div class="field"><label for="donation-amount" data-i18n-key="project.customAmount">Или своя сумма</label><input id="donation-amount" name="amount" type="text" inputmode="numeric" autocomplete="off" aria-describedby="donation-status donation-note"></div>
                     <button class="dark-btn btn-lg" type="submit" id="donation-submit" data-i18n-key="project.action.donate">Поддержать</button>
                 </form>
                 <div class="auth-status" id="donation-status" role="status"></div>

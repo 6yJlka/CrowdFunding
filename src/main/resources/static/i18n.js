@@ -1628,6 +1628,23 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "pay.tip2": "Выберите результат тестовой оплаты. При успешной оплате сумма сбора обновится."
 });
 
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.payment.success": "Платёж прошёл. Финансирование проекта обновлено.",
+    "project.payment.failed": "Платёж не прошёл. Попробуйте снова.",
+    "project.dismissPaymentResult": "Закрыть сообщение о платеже",
+    "project.sponsorCountLabel": "спонсоров",
+    "project.deadlineExpired": "срок вышел",
+    "project.action.postComment": "Опубликовать комментарий",
+    "project.action.postReview": "Опубликовать отзыв"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.dismissPaymentResult": "Dismiss payment message",
+    "project.sponsorCountLabel": "sponsors",
+    "project.deadlineExpired": "deadline passed",
+    "project.action.postComment": "Publish comment",
+    "project.action.postReview": "Publish review"
+});
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {

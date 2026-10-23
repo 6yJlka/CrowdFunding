@@ -3341,7 +3341,7 @@ progress.progress::-moz-progress-bar { background: var(--lime); border-radius: v
 .home-projects { padding-top: 24px; padding-bottom: 56px; }
 .home-featured { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; border-radius: var(--radius-xl); overflow: hidden; background: var(--lime); color: var(--bg); }
 .home-featured .home-featured-placeholder { grid-column: 1 / -1; margin: 0; padding: 44px; color: var(--bg); }
-.home-featured-cover { display: block; min-height: 320px; background: var(--category-color, var(--lime)); }
+.home-featured-cover { display: block; min-height: 320px; background: var(--bg); }
 .home-featured-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .home-featured-body { display: flex; flex-direction: column; justify-content: space-between; gap: 24px; min-width: 0; padding: clamp(24px, 4vw, 44px); }
 .home-featured-intro { display: flex; flex-direction: column; gap: 14px; }
@@ -3352,6 +3352,7 @@ progress.progress::-moz-progress-bar { background: var(--lime); border-radius: v
 .home-featured-funding { display: flex; flex-direction: column; gap: 14px; }
 .home-featured-totals { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
 .home-featured-totals strong { font-family: var(--font-heading); font-size: clamp(22px, 2.2vw, 28px); }
+.home-featured-totals > span > span { display: block; margin-top: 4px; }
 .home-featured progress.progress { height: 12px; color: var(--bg); background: #0E0E1026; }
 .home-featured progress::-webkit-progress-bar { background: #0E0E1026; }
 .home-featured progress::-webkit-progress-value { background: var(--bg); }
@@ -3496,7 +3497,7 @@ html:not(.using-pointer) :is(.home-featured a, .home-amount-chip, .home-launch a
 .project-funding-metrics dt { font-size: 13px; font-weight: 600; }
 .project-funding-metrics dd { margin: 0; font-family: var(--font-heading); font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
 .project-donation-form { display: grid; gap: 16px; }
-.project-quick-amounts { display: flex; flex-wrap: wrap; gap: 8px; }
+.project-quick-amounts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .project-quick-amounts button { min-height: 44px; padding: 8px 14px; border: 2px solid var(--bg); border-radius: var(--radius-pill); background: transparent; color: var(--bg); font-weight: 800; cursor: pointer; }
 .project-quick-amounts button[aria-pressed="true"] { background: var(--bg); color: var(--lime); }
 .project-donation-form .field label { font-size: 14px; color: var(--bg); }
@@ -3574,3 +3575,11 @@ html:not(.using-pointer) :is(.project-funding-card, .project-hero.is-loaded) :is
     .payment-card h1 { font-size: 26px; }
     .payment-details dd { text-align: left; }
 }
+.project-payment-result { display: flex; align-items: center; gap: 16px; margin: 24px 0; padding: 16px 20px; border-radius: var(--radius-md); background: var(--lime); color: var(--bg); font-weight: 800; }
+.project-payment-result[data-result="failed"] { background: #2A1A14; color: var(--orange-text); }
+.project-payment-result p { flex: 1; margin: 0; }
+.project-payment-result > span { display: flex; }
+.project-payment-result button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 0; border-radius: var(--radius-pill); background: transparent; color: inherit; cursor: pointer; }
+.project-rating-options { display: grid; grid-template-columns: repeat(5, minmax(44px, 1fr)); gap: 8px; }
+.project-rating-options button { min-height: 48px; border: 1.5px solid var(--border); border-radius: var(--radius-pill); background: var(--bg); color: var(--text); font: inherit; font-weight: 800; cursor: pointer; }
+.project-rating-options button[aria-checked="true"] { background: var(--lime); border-color: var(--lime); color: var(--bg); }

@@ -8,8 +8,11 @@ let projectPageErrorKey = "";
 
 // The storefront only pre-fills the amount; authorization and donation submission stay here.
 const suggestedDonationAmount = Number(projectQuery.get("amount"));
-if (Number.isFinite(suggestedDonationAmount) && suggestedDonationAmount > 0) {
-    document.getElementById("donation-amount").value = String(suggestedDonationAmount);
+let selectedQuickAmount = [500, 1000, 3000, 10000].includes(suggestedDonationAmount) ? suggestedDonationAmount : 1000;
+let paymentResultDismissed = false;
+if (Number.isFinite(suggestedDonationAmount) && suggestedDonationAmount > 0 && suggestedDonationAmount !== selectedQuickAmount) {
+    selectedQuickAmount = null;
+    document.getElementById("donation-amount").value = formatAmountInput(String(suggestedDonationAmount));
 }
 
 const donationForm = document.getElementById("donation-form");
@@ -224,7 +227,12 @@ function renderProjectPage(project, stats, reviews, donations, updates, comments
     document.getElementById("project-donors").textContent = String(stats?.totalDonors ?? 0);
     const end = project.endAt ? new Date(project.endAt).getTime() : NaN;
     document.getElementById("project-days-metric").hidden = !Number.isFinite(end);
-    if (Number.isFinite(end)) document.getElementById("project-days").textContent = String(Math.max(0, Math.ceil((end - Date.now()) / 86400000)));
+    const expired = Number.isFinite(end) && end <= Date.now();
+    const daysLabel = document.querySelector("#project-days-metric dt");
+    daysLabel.dataset.i18nKey = expired ? "project.deadlineExpired" : "project.daysLeft";
+    daysLabel.textContent = projectT(daysLabel.dataset.i18nKey);
+    document.getElementById("project-days").hidden = expired;
+    if (Number.isFinite(end) && !expired) document.getElementById("project-days").textContent = String(Math.ceil((end - Date.now()) / 86400000));
     const badge = document.getElementById("project-status");
     badge.dataset.status = project.status;
     badge.textContent = projectT(`project.status.${project.status}`, project.status);
@@ -325,11 +333,7 @@ function renderCommentCard(comment) {
 }
 
 function initializeRoleAwarePanels() {
-    if (paymentResult === "success") {
-        setPageStatus("project.payment.success", "success");
-    } else if (paymentResult === "failed") {
-        setPageStatus("project.payment.failed", "error");
-    }
+    renderPaymentResult();
 
     donationForm.classList.add("hidden");
     reviewForm.classList.add("hidden");
@@ -392,7 +396,7 @@ async function submitDonationForm(event) {
     event.preventDefault();
     if (projectPageState.donationBusy || projectPageState.currentProject?.status !== "ACTIVE") return;
 
-    const amountValue = Number(document.getElementById("donation-amount").value);
+    const amountValue = resolveDonationAmount();
     if (!amountValue || amountValue <= 0) {
         setDonationStatus("project.donation.invalidAmount", "error");
         return;
@@ -781,27 +785,79 @@ function isDeletedComment(comment) {
     return Boolean(comment.deleted || comment.content === "[deleted]");
 }
 
+function formatAmountInput(value) {
+    return value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function resolveDonationAmount() {
+    return selectedQuickAmount ?? Number(document.getElementById("donation-amount").value.replace(/\s/g, ""));
+}
+
+function renderPaymentResult() {
+    const banner = document.getElementById("project-payment-result");
+    banner.hidden = paymentResultDismissed || !["success", "failed"].includes(paymentResult);
+    if (banner.hidden) return;
+    banner.dataset.result = paymentResult;
+    banner.setAttribute("role", paymentResult === "failed" ? "alert" : "status");
+    document.getElementById("payment-result-message").textContent = projectT(`project.payment.${paymentResult}`);
+    document.getElementById("payment-result-icon").innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="${paymentResult === "success" ? "m7 12 3 3 7-7" : "M12 6v7m0 3v2"}"/></svg>`;
+}
+
 function syncDonationAmount() {
-    const input = document.getElementById("donation-amount");
-    const amount = Number(input.value);
-    const valid = Number.isFinite(amount) && amount >= 1 && input.validity.valid;
+    const amount = resolveDonationAmount();
+    const valid = Number.isFinite(amount) && amount >= 1;
     const button = document.getElementById("donation-submit");
     button.textContent = valid ? projectT("home.supportAmount").replace("{amount}", formatMoney(amount)) : projectT("project.action.donate");
     button.disabled = !valid || projectPageState.donationBusy;
     document.querySelectorAll("[data-donation-amount]").forEach((quick) => {
         quick.textContent = formatMoney(Number(quick.dataset.donationAmount));
-        quick.setAttribute("aria-pressed", String(Number(quick.dataset.donationAmount) === amount));
+        quick.setAttribute("aria-pressed", String(Number(quick.dataset.donationAmount) === selectedQuickAmount));
     });
 }
 
 function wireProjectInteractions() {
-    document.getElementById("donation-amount").addEventListener("input", syncDonationAmount);
+    document.getElementById("donation-amount").addEventListener("input", (event) => {
+        selectedQuickAmount = null;
+        const input = event.target;
+        const digitsBeforeCaret = input.value.slice(0, input.selectionStart).replace(/\D/g, "").length;
+        input.value = formatAmountInput(input.value);
+        let caret = 0, digits = 0;
+        while (caret < input.value.length && digits < digitsBeforeCaret) {
+            if (/\d/.test(input.value[caret])) digits++;
+            caret++;
+        }
+        input.setSelectionRange(caret, caret);
+        syncDonationAmount();
+    });
     document.querySelector(".project-quick-amounts").addEventListener("click", (event) => {
         const button = event.target.closest("[data-donation-amount]");
         if (!button) return;
-        document.getElementById("donation-amount").value = button.dataset.donationAmount;
+        selectedQuickAmount = Number(button.dataset.donationAmount);
+        document.getElementById("donation-amount").value = "";
         syncDonationAmount();
     });
+    document.getElementById("payment-result-close").addEventListener("click", () => {
+        paymentResultDismissed = true;
+        renderPaymentResult();
+    });
+    const ratingButtons = [...document.querySelectorAll("[data-review-rating]")];
+    const syncRating = () => ratingButtons.forEach((button) => {
+        const selected = button.dataset.reviewRating === reviewForm.rating.value;
+        button.setAttribute("aria-checked", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+    });
+    ratingButtons.forEach((button, index) => {
+        button.addEventListener("click", () => { reviewForm.rating.value = button.dataset.reviewRating; syncRating(); });
+        button.addEventListener("keydown", (event) => {
+            const offsets = {ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1};
+            if (!(event.key in offsets) && event.key !== "Home" && event.key !== "End") return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? 4 : (index + offsets[event.key] + 5) % 5;
+            ratingButtons[next].click();
+            ratingButtons[next].focus();
+        });
+    });
+    reviewForm.addEventListener("reset", () => queueMicrotask(syncRating));
     const syncCounters = () => document.querySelectorAll("[data-character-counter]").forEach((counter) => {
         const input = document.getElementById(counter.dataset.characterCounter);
         counter.textContent = `${input.value.length} / ${input.maxLength}`;
