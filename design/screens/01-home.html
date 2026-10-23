@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — главная, смелый вариант</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="#top" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="#projects" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">Проекты</a>
+      <a href="#how" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Как это работает</a>
+      <a href="Analytics.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Аналитика</a>
+    </nav>
+    <div style="display: flex; gap: 8px">
+      <a href="#login" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Войти</a>
+      <a href="#create" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #C6F24E; color: #0E0E10; text-decoration: none; font-weight: 800">Запустить</a>
+    </div>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 48px 24px 32px">
+    <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(40px, 7.4vw, 96px); line-height: 0.98; letter-spacing: -0.03em; font-weight: 900; text-transform: uppercase">Собираем<br>на <span style="color: #0E0E10; background: #C6F24E; padding: 0 0.12em; border-radius: 0.12em">смелое</span></h1>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 24px; margin-top: 32px">
+      <p style="margin: 0; font-size: 20px; line-height: 1.5; color: #B4B4BC; max-width: 520px">Технологии, творчество, образование и добрые дела — от авторов, которым не хватает только вашей поддержки.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px">
+        <div style="padding: 16px 22px; border-radius: 22px; background: #1C1C20"><div style="font-family: 'Unbounded', sans-serif; font-size: 26px; font-weight: 700">2,9 млн ₽</div><div style="color: #A0A0A8; font-size: 14px">собрано</div></div>
+        <div style="padding: 16px 22px; border-radius: 22px; background: #1C1C20"><div style="font-family: 'Unbounded', sans-serif; font-size: 26px; font-weight: 700">128</div><div style="color: #A0A0A8; font-size: 14px">сборов идёт</div></div>
+        <div style="padding: 16px 22px; border-radius: 22px; background: #FF6A3D; color: #0E0E10"><div style="font-family: 'Unbounded', sans-serif; font-size: 26px; font-weight: 700">37</div><div style="font-size: 14px; font-weight: 600">дошли до цели</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects" style="max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px">
+    <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 0; border-radius: 32px; overflow: hidden; background: #C6F24E; color: #0E0E10">
+      <div style="min-height: 320px; background: #FF6A3D"></div>
+      <div style="padding: clamp(24px, 4vw, 44px); display: flex; flex-direction: column; justify-content: space-between; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <span style="width: fit-content; padding: 6px 12px; border-radius: 999px; background: #0E0E10; color: #C6F24E; font-weight: 800; font-size: 13px">ПРОЕКТ НЕДЕЛИ · ТВОРЧЕСТВО</span>
+          <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(28px, 3.4vw, 42px); line-height: 1.05; font-weight: 900">Метро 2088</h2>
+          <p style="margin: 0; font-size: 17px; line-height: 1.5; font-weight: 500">Кооперативная настолка на четверых. До цели осталось меньше 10% — помогите напечатать первый тираж.</p>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px">
+          <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 700">820 000 ₽</span><span style="font-weight: 800">91%</span></div>
+          <div style="height: 12px; border-radius: 999px; background: rgba(14,14,16,0.15)"><div style="width: 100%; height: 100%; border-radius: 999px; background: #0E0E10"></div></div>
+          <div role="group" aria-label="Сумма поддержки" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{amounts}}" as="m" hint-placeholder-count="4">
+              <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="{{m.style}}">{{m.label}}</button>
+            </sc-for>
+          </div>
+          <a href="#donate" style="display: inline-flex; align-items: center; justify-content: center; min-height: 56px; border-radius: 999px; background: #0E0E10; color: #C6F24E; text-decoration: none; font-weight: 800; font-size: 17px">Поддержать на {{amountLabel}}</a>
+        </div>
+      </div>
+    </div>
+
+    <sc-for list="{{projects}}" as="p" hint-placeholder-count="6">
+      <a href="Project.dc.html" style="display: flex; flex-direction: column; border-radius: 28px; overflow: hidden; background: #1C1C20; color: #F4F4F0; text-decoration: none">
+        <div style="height: 170px; background: {{p.color}}; position: relative">
+          <span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; font-weight: 700; font-size: 13px">{{p.cat}}</span>
+        </div>
+        <div style="padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 12px; flex: 1">
+          <div style="font-size: 20px; font-weight: 800; line-height: 1.2; flex: 1">{{p.title}}</div>
+          <div style="height: 8px; border-radius: 999px; background: #2E2E34"><div style="width: {{p.bar}}%; height: 100%; border-radius: 999px; background: #C6F24E"></div></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #A0A0A8"><span><b style="color: #F4F4F0">{{p.raised}}</b> · {{p.pct}}%</span><span>{{p.days}}</span></div>
+        </div>
+      </a>
+    </sc-for>
+  </section>
+
+  <section id="how" style="max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px">
+    <h2 style="margin: 0 0 24px; font-family: 'Unbounded', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase">Как это работает</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px">
+      <div style="padding: 28px; border-radius: 28px; background: #1C1C20; display: flex; flex-direction: column; gap: 10px"><span style="font-family: 'Unbounded', sans-serif; font-size: 44px; font-weight: 900; color: #C6F24E">01</span><span style="font-size: 20px; font-weight: 800">Автор запускает</span><span style="color: #B4B4BC; line-height: 1.55">Цель, сроки, обложка и история проекта.</span></div>
+      <div style="padding: 28px; border-radius: 28px; background: #1C1C20; display: flex; flex-direction: column; gap: 10px"><span style="font-family: 'Unbounded', sans-serif; font-size: 44px; font-weight: 900; color: #FF6A3D">02</span><span style="font-size: 20px; font-weight: 800">Модератор проверяет</span><span style="color: #B4B4BC; line-height: 1.55">Публикация после проверки, причина отказа — автору.</span></div>
+      <div style="padding: 28px; border-radius: 28px; background: #1C1C20; display: flex; flex-direction: column; gap: 10px"><span style="font-family: 'Unbounded', sans-serif; font-size: 44px; font-weight: 900; color: #F4F4F0">03</span><span style="font-size: 20px; font-weight: 800">Люди поддерживают</span><span style="color: #B4B4BC; line-height: 1.55">Донаты, отзывы и новости в реальном времени.</span></div>
+    </div>
+  </section>
+
+  <section id="authors" style="max-width: 1200px; margin: 0 auto; padding: 0 24px 64px">
+    <div style="border-radius: 32px; background: #FF6A3D; color: #0E0E10; padding: clamp(28px, 5vw, 56px); display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(30px, 4.4vw, 52px); font-weight: 900; line-height: 1; text-transform: uppercase; max-width: 680px">Есть идея? Запускай сбор</h2>
+      <a href="#create" style="display: inline-flex; align-items: center; min-height: 60px; padding: 0 32px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; text-decoration: none; font-weight: 800; font-size: 17px">Создать проект</a>
+    </div>
+  </section>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="#how" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2360}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { amt: 1000 }; }
+  renderVals() {
+    const list = [300, 1000, 3000, 10000];
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    const amounts = list.map((n) => {
+      const on = n === this.state.amt;
+      return { label: fmt(n), on: on ? 'true' : 'false', pick: () => this.setState({ amt: n }),
+        style: 'min-height: 44px; padding: 0 16px; border-radius: 999px; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; border: 2px solid #0E0E10; ' + (on ? 'background: #0E0E10; color: #C6F24E' : 'background: transparent; color: #0E0E10') };
+    });
+    const projects = [
+      { title: 'Тёплый дом для приюта «Лапа»', cat: 'Благотворительность', raised: '412 000 ₽', pct: 69, days: '18 дней', color: '#FF6A3D' },
+      { title: 'Документальный фильм о Русском Севере', cat: 'Творчество', raised: '245 000 ₽', pct: 25, days: '41 день', color: '#7C8CFF' },
+      { title: 'Умная кормушка для птиц', cat: 'Технологии', raised: '530 000 ₽', pct: 71, days: '12 дней', color: '#C6F24E' },
+      { title: 'Сборник рассказов «Ночные трамваи»', cat: 'Творчество', raised: '96 000 ₽', pct: 64, days: '23 дня', color: '#F2B8E0' },
+      { title: 'Мастерская керамики в Твери', cat: 'Образование', raised: '310 000 ₽', pct: 78, days: '9 дней', color: '#FFD23F' },
+      { title: 'Велодорожка вдоль Яузы: проект и макет', cat: 'Социальные проекты', raised: '188 000 ₽', pct: 47, days: '30 дней', color: '#5FD4C4' }
+    ].map((p) => ({ ...p, bar: Math.min(p.pct, 100) }));
+    return { amounts, amountLabel: fmt(this.state.amt), projects };
+  }
+}
+</script>
+</body>
+</html>

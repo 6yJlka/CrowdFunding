@@ -1,556 +1,250 @@
+const catalogI18n = window.AppI18n;
+const catalogPresentation = window.RiseUpProjects;
+const UNCATEGORIZED_CATEGORY_TOKEN = "__uncategorized__";
 const catalogPageState = {
-    query: "",
-    categoryId: "",
-    authorId: "",
-    sort: "createdAt,desc",
-    page: 0,
-    size: 9,
-    status: document.body.dataset.catalogStatus || "ACTIVE",
-    emptyMessage: document.body.dataset.catalogEmpty || window.AppI18n.t("catalog.empty"),
-    totalPages: 0,
-    totalElements: 0
+    query: "", categoryId: "", authorId: "", sort: "createdAt,desc", page: 0, size: 9,
+    status: "ACTIVE", totalPages: 0, totalElements: 0
 };
-
 const catalogGridNode = document.getElementById("catalog-page-grid");
 const catalogStatusNode = document.getElementById("catalog-page-status");
 const catalogSearchNode = document.getElementById("catalog-page-search");
-const catalogCategoryNode = document.getElementById("catalog-category-filter");
 const catalogSortNode = document.getElementById("catalog-sort-filter");
+const catalogSortMenu = document.getElementById("catalog-sort-listbox");
+const catalogSortOptions = [...catalogSortMenu.querySelectorAll("[data-sort-value]")];
 const catalogChipRowNode = document.getElementById("catalog-chip-row");
 const catalogPrevNode = document.getElementById("catalog-prev-btn");
 const catalogNextNode = document.getElementById("catalog-next-btn");
-const catalogPaginationCopyNode = document.getElementById("catalog-pagination-copy");
-const catalogI18n = window.AppI18n;
-const UNCATEGORIZED_CATEGORY_TOKEN = "__uncategorized__";
-
 let catalogCategories = [];
 let currentCatalogProjects = [];
-let currentModalProject = null;
-let currentModalReviews = [];
+let catalogRequestVersion = 0;
+let catalogLoaded = false;
+let catalogErrorKey = "";
+let catalogCategoriesError = false;
+let catalogSearchTimeout;
+let catalogSortControl;
 
-bootstrapCatalogPage().catch((error) => setCatalogPageStatus(error.message, "error"));
-document.addEventListener("app:lang-changed", () => {
-    hydrateCatalogHeading();
-    catalogPageState.emptyMessage = document.body.dataset.catalogEmpty || window.AppI18n.t("catalog.empty");
-    loadCatalogCategories()
-        .then(() => loadCatalogPageProjects())
-        .catch((error) => setCatalogPageStatus(error.message, "error"));
-    if (currentModalProject) {
-        renderCatalogProjectModal(currentModalProject, currentModalReviews);
-    }
+hydrateCatalogStateFromUrl();
+wireCatalogPageEvents();
+syncCatalogTabs();
+renderCatalogChips();
+updateCatalogPagination();
+loadCatalogCategories().catch(() => {
+    catalogCategoriesError = true;
+    setCatalogPageStatus("catalog.error.categories", true);
 });
+loadCatalogPageProjects();
 
-async function bootstrapCatalogPage() {
-    hydrateCatalogHeading();
+document.addEventListener("app:lang-changed", () => {
+    syncCatalogSort();
+    renderCatalogChips();
+    syncCatalogTabs();
+    renderCatalogPageProjects();
+    updateCatalogPagination();
+    updateCatalogCount();
+    setCatalogPageStatus(catalogErrorKey || (catalogCategoriesError ? "catalog.error.categories" : catalogLoaded ? "" : "catalog.loading"), Boolean(catalogErrorKey || catalogCategoriesError));
+});
+window.addEventListener("popstate", () => {
+    closeCatalogSort();
+    window.clearTimeout(catalogSearchTimeout);
     hydrateCatalogStateFromUrl();
-    wireCatalogPageEvents();
-    await loadCatalogCategories();
-    await loadCatalogPageProjects();
-}
-
-function hydrateCatalogHeading() {
-    const title = document.body.dataset.catalogTitle;
-    const kicker = document.body.dataset.catalogKicker;
-    if (title) {
-        document.getElementById("catalog-title").textContent = title;
-    }
-    if (kicker) {
-        document.getElementById("catalog-kicker").textContent = kicker;
-    }
-}
+    syncCatalogTabs();
+    renderCatalogChips();
+    loadCatalogPageProjects();
+});
 
 function hydrateCatalogStateFromUrl() {
     const params = new URLSearchParams(window.location.search);
     catalogPageState.query = params.get("q")?.trim() ?? "";
-    catalogPageState.categoryId = params.get("uncategorized") === "true"
-        ? UNCATEGORIZED_CATEGORY_TOKEN
-        : (params.get("categoryId") ?? "");
+    catalogPageState.categoryId = params.get("uncategorized") === "true" ? UNCATEGORIZED_CATEGORY_TOKEN : (params.get("categoryId") ?? "");
     catalogPageState.authorId = params.get("authorId") ?? "";
-    catalogPageState.sort = params.get("sort") ?? "createdAt,desc";
-    catalogPageState.page = Math.max(Number(params.get("page") ?? "0"), 0);
-
+    const sort = params.get("sort") ?? "createdAt,desc";
+    catalogPageState.sort = catalogSortOptions.some((option) => option.dataset.sortValue === sort) ? sort : "createdAt,desc";
+    const page = Number(params.get("page") ?? 0);
+    catalogPageState.page = Number.isSafeInteger(page) && page > 0 ? page : 0;
+    catalogPageState.status = params.get("status") === "FUNDED" ? "FUNDED" : "ACTIVE";
     catalogSearchNode.value = catalogPageState.query;
-    catalogSortNode.value = catalogPageState.sort;
+    syncCatalogSort();
 }
 
 function wireCatalogPageEvents() {
-    const runCatalogSearchDebounced = debounce(submitCatalogSearch, 250);
-
-    document.getElementById("catalog-page-search-btn").addEventListener("click", submitCatalogSearch);
-
+    document.getElementById("catalog-search-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        submitCatalogSearch();
+    });
     catalogSearchNode.addEventListener("input", () => {
-        runCatalogSearchDebounced();
+        window.clearTimeout(catalogSearchTimeout);
+        catalogSearchTimeout = window.setTimeout(submitCatalogSearch, 250);
     });
-
-    catalogSearchNode.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            submitCatalogSearch();
-        }
-    });
-
-    catalogCategoryNode.addEventListener("change", () => {
-        catalogPageState.categoryId = catalogCategoryNode.value;
-        catalogPageState.page = 0;
-        renderCatalogChips();
-        syncCatalogUrl();
-        loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
-    });
-
-    catalogSortNode.addEventListener("change", () => {
-        catalogPageState.sort = catalogSortNode.value;
-        catalogPageState.page = 0;
-        syncCatalogUrl();
-        loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
-    });
-
+    wireCatalogSort();
     catalogChipRowNode.addEventListener("click", (event) => {
         const chip = event.target.closest("[data-category-id]");
-        if (!chip) {
-            return;
-        }
-
-        const nextCategoryId = chip.getAttribute("data-category-id");
-        catalogPageState.categoryId = nextCategoryId === catalogPageState.categoryId ? "" : nextCategoryId;
-        catalogCategoryNode.value = catalogPageState.categoryId;
+        if (!chip) return;
+        catalogPageState.categoryId = chip.dataset.categoryId;
         catalogPageState.page = 0;
         renderCatalogChips();
-        syncCatalogUrl();
-        loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
+        loadCatalogPageProjects();
     });
-
+    const tabs = document.getElementById("catalog-status-tabs");
+    tabs.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-catalog-status]");
+        if (button) setCatalogStatus(button.dataset.catalogStatus);
+    });
+    tabs.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const status = event.key === "Home" ? "ACTIVE" : event.key === "End" ? "FUNDED" : catalogPageState.status === "ACTIVE" ? "FUNDED" : "ACTIVE";
+        setCatalogStatus(status);
+        tabs.querySelector(`[data-catalog-status="${status}"]`).focus();
+    });
     catalogPrevNode.addEventListener("click", () => {
-        if (catalogPageState.page <= 0) {
-            return;
-        }
-        catalogPageState.page -= 1;
-        syncCatalogUrl();
-        loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
+        if (catalogPageState.page > 0) { catalogPageState.page -= 1; loadCatalogPageProjects(); }
     });
-
     catalogNextNode.addEventListener("click", () => {
-        if (catalogPageState.page >= Math.max(catalogPageState.totalPages - 1, 0)) {
-            return;
-        }
-        catalogPageState.page += 1;
-        syncCatalogUrl();
-        loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
+        if (catalogPageState.page < catalogPageState.totalPages - 1) { catalogPageState.page += 1; loadCatalogPageProjects(); }
     });
-
-    catalogGridNode.addEventListener("click", (event) => {
-        const button = event.target.closest("[data-project-id]");
-        if (!button) {
-            return;
-        }
-        openCatalogProjectModal(button.getAttribute("data-project-id"));
-    });
-
-    document.getElementById("modal-close").addEventListener("click", closeCatalogProjectModal);
-    document.getElementById("modal-backdrop").addEventListener("click", closeCatalogProjectModal);
 }
 
+function wireCatalogSort() {
+    catalogSortControl = window.RiseUpDropdown.wire(catalogSortNode.closest(".dropdown"), {
+        value: catalogPageState.sort,
+        onChange(value) { catalogPageState.sort = value; catalogPageState.page = 0; loadCatalogPageProjects(); }
+    });
+}
+function syncCatalogSort() {
+    if (catalogSortControl) catalogSortControl.setValue(catalogPageState.sort);
+    else {
+        const selected = catalogSortOptions.find((option) => option.dataset.sortValue === catalogPageState.sort);
+        document.getElementById("catalog-sort-value").textContent = selected.querySelector("[data-i18n-key]").textContent;
+    }
+}
+function closeCatalogSort(restoreFocus = false) { catalogSortControl?.close(restoreFocus); }
+
 function submitCatalogSearch() {
+    window.clearTimeout(catalogSearchTimeout);
     catalogPageState.query = catalogSearchNode.value.trim();
     catalogPageState.page = 0;
-    syncCatalogUrl();
-    loadCatalogPageProjects().catch((error) => setCatalogPageStatus(error.message, "error"));
+    loadCatalogPageProjects();
+}
+
+function setCatalogStatus(status) {
+    if (catalogPageState.status === status) return;
+    catalogPageState.status = status;
+    catalogPageState.page = 0;
+    syncCatalogTabs();
+    loadCatalogPageProjects();
+}
+
+function syncCatalogTabs() {
+    document.querySelectorAll("[data-catalog-status]").forEach((button) => {
+        const active = button.dataset.catalogStatus === catalogPageState.status;
+        button.setAttribute("aria-selected", String(active));
+        button.tabIndex = active ? 0 : -1;
+        if (active) document.getElementById("catalog-results").setAttribute("aria-labelledby", button.id);
+    });
 }
 
 async function loadCatalogCategories() {
     const response = await fetch("/api/categories");
-    if (!response.ok) {
-        throw new Error(catalogT("catalog.error.categories", "Could not load categories"));
-    }
-
+    if (!response.ok) throw new Error("categories");
     catalogCategories = await response.json();
-    const categoryOptions = [
-        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogT("category.general", "General")},
-        ...catalogCategories
-    ];
-    catalogCategoryNode.innerHTML = `
-        <option value="">${catalogT("projects.allCategories", "All categories")}</option>
-        ${categoryOptions.map((category) => `<option value="${category.id}">${escapeCatalogHtml(translateCatalogCategoryTitle(category.title))}</option>`).join("")}
-    `;
-    catalogCategoryNode.value = catalogPageState.categoryId;
     renderCatalogChips();
+    if (catalogLoaded) renderCatalogPageProjects();
 }
 
 async function loadCatalogPageProjects() {
-    setCatalogPageStatus(catalogT("catalog.loading", "Loading projects..."), "info");
-
+    const version = ++catalogRequestVersion;
+    catalogLoaded = false;
+    catalogErrorKey = "";
+    currentCatalogProjects = [];
+    catalogGridNode.replaceChildren();
+    catalogGridNode.setAttribute("aria-busy", "true");
+    document.getElementById("catalog-result-count").textContent = "";
+    setCatalogPageStatus("catalog.loading");
+    catalogPrevNode.disabled = true;
+    catalogNextNode.disabled = true;
+    syncCatalogUrl();
     const url = new URL("/api/projects", window.location.origin);
-    url.searchParams.set("size", `${catalogPageState.size}`);
-    url.searchParams.set("page", `${catalogPageState.page}`);
+    url.search = window.location.search;
+    url.searchParams.set("size", String(catalogPageState.size));
+    url.searchParams.set("page", String(catalogPageState.page));
     url.searchParams.set("status", catalogPageState.status);
     url.searchParams.set("sort", catalogPageState.sort);
-
-    if (catalogPageState.query) {
-        url.searchParams.set("q", catalogPageState.query);
-    }
-    if (catalogPageState.categoryId) {
-        if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
-            url.searchParams.set("uncategorized", "true");
-        } else {
-            url.searchParams.set("categoryId", catalogPageState.categoryId);
-        }
-    }
-    url.searchParams.delete("uncategorized");
-    if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
-        url.searchParams.set("uncategorized", "true");
-    }
-    if (catalogPageState.authorId) {
-        url.searchParams.set("authorId", catalogPageState.authorId);
-    }
-
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(catalogT("catalog.error.load", "Could not load project catalog"));
-    }
-
-    const payload = await response.json();
-    catalogPageState.totalPages = payload.totalPages ?? 0;
-    catalogPageState.totalElements = payload.totalElements ?? 0;
-    currentCatalogProjects = payload.content ?? [];
-    renderCatalogPageProjects(currentCatalogProjects);
-    updateCatalogPagination();
-    syncCatalogUrl();
-    setCatalogPageStatus(catalogT("catalog.found", "{count} project(s) found").replace("{count}", `${payload.totalElements ?? 0}`), "success");
-}
-
-function renderCatalogPageProjects(projects) {
-    if (!projects.length) {
-        catalogGridNode.innerHTML = `<div class="empty-state">${escapeCatalogHtml(catalogPageState.emptyMessage)}</div>`;
-        return;
-    }
-
-    catalogGridNode.innerHTML = projects.map((project) => {
-        const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
-        const coverMarkup = renderCatalogProjectCover(project, "project-card-cover");
-        return `
-            <article class="project-card">
-                <div class="project-card-media">
-                    ${coverMarkup}
-                </div>
-                <div class="project-card-content">
-                    <h4>${escapeCatalogHtml(project.title)}</h4>
-                    <p>${escapeCatalogHtml(project.shortDescription ?? "")}</p>
-                    <div class="project-meta">
-                        <span>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknownAuthor", "Unknown author"))}</span>
-                        <span>${formatCatalogMoney(project.goalAmount)}</span>
-                    </div>
-                    <div class="project-progress">
-                        <div class="project-progress-head">
-                            <span>${formatCatalogMoney(project.collectedAmount)} ${catalogT("app.raised", "raised")}</span>
-                            <span>${percent}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
-                        </div>
-                    </div>
-                    <div class="project-card-footer">
-                        <div class="project-card-badges">
-                            <span class="status-badge">${escapeCatalogHtml(formatCatalogProjectStatus(project.status ?? catalogPageState.status))}</span>
-                            <span class="meta-pill">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle))}</span>
-                        </div>
-                        <div class="project-card-footer-actions">
-                            <a class="ghost-btn" href="/project.html?id=${project.id}">${catalogT("app.openPage", "Open page")}</a>
-                            <button class="ghost-btn" type="button" data-project-id="${project.id}">${catalogT("app.quickView", "Quick view")}</button>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `;
-    }).join("");
-}
-
-async function openCatalogProjectModal(projectId) {
-    const modal = document.getElementById("project-modal");
-    const body = document.getElementById("modal-body");
-    modal.classList.remove("hidden");
-    document.body.classList.add("modal-open");
-    body.innerHTML = `<p class="panel-kicker">${catalogT("app.project", "Project")}</p><h3>${catalogT("app.loading", "Loading...")}</h3><p class="modal-copy">${catalogT("app.fetchingProject", "Fetching project details.")}</p>`;
-
     try {
-        const [projectResponse, reviewsResponse] = await Promise.all([
-            fetch(`/api/projects/${projectId}`),
-            fetch(`/api/projects/${projectId}/reviews`)
-        ]);
-
-        if (!projectResponse.ok) {
-            throw new Error(catalogT("catalog.error.project", "Could not load project"));
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("projects");
+        const payload = await response.json();
+        if (version !== catalogRequestVersion) return;
+        catalogPageState.totalPages = payload.totalPages ?? 0;
+        catalogPageState.totalElements = payload.totalElements ?? 0;
+        currentCatalogProjects = payload.content ?? [];
+        catalogLoaded = true;
+        // An old bookmark may reference a page that no longer exists after projects change status.
+        if (catalogPageState.page > 0 && catalogPageState.page >= Math.max(catalogPageState.totalPages, 1)) {
+            catalogPageState.page = Math.max(catalogPageState.totalPages - 1, 0);
+            return loadCatalogPageProjects();
         }
-
-        const project = await projectResponse.json();
-        const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
-        currentModalProject = project;
-        currentModalReviews = reviews;
-        renderCatalogProjectModal(project, reviews);
-    } catch (error) {
-        currentModalProject = null;
-        currentModalReviews = [];
-        body.innerHTML = `<p class="panel-kicker">${catalogT("app.project", "Project")}</p><h3>${catalogT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${catalogT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
-        console.error(error);
+        renderCatalogPageProjects();
+        updateCatalogPagination();
+        updateCatalogCount();
+        setCatalogPageStatus(catalogCategoriesError ? "catalog.error.categories" : "", catalogCategoriesError);
+    } catch {
+        if (version !== catalogRequestVersion) return;
+        catalogErrorKey = "catalog.error.load";
+        setCatalogPageStatus(catalogErrorKey, true);
+    } finally {
+        if (version === catalogRequestVersion) catalogGridNode.setAttribute("aria-busy", "false");
     }
 }
 
-function renderCatalogProjectModal(project, reviews) {
-    const percent = getCatalogProgress(project.collectedAmount, project.goalAmount);
-    const coverMarkup = renderCatalogProjectCover(project, "project-modal-cover");
-    document.getElementById("modal-body").innerHTML = `
-        <p class="panel-kicker">${escapeCatalogHtml(translateCatalogCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
-        <div class="project-modal-hero">
-            ${coverMarkup}
-            <div class="project-modal-copy">
-                <h3>${escapeCatalogHtml(project.title)}</h3>
-                <p class="modal-copy">${escapeCatalogHtml(project.description || project.shortDescription || "")}</p>
-            </div>
-        </div>
-        <div class="modal-metrics">
-            <div class="metric-box">
-                <span>${catalogT("app.raisedCap", "Raised")}</span>
-                <strong>${formatCatalogMoney(project.collectedAmount)}</strong>
-            </div>
-            <div class="metric-box">
-                <span>${catalogT("app.goal", "Goal")}</span>
-                <strong>${formatCatalogMoney(project.goalAmount)}</strong>
-            </div>
-            <div class="metric-box">
-                <span>${catalogT("app.progress", "Progress")}</span>
-                <strong>${percent}%</strong>
-            </div>
-            <div class="metric-box">
-                <span>${catalogT("app.author", "Author")}</span>
-                <strong>${escapeCatalogHtml(project.authorDisplayName ?? catalogT("app.unknown", "Unknown"))}</strong>
-            </div>
-        </div>
-        <div class="project-progress">
-            <div class="project-progress-head">
-                <span>${catalogT("app.fundingStatus", "Funding status")}</span>
-                <span>${percent}%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
-            </div>
-        </div>
-        <div class="project-card-footer project-modal-actions">
-            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">${catalogT("app.openFullPage", "Open full page")}</a>
-        </div>
-        <div class="review-list">
-            ${reviews.length ? reviews.map((review) => `
-                <article class="review-card">
-                    <div class="review-head">
-                        <strong>${escapeCatalogHtml(review.userDisplayName ?? catalogT("app.anonymous", "Anonymous"))}</strong>
-                        <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
-                    </div>
-                    <p>${escapeCatalogHtml(review.reviewText ?? "")}</p>
-                </article>
-            `).join("") : `<div class="empty-state">${catalogT("app.noReviewsForCampaign", "No reviews yet for this campaign.")}</div>`}
-        </div>
-    `;
-}
-
-function closeCatalogProjectModal() {
-    document.getElementById("project-modal").classList.add("hidden");
-    document.body.classList.remove("modal-open");
-    currentModalProject = null;
-    currentModalReviews = [];
+function renderCatalogPageProjects() {
+    if (!catalogLoaded) return;
+    catalogGridNode.innerHTML = currentCatalogProjects.length
+        ? currentCatalogProjects.map((project) => catalogPresentation.renderCard(project, catalogCategories)).join("")
+        : `<div class="empty-state">${catalogPresentation.escapeHtml(catalogI18n.t("catalog.empty"))}</div>`;
 }
 
 function renderCatalogChips() {
-    if (!catalogCategories.length) {
-        catalogChipRowNode.innerHTML = "";
-        return;
-    }
-
-    const chipCategories = [
-        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogT("category.general", "General")},
-        ...catalogCategories.slice(0, 7)
-    ];
-
-    catalogChipRowNode.innerHTML = chipCategories.map((category) => {
-        const active = String(category.id) === String(catalogPageState.categoryId);
-        return `
-            <button class="catalog-chip${active ? " active" : ""}" type="button" data-category-id="${category.id}">
-                ${escapeCatalogHtml(translateCatalogCategoryTitle(category.title))}
-            </button>
-        `;
+    const focusedCategory = catalogChipRowNode.contains(document.activeElement)
+        ? document.activeElement.dataset.categoryId : null;
+    const categories = [{id: "", title: catalogI18n.t("projects.allCategories")},
+        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogI18n.t("category.uncategorized")}, ...catalogCategories];
+    catalogChipRowNode.innerHTML = categories.map((category) => {
+        const title = category.slug ? catalogPresentation.categoryTitle({categoryId: category.id}, catalogCategories) : category.title;
+        return `<button class="chip" type="button" data-category-id="${catalogPresentation.escapeHtml(category.id)}" aria-pressed="${String(category.id) === catalogPageState.categoryId}">${catalogPresentation.escapeHtml(title)}</button>`;
     }).join("");
+    if (focusedCategory != null) {
+        [...catalogChipRowNode.querySelectorAll("[data-category-id]")]
+            .find((button) => button.dataset.categoryId === focusedCategory)?.focus({preventScroll: true});
+    }
 }
 
 function updateCatalogPagination() {
-    const currentPage = catalogPageState.page + 1;
-    const totalPages = Math.max(catalogPageState.totalPages, 1);
-    catalogPaginationCopyNode.textContent = catalogT("catalog.pageOf", "Page {page} of {total}")
-        .replace("{page}", `${currentPage}`)
-        .replace("{total}", `${totalPages}`);
-    catalogPrevNode.textContent = window.AppI18n.t("projects.prev");
-    catalogNextNode.textContent = window.AppI18n.t("projects.next");
-    catalogPrevNode.disabled = catalogPageState.page <= 0;
-    catalogNextNode.disabled = catalogPageState.page >= Math.max(catalogPageState.totalPages - 1, 0);
+    document.getElementById("catalog-pagination-copy").textContent = catalogI18n.t("catalog.pageOf")
+        .replace("{page}", String(catalogPageState.page + 1)).replace("{total}", String(Math.max(catalogPageState.totalPages, 1)));
+    catalogPrevNode.disabled = !catalogLoaded || catalogPageState.page <= 0;
+    catalogNextNode.disabled = !catalogLoaded || catalogPageState.page >= Math.max(catalogPageState.totalPages - 1, 0);
+}
+
+function updateCatalogCount() {
+    document.getElementById("catalog-result-count").innerHTML = catalogLoaded
+        ? catalogPresentation.escapeHtml(catalogI18n.plural("catalog.found", catalogPageState.totalElements)) : "";
 }
 
 function syncCatalogUrl() {
-    const url = new URL(window.location.href);
-    const params = url.searchParams;
-
-    if (catalogPageState.query) {
-        params.set("q", catalogPageState.query);
-    } else {
-        params.delete("q");
-    }
-
-    if (catalogPageState.categoryId) {
-        if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) {
-            params.delete("categoryId");
-            params.set("uncategorized", "true");
-        } else {
-            params.set("categoryId", catalogPageState.categoryId);
-            params.delete("uncategorized");
-        }
-    } else {
-        params.delete("categoryId");
-        params.delete("uncategorized");
-    }
-
-    if (catalogPageState.authorId) {
-        params.set("authorId", catalogPageState.authorId);
-    } else {
-        params.delete("authorId");
-    }
-
-    if (catalogPageState.sort !== "createdAt,desc") {
-        params.set("sort", catalogPageState.sort);
-    } else {
-        params.delete("sort");
-    }
-
-    if (catalogPageState.page > 0) {
-        params.set("page", `${catalogPageState.page}`);
-    } else {
-        params.delete("page");
-    }
-
-    window.history.replaceState({}, "", params.toString() ? `${url.pathname}?${params.toString()}` : url.pathname);
+    const params = new URLSearchParams();
+    if (catalogPageState.query) params.set("q", catalogPageState.query);
+    if (catalogPageState.categoryId === UNCATEGORIZED_CATEGORY_TOKEN) params.set("uncategorized", "true");
+    else if (catalogPageState.categoryId) params.set("categoryId", catalogPageState.categoryId);
+    if (catalogPageState.authorId) params.set("authorId", catalogPageState.authorId);
+    params.set("status", catalogPageState.status);
+    if (catalogPageState.sort !== "createdAt,desc") params.set("sort", catalogPageState.sort);
+    if (catalogPageState.page > 0) params.set("page", String(catalogPageState.page));
+    window.history.replaceState({}, "", `${window.location.pathname}?${params}`);
 }
 
-function setCatalogPageStatus(message, type = "") {
-    catalogStatusNode.textContent = message;
-    catalogStatusNode.className = `auth-status ${type}`.trim();
+function setCatalogPageStatus(key, error = false) {
+    catalogStatusNode.hidden = !key;
+    catalogStatusNode.textContent = key ? catalogI18n.t(key) : "";
+    catalogStatusNode.classList.toggle("page-message-error", error);
+    catalogStatusNode.setAttribute("role", error ? "alert" : "status");
 }
-
-function getCatalogProgress(collectedAmount, goalAmount) {
-    const collected = Number(collectedAmount ?? 0);
-    const goal = Number(goalAmount ?? 0);
-    if (!goal) {
-        return 0;
-    }
-    return Math.round((collected / goal) * 100);
-}
-
-function formatCatalogMoney(value) {
-    return new Intl.NumberFormat(resolveCatalogLocale(), {
-        style: "currency",
-        currency: "RUB",
-        maximumFractionDigits: 0
-    }).format(Number(value ?? 0));
-}
-
-function renderCatalogProjectCover(project, className) {
-    if (project?.hasCoverImage && project?.id) {
-        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeCatalogHtml(project.title ?? "Project")}">`;
-    }
-
-    const category = translateCatalogCategoryTitle(project?.categoryTitle, "app.project", "Project");
-    const initials = getCatalogProjectInitials(project?.title);
-    const tone = getCatalogProjectCoverTone(project);
-
-    return `
-        <div class="${className} ${tone}">
-            <div class="project-cover-glow"></div>
-            <div class="project-cover-copy">
-                <strong>${escapeCatalogHtml(initials)}</strong>
-                <span>${escapeCatalogHtml(category)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function getCatalogProjectInitials(title) {
-    const parts = String(title ?? "")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-    if (!parts.length) {
-        return "PR";
-    }
-
-    return parts
-        .slice(0, 2)
-        .map((part) => Array.from(part)[0] ?? "")
-        .join("")
-        .toUpperCase();
-}
-
-function getCatalogProjectCoverTone(project) {
-    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
-}
-
-function escapeCatalogHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
-function debounce(callback, delayMs) {
-    let timeoutId;
-    return (...args) => {
-        window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => callback(...args), delayMs);
-    };
-}
-
-function catalogT(key, fallback) {
-    return catalogI18n?.t(key) ?? fallback;
-}
-
-function formatCatalogProjectStatus(status) {
-    return catalogT(`project.status.${status}`, status || "UNKNOWN");
-}
-
-function translateCatalogCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
-    const normalized = String(title ?? "").trim().toLowerCase();
-    const key = CATALOG_CATEGORY_TRANSLATION_KEYS[normalized];
-    return key ? catalogT(key, title) : (title || catalogT(fallbackKey, fallbackText));
-}
-
-function resolveCatalogLocale() {
-    return catalogI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
-}
-
-const CATALOG_CATEGORY_TRANSLATION_KEYS = {
-    "general": "category.general",
-    "\u043e\u0431\u0449\u0435\u0435": "category.general",
-    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
-    "technology": "category.tech",
-    "technologies": "category.tech",
-    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
-    "art": "category.art",
-    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
-    "social": "category.social",
-    "social projects": "category.social",
-    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
-    "education": "category.education",
-    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
-    "charity": "category.charity"
-};

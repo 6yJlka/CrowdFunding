@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — создание проекта</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+input::placeholder,textarea::placeholder{color:#6E6E76}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="Catalog.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Проекты</a>
+      <a href="Author.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Мои проекты</a>
+    </nav>
+    <a href="Auth.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Выйти</a>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 16px 24px 8px; display: flex; flex-direction: column; gap: 12px">
+    <a href="Author.dc.html" style="display: inline-flex; align-items: center; gap: 6px; width: fit-content; color: #B4B4BC; text-decoration: none; font-weight: 700; font-size: 15px"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>В кабинет</a>
+    <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(34px, 5vw, 60px); line-height: 1; font-weight: 900; text-transform: uppercase">Новая кампания</h1>
+    <p style="margin: 0; color: #B4B4BC; font-size: 17px; max-width: 640px">Проект сохранится как черновик — его видите только вы. Когда всё готово, отправьте его на модерацию.</p>
+  </section>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px; display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+
+    <form onSubmit="{{noop}}" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+      <fieldset style="margin: 0; padding: 28px; border: 0; border-radius: 30px; background: #1C1C20; display: flex; flex-direction: column; gap: 20px">
+        <legend style="float: left; padding: 0; font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase">О проекте</legend>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between"><label for="e-title" style="font-weight: 700; font-size: 14px">Название</label><span style="font-size: 13px; color: #A0A0A8; font-weight: 700">{{titleLen}} / 180</span></div>
+          <input id="e-title" type="text" maxlength="180" value="{{title}}" onInput="{{onTitle}}" placeholder="Как называется ваш проект" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 17px; font-weight: 700">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; justify-content: space-between"><label for="e-short" style="font-weight: 700; font-size: 14px">Кратко</label><span style="font-size: 13px; color: #A0A0A8; font-weight: 700">{{shortLen}} / 300</span></div>
+          <textarea id="e-short" rows="2" maxlength="300" value="{{short}}" onInput="{{onShort}}" placeholder="Одно-два предложения для карточки в каталоге" style="padding: 16px 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px; line-height: 1.5; resize: vertical"></textarea>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label for="e-desc" style="font-weight: 700; font-size: 14px">Полное описание</label>
+          <textarea id="e-desc" rows="7" placeholder="Расскажите, что вы делаете, зачем и на что пойдут деньги" style="padding: 16px 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px; line-height: 1.6; resize: vertical">Мы три года тестировали игру в клубах Москвы и Петербурга. Осталось напечатать тираж: коробка, 120 карт, поле из шести сегментов.</textarea>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span id="e-cat-label" style="font-weight: 700; font-size: 14px">Категория</span>
+          <div role="radiogroup" aria-labelledby="e-cat-label" style="display: flex; flex-wrap: wrap; gap: 8px">
+            <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+              <button type="button" role="radio" aria-checked="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button>
+            </sc-for>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset style="margin: 0; padding: 28px; border: 0; border-radius: 30px; background: #1C1C20; display: flex; flex-direction: column; gap: 20px">
+        <legend style="float: left; padding: 0; font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase">Сбор</legend>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <div style="flex: 1 1 260px; display: flex; flex-direction: column; gap: 8px">
+            <label for="e-goal" style="font-weight: 700; font-size: 14px">Цель сбора</label>
+            <input id="e-goal" type="text" inputmode="decimal" value="{{goalVal}}" onInput="{{onGoal}}" placeholder="900 000" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 20px; font-weight: 800">
+          </div>
+          <div style="flex: 0 1 160px; display: flex; flex-direction: column; gap: 8px">
+            <label for="e-cur" style="font-weight: 700; font-size: 14px">Валюта</label>
+            <select id="e-cur" style="min-height: 54px; padding: 0 16px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px; font-weight: 700"><option>RUB</option><option>USD</option><option>EUR</option></select>
+          </div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px">
+          <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 8px">
+            <label for="e-start" style="font-weight: 700; font-size: 14px">Старт <span style="color: #A0A0A8; font-weight: 600">— необязательно</span></label>
+            <input id="e-start" type="date" value="2026-11-01" style="min-height: 54px; padding: 0 16px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px; color-scheme: dark">
+          </div>
+          <div style="flex: 1 1 220px; display: flex; flex-direction: column; gap: 8px">
+            <label for="e-end" style="font-weight: 700; font-size: 14px">Финиш <span style="color: #A0A0A8; font-weight: 600">— необязательно</span></label>
+            <input id="e-end" type="date" value="2026-12-31" style="min-height: 54px; padding: 0 16px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px; color-scheme: dark">
+          </div>
+        </div>
+        <p style="margin: 0; color: #A0A0A8; font-size: 14px; line-height: 1.5">Старт не может быть в прошлом, финиш — позже старта.</p>
+      </fieldset>
+
+      <fieldset style="margin: 0; padding: 28px; border: 0; border-radius: 30px; background: #1C1C20; display: flex; flex-direction: column; gap: 16px">
+        <legend style="float: left; padding: 0; font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 900; text-transform: uppercase">Обложка</legend>
+        <label for="e-cover" style="aspect-ratio: 16 / 9; max-height: 320px; border-radius: 22px; border: 2px dashed #3A3A40; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; cursor: pointer; text-align: center; padding: 16px">
+          <span aria-hidden="true" style="width: 56px; height: 56px; border-radius: 50%; background: #0E0E10; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 22 22"><path d="M11 15V4M6 9l5-5 5 5M4 18h14" fill="none" stroke="#C6F24E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path></svg></span>
+          <span style="font-weight: 800">Загрузить изображение</span>
+          <span style="color: #A0A0A8; font-size: 14px">До 5 МБ. Обрежем до 16 : 9, по центру</span>
+        </label>
+        <input id="e-cover" type="file" accept="image/*" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
+        <p style="margin: 0; color: #A0A0A8; font-size: 14px">Без обложки карточка будет цветом категории.</p>
+      </fieldset>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+        <button type="submit" style="min-height: 58px; padding: 0 30px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer">Сохранить черновик</button>
+        <a href="Author.dc.html" style="display: inline-flex; align-items: center; min-height: 58px; padding: 0 24px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Отмена</a>
+      </div>
+    </form>
+
+    <aside aria-label="Предпросмотр" style="flex: 1 1 340px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-size: 13px; font-weight: 800; color: #A0A0A8; letter-spacing: 0.04em">ТАК КАРТОЧКУ УВИДЯТ В КАТАЛОГЕ</span>
+      <div style="display: flex; flex-direction: column; border-radius: 28px; overflow: hidden; background: #1C1C20">
+        <div style="height: 190px; background: {{catColor}}; position: relative">
+          <span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; font-weight: 700; font-size: 13px">{{catLabel}}</span>
+        </div>
+        <div style="padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 12px">
+          <div style="font-size: 20px; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere">{{previewTitle}}</div>
+          <div style="font-size: 15px; color: #B4B4BC; line-height: 1.5; overflow-wrap: anywhere">{{previewShort}}</div>
+          <div style="height: 8px; border-radius: 999px; background: #2E2E34"></div>
+          <div style="display: flex; justify-content: space-between; font-size: 14px; color: #A0A0A8"><span><b style="color: #F4F4F0">0 ₽</b> из {{goalLabel}}</span><span>0%</span></div>
+        </div>
+      </div>
+      <div style="padding: 20px 22px; border-radius: 24px; background: #1C1C20; display: flex; flex-direction: column; gap: 10px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 800">Дальше</h2>
+        <p style="margin: 0; color: #B4B4BC; font-size: 14px; line-height: 1.55">Черновик можно править сколько угодно. После отправки на модерацию правки закрываются, пока администратор не одобрит или не вернёт проект с комментарием.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="Bold.dc.html" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { title: 'Метро 2088', short: 'Кооперативная настольная игра на четверых: станции, туннели и решения, которые нельзя отменить.', goal: '900000', cat: 'Творчество' };
+  }
+  renderVals() {
+    const colors = { 'Благотворительность': '#FF6A3D', 'Образование': '#FFD23F', 'Социальные проекты': '#7C8CFF', 'Творчество': '#C6F24E', 'Технологии': '#5FD4C4' };
+    const cur = this.state.cat;
+    const cats = Object.keys(colors).map((n) => {
+      const on = n === cur;
+      return { label: n, on: on ? 'true' : 'false', pick: () => this.setState({ cat: on ? '' : n }),
+        style: 'min-height: 44px; padding: 0 18px; border-radius: 999px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; ' + (on ? 'background: ' + colors[n] + '; color: #0E0E10; border: 1.5px solid ' + colors[n] : 'background: transparent; color: #F4F4F0; border: 1.5px solid #3A3A40') };
+    });
+    const g = parseInt(this.state.goal, 10) || 0;
+    return {
+      title: this.state.title, short: this.state.short,
+      titleLen: this.state.title.length, shortLen: this.state.short.length,
+      goalVal: g ? g.toLocaleString('ru-RU') : '',
+      goalLabel: (g ? g.toLocaleString('ru-RU') : '0') + ' ₽',
+      cats, catLabel: cur || 'Без категории', catColor: cur ? colors[cur] : '#3A3A40',
+      previewTitle: this.state.title || 'Название проекта',
+      previewShort: this.state.short || 'Краткое описание появится здесь.',
+      onTitle: (e) => this.setState({ title: String(e.target.value || '').slice(0, 180) }),
+      onShort: (e) => this.setState({ short: String(e.target.value || '').slice(0, 300) }),
+      onGoal: (e) => this.setState({ goal: String(e.target.value || '').replace(/\D/g, '').slice(0, 12) }),
+      noop: (e) => e && e.preventDefault && e.preventDefault()
+    };
+  }
+}
+</script>
+</body>
+</html>

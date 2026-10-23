@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — демо-оплата</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <a href="Sponsor.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Мои донаты</a>
+  </header>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; align-items: flex-start">
+
+    <section aria-label="Подтверждение доната" style="flex: 1 1 520px; max-width: 620px; border-radius: 36px; background: #1C1C20; overflow: hidden">
+      <div style="padding: 14px 28px; background: #FFD23F; color: #0E0E10; display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 14px">
+        <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" stroke="currentColor" stroke-width="2"></circle><path d="M9 5v5M9 12.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path></svg>
+        Тестовая оплата — реальные деньги не списываются
+      </div>
+
+      <div style="padding: clamp(24px, 4vw, 40px); display: flex; flex-direction: column; gap: 24px">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 13px; font-weight: 800; color: #A0A0A8; letter-spacing: 0.04em">ПОДДЕРЖКА ПРОЕКТА</span>
+          <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 30px; font-weight: 900; text-transform: uppercase; line-height: 1.05">Метро 2088</h1>
+        </div>
+
+        <div style="padding: 24px; border-radius: 26px; background: #C6F24E; color: #0E0E10; display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+          <span style="font-weight: 700">К оплате</span>
+          <span style="font-family: 'Unbounded', sans-serif; font-size: 40px; font-weight: 700">3 000 ₽</span>
+        </div>
+
+        <dl style="margin: 0; display: flex; flex-direction: column; gap: 0">
+          <div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #2E2E34"><dt style="color: #A0A0A8">Платёжный провайдер</dt><dd style="margin: 0; font-weight: 700">FAKE (песочница)</dd></div>
+          <div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid #2E2E34"><dt style="color: #A0A0A8">Номер платежа</dt><dd style="margin: 0; font-weight: 700">pay_8f2c…41d</dd></div>
+          <div style="display: flex; justify-content: space-between; gap: 12px; padding: 14px 0"><dt style="color: #A0A0A8">Статус</dt><dd style="margin: 0"><span style="{{statusBadge}}">{{statusL}}</span></dd></div>
+        </dl>
+
+        <sc-if value="{{idle}}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; flex-direction: column; gap: 10px">
+            <p style="margin: 0 0 4px; color: #B4B4BC; font-size: 15px">Выберите, чем закончится тестовый платёж:</p>
+            <button type="button" onClick="{{pay}}" style="min-height: 58px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer">Оплата прошла</button>
+            <button type="button" onClick="{{fail}}" style="min-height: 58px; border-radius: 999px; border: 1.5px solid #3A3A40; background: transparent; color: #F4F4F0; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer">Оплата не прошла</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="{{resultBox}}">
+            <span style="font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase">{{resultTitle}}</span>
+            <span style="font-size: 15px; line-height: 1.5">{{resultText}}</span>
+            <span style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px">
+              <a href="Project.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; text-decoration: none; font-weight: 800; font-size: 14px">Вернуться к проекту</a>
+              <button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 2px solid #0E0E10; background: transparent; color: #0E0E10; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer">Попробовать снова</button>
+            </span>
+          </div>
+        </sc-if>
+      </div>
+    </section>
+
+    <aside aria-label="Как это работает" style="flex: 1 1 300px; max-width: 380px; border-radius: 32px; background: #1C1C20; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 17px; font-weight: 800">Как работает песочница</h2>
+      <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 14px">
+        <li style="display: flex; gap: 12px"><span style="flex: 0 0 28px; height: 28px; border-radius: 50%; background: #0E0E10; color: #C6F24E; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px">1</span><span style="color: #B4B4BC; line-height: 1.5; font-size: 15px">Эта страница имитирует внешнего платёжного провайдера.</span></li>
+        <li style="display: flex; gap: 12px"><span style="flex: 0 0 28px; height: 28px; border-radius: 50%; background: #0E0E10; color: #C6F24E; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px">2</span><span style="color: #B4B4BC; line-height: 1.5; font-size: 15px">Кнопка результата вызывает webhook, и сумма сбора обновляется.</span></li>
+        <li style="display: flex; gap: 12px"><span style="flex: 0 0 28px; height: 28px; border-radius: 50%; background: #0E0E10; color: #C6F24E; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px">3</span><span style="color: #B4B4BC; line-height: 1.5; font-size: 15px">После этого вы возвращаетесь на страницу проекта.</span></li>
+      </ol>
+    </aside>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { result: null }; }
+  renderVals() {
+    const r = this.state.result;
+    const st = r === 'ok' ? ['Оплачено', '#C6F24E', '#0E0E10'] : r === 'fail' ? ['Не прошла', '#2E2E34', '#FF8A63'] : ['Ожидает оплаты', '#FFD23F', '#0E0E10'];
+    return {
+      idle: !r, done: !!r,
+      statusL: st[0],
+      statusBadge: 'display: inline-block; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 13px; background: ' + st[1] + '; color: ' + st[2],
+      resultTitle: r === 'ok' ? 'Спасибо!' : 'Платёж не прошёл',
+      resultText: r === 'ok' ? 'Донат зачислен, сумма сбора уже обновлена.' : 'Деньги не списаны. Можно попробовать ещё раз.',
+      resultBox: 'display: flex; flex-direction: column; gap: 8px; padding: 22px 24px; border-radius: 26px; color: #0E0E10; background: ' + (r === 'ok' ? '#C6F24E' : '#FF6A3D'),
+      pay: () => this.setState({ result: 'ok' }),
+      fail: () => this.setState({ result: 'fail' }),
+      reset: () => this.setState({ result: null })
+    };
+  }
+}
+</script>
+</body>
+</html>

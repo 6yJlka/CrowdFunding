@@ -1,1061 +1,161 @@
 const appI18n = window.AppI18n;
-
-let catalogQuery = "";
-let currentTopProjects = {
-    all: [],
-    year: [],
-    month: []
-};
-let currentLeaderboardFilter = "all";
-let currentFounders = [];
-let currentSponsors = [];
+const homePresentation = window.RiseUpProjects;
 let currentDashboardData = null;
 let currentCatalogProjects = [];
-let currentModalProject = null;
-let currentModalReviews = [];
+let homeCategories = [];
+let homeFeaturedProject = null;
+let homeFeaturedState = "loading";
+let homeSelectedAmount = 1000;
+let homeDashboardError = false;
+let homeCatalogError = false;
+let homeLoaded = false;
 
-wireStaticActions();
-loadDashboard();
-document.addEventListener("app:lang-changed", () => {
-    if (currentDashboardData) {
-        renderDashboard(currentDashboardData);
-    }
-    renderCatalog(currentCatalogProjects);
-    if (currentModalProject) {
-        renderProjectModal(currentModalProject, currentModalReviews);
-    }
+document.addEventListener("app:lang-changed", renderHomepage);
+document.getElementById("featured-project").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-featured-amount]");
+    if (!button) return;
+    homeSelectedAmount = Number(button.dataset.featuredAmount);
+    syncFeaturedAmount();
 });
+loadHomepage();
 
-async function loadDashboard() {
-    try {
-        const response = await fetch("/api/dashboard");
-        if (!response.ok) {
-            throw new Error(`Dashboard request failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        currentDashboardData = data;
-        currentTopProjects = {
-            all: data.topProjects ?? [],
-            year: data.topProjectsYear ?? [],
-            month: data.topProjectsMonth ?? []
-        };
-        currentFounders = data.recentFounders ?? [];
-        currentSponsors = data.recentSponsors ?? [];
-        renderDashboard(data);
-        await loadCatalog();
-    } catch (error) {
-        renderError(error);
-    }
-}
-
-function renderDashboard(data) {
-    setText("total-raised", formatMoney(data.totalRaised));
-    setText("active-projects", `${data.activeProjects ?? 0}`);
-    setText("total-backers", `${data.totalBackers ?? 0}`);
-    setText("funded-projects", `${data.fundedProjects ?? 0}`);
-
-    renderCategoryTags(currentCatalogProjects);
-    renderSponsorAvatars(currentSponsors, Number(data.totalBackers ?? 0));
-    renderChart(data.monthlyRaised ?? []);
-    syncLeaderboardFilterButtons();
-    applyLeaderboardView();
-    renderFounders(currentFounders);
-}
-
-function renderCategoryTags(projects) {
-    const container = document.getElementById("category-tags");
-    const counts = new Map();
-    projects.forEach((project) => {
-        const category = String(project?.categoryTitle ?? "").trim();
-        if (!category) {
-            return;
-        }
-        counts.set(category, (counts.get(category) ?? 0) + 1);
-    });
-
-    const tags = [...counts.entries()]
-        .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
-        .slice(0, 3)
-        .map(([category]) => translateAppCategoryTitle(category));
-
-    container.innerHTML = tags.length
-        ? tags.map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")
-        : `<span>${appT("app.noData", "No data")}</span>`;
-}
-
-function renderSponsorAvatars(sponsors, totalBackers = sponsors.length) {
-    const container = document.getElementById("founder-avatars");
-    if (!sponsors.length) {
-        container.innerHTML = "<span>--</span>";
-        return;
-    }
-
-    const visibleSponsors = sponsors.slice(0, 5);
-    const remainingCount = Math.max(totalBackers - visibleSponsors.length, 0);
-
-    container.innerHTML = `
-        ${visibleSponsors.map((sponsor, index) => `
-            <span class="avatar-stack-item founder-badge" data-sponsor-index="${index}" title="${escapeHtml(sponsor.sponsorDisplayName)}">
-                ${renderDashboardSponsorAvatar(sponsor)}
-            </span>
-        `).join("")}
-        ${remainingCount > 0 ? `<span class="avatar-stack-item founder-badge founder-badge-more" title="${escapeHtml(`More sponsors: ${remainingCount}`)}">+${remainingCount}</span>` : ""}
-    `;
-}
-
-function renderChart(points) {
-    const labelsContainer = document.getElementById("chart-months");
-    const linePath = document.getElementById("chart-line-path");
-    const areaPath = document.getElementById("chart-area-path");
-    const point = document.getElementById("chart-point");
-    const callout = document.getElementById("chart-callout");
-    const rangeBadge = document.getElementById("chart-range-badge");
-
-    if (!points.length) {
-        labelsContainer.innerHTML = `<span>${appT("app.noData", "No data")}</span>`;
-        labelsContainer.style.gridTemplateColumns = "1fr";
-        linePath.setAttribute("d", "");
-        areaPath.setAttribute("d", "");
-        point.setAttribute("cx", "0");
-        point.setAttribute("cy", "0");
-        setText("chart-callout", formatCompactMoney(0));
-        positionChartCallout(callout, 400, 128, 800, 320);
-        rangeBadge.textContent = appT("index.chart.emptyRange", "No data yet");
-        updateAxis(0, 0);
-        return;
-    }
-
-    labelsContainer.style.gridTemplateColumns = `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`;
-    labelsContainer.innerHTML = buildChartLabels(points);
-    rangeBadge.textContent = formatChartRangeBadge(points[0].label);
-
-    const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
-    const {displayMin, displayMax} = buildChartDisplayRange(values);
-    updateAxis(displayMin, displayMax);
-
-    const width = 800;
-    const leftPadding = 12;
-    const rightPadding = 12;
-    const topY = 18;
-    const bottomY = 294;
-    const drawableHeight = bottomY - topY;
-    const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
-    const coordinates = values.map((value, index) => {
-        const x = leftPadding + stepX * index;
-        const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
-        const y = bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight;
-        return {x, y};
-    });
-
-    const chartShape = points.length === 1
-        ? buildSinglePointChartShape(coordinates[0], leftPadding, rightPadding, width, bottomY)
-        : buildMultiPointChartShape(coordinates, bottomY);
-
-    linePath.setAttribute("d", chartShape.lineD);
-    areaPath.setAttribute("d", chartShape.areaD);
-
-    point.setAttribute("cx", `${chartShape.point.x}`);
-    point.setAttribute("cy", `${chartShape.point.y}`);
-    setText("chart-callout", formatCompactMoney(values[values.length - 1]));
-    positionChartCallout(callout, chartShape.point.x, chartShape.point.y, width, 320);
-}
-
-function updateAxis(minValue, maxValue) {
-    const range = Math.max(maxValue - minValue, 1);
-    setText("axis-max", formatCompactMoney(maxValue));
-    setText("axis-75", formatCompactMoney(minValue + range * 0.75));
-    setText("axis-50", formatCompactMoney(minValue + range * 0.5));
-    setText("axis-25", formatCompactMoney(minValue + range * 0.25));
-    setText("axis-min", formatCompactMoney(minValue));
-}
-
-function buildChartDisplayRange(values) {
-    const maxValue = Math.max(...values, 0);
-    const minValue = Math.min(...values, 0);
-
-    if (values.length <= 1 || maxValue === minValue) {
-        const paddedMax = Math.max(maxValue * 1.15, 1);
-        return {
-            displayMin: 0,
-            displayMax: paddedMax
-        };
-    }
-
-    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
-    return {
-        displayMin: Math.max(0, minValue - visualPadding),
-        displayMax: maxValue + visualPadding
-    };
-}
-
-function buildMultiPointChartShape(coordinates, bottomY) {
-    const lineD = buildSmoothLinePath(coordinates);
-    return {
-        lineD,
-        areaD: `${lineD} L${coordinates[coordinates.length - 1].x},${bottomY} L${coordinates[0].x},${bottomY} Z`,
-        point: coordinates[coordinates.length - 1]
-    };
-}
-
-function buildSinglePointChartShape(coordinate, leftPadding, rightPadding, width, bottomY) {
-    const drawableWidth = width - leftPadding - rightPadding;
-    const startX = leftPadding + drawableWidth * 0.14;
-    const pointX = leftPadding + drawableWidth * 0.5;
-    const endX = leftPadding + drawableWidth * 0.82;
-    const lineD = `M${startX},${bottomY} L${pointX},${coordinate.y} L${endX},${coordinate.y}`;
-
-    return {
-        lineD,
-        areaD: `${lineD} L${endX},${bottomY} L${startX},${bottomY} Z`,
-        point: {x: pointX, y: coordinate.y}
-    };
-}
-
-function renderTopProjects(projects) {
-    const body = document.getElementById("top-projects-table");
-    body.innerHTML = projects.length
-        ? projects.map((project, index) => `
-            <tr class="interactive-row" data-project-id="${project.id}">
-                <td>${index + 1}</td>
-                <td>
-                    <strong>${escapeHtml(project.title)}</strong>
-                    <div class="table-subtitle">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))} · ${escapeHtml(formatCompactMoney(project.collectedAmount))}</div>
-                </td>
-                <td>${escapeHtml(project.authorDisplayName ?? appT("app.unknown", "Unknown"))}</td>
-            </tr>
-        `).join("")
-        : `<tr><td colspan="3">${appT("app.noCampaigns", "No campaigns available")}</td></tr>`;
-}
-
-function getLeaderboardProjects() {
-    return currentTopProjects[currentLeaderboardFilter] ?? [];
-}
-
-function getLeaderboardSearchValue() {
-    return document.getElementById("leaderboard-search")?.value.trim().toLowerCase() ?? "";
-}
-
-function getFilteredLeaderboardProjects() {
-    const projects = getLeaderboardProjects();
-    const value = getLeaderboardSearchValue();
-    if (!value) {
-        return projects;
-    }
-
-    return projects.filter((project) =>
-        `${project.title ?? ""} ${project.authorDisplayName ?? ""} ${project.categoryTitle ?? ""}`.toLowerCase().includes(value)
-    );
-}
-
-function applyLeaderboardView() {
-    renderTopProjects(getFilteredLeaderboardProjects());
-}
-
-function setLeaderboardFilter(filter) {
-    if (!Object.prototype.hasOwnProperty.call(currentTopProjects, filter)) {
-        return;
-    }
-    currentLeaderboardFilter = filter;
-    syncLeaderboardFilterButtons();
-    applyLeaderboardView();
-}
-
-function syncLeaderboardFilterButtons() {
-    document.querySelectorAll(".leaderboard-head .filters button[data-filter]").forEach((button) => {
-        const isActive = button.dataset.filter === currentLeaderboardFilter;
-        button.classList.toggle("active-filter", isActive);
-        button.setAttribute("aria-pressed", String(isActive));
-    });
-}
-
-function renderFounders(founders) {
-    const grid = document.getElementById("founders-grid");
-
-    grid.innerHTML = founders.length
-        ? founders.map((founder) => `
-            <a class="investor-card founder-link" href="/projects.html?authorId=${encodeURIComponent(founder.authorId ?? "")}" title="${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}">
-                ${renderDashboardFounderAvatar(founder, "investor-avatar investor-avatar-image", "investor-avatar investor-avatar-fallback")}
-                <strong>${escapeHtml(founder.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
-            </a>
-        `).join("")
-        : `<article class="investor-card"><strong>${appT("app.noFounders", "No founders yet")}</strong><p>${appT("app.createProjectHint", "Create a project to populate this block.")}</p></article>`;
-}
-
-function renderDashboardFounderAvatar(founder, imageClassName, fallbackClassName) {
-    const displayName = founder.authorDisplayName ?? appT("app.unknown", "Unknown");
-    if (founder.hasAvatar && founder.authorId) {
-        return `<img class="${imageClassName}" src="/api/showcase/founders/${encodeURIComponent(founder.authorId)}/avatar" alt="${escapeHtml(displayName)}">`;
-    }
-    return `<span class="${fallbackClassName}">${getInitials(displayName)}</span>`;
-}
-
-function renderDashboardSponsorAvatar(sponsor) {
-    const displayName = sponsor.sponsorDisplayName ?? appT("app.unknown", "Unknown");
-    if (sponsor.hasAvatar && sponsor.sponsorId) {
-        return `<img class="founder-badge-image" src="/api/showcase/sponsors/${encodeURIComponent(sponsor.sponsorId)}/avatar" alt="${escapeHtml(displayName)}">`;
-    }
-    return `<span class="founder-badge-fallback">${getInitials(displayName)}</span>`;
-}
-
-async function loadCatalog(query = catalogQuery) {
-    catalogQuery = query;
-    const url = new URL("/api/projects", window.location.origin);
-    url.searchParams.set("size", "9");
-    url.searchParams.set("sort", "createdAt,desc");
-    if (query.trim()) {
-        url.searchParams.set("q", query.trim());
-    }
-
+async function homeFetch(url) {
     const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Catalog request failed: ${response.status}`);
-    }
-
-    const payload = await response.json();
-    currentCatalogProjects = payload.content ?? [];
-    renderCatalog(currentCatalogProjects);
-    renderCategoryTags(currentCatalogProjects);
+    if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+    return response.json();
 }
 
-function renderCatalog(projects) {
-    const grid = document.getElementById("project-grid");
-    if (!projects.length) {
-        grid.innerHTML = `<div class="empty-state">${appT("app.noActiveForQuery", "No active campaigns found for this query.")}</div>`;
-        return;
-    }
-
-    grid.innerHTML = projects.map((project) => {
-        const percent = getProgress(project.collectedAmount, project.goalAmount);
-        const coverMarkup = renderProjectCover(project, "project-card-cover");
-        return `
-            <article class="project-card">
-                <div class="project-card-media">
-                    ${coverMarkup}
-                </div>
-                <div class="project-card-content">
-                    <h4>${escapeHtml(project.title)}</h4>
-                    <p>${escapeHtml(project.shortDescription ?? "")}</p>
-                    <div class="project-meta">
-                        <span>${escapeHtml(project.authorDisplayName ?? appT("app.unknownAuthor", "Unknown author"))}</span>
-                        <span>${formatMoney(project.goalAmount)}</span>
-                    </div>
-                    <div class="project-progress">
-                        <div class="project-progress-head">
-                            <span>${formatMoney(project.collectedAmount)} ${appT("app.raised", "raised")}</span>
-                            <span>${percent}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
-                        </div>
-                    </div>
-                    <div class="project-card-footer">
-                        <div class="project-card-badges">
-                            <span class="status-badge">${escapeHtml(formatAppProjectStatus(project.status ?? "ACTIVE"))}</span>
-                            <span class="meta-pill">${escapeHtml(translateAppCategoryTitle(project.categoryTitle))}</span>
-                        </div>
-                        <div class="project-card-footer-actions">
-                            <a class="ghost-btn" href="/project.html?id=${project.id}">${appT("app.openPage", "Open page")}</a>
-                            <button class="ghost-btn" type="button" data-project-id="${project.id}">${appT("app.quickView", "Quick view")}</button>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        `;
-    }).join("");
-}
-
-async function openProjectModal(projectId) {
-    const modal = document.getElementById("project-modal");
-    const body = document.getElementById("modal-body");
-    modal.classList.remove("hidden");
-    document.body.classList.add("modal-open");
-    body.innerHTML = `<p class="panel-kicker">${appT("app.project", "Project")}</p><h3>${appT("app.loading", "Loading...")}</h3><p class="modal-copy">${appT("app.fetchingProject", "Fetching project details.")}</p>`;
+async function loadHomepage() {
+    const [dashboard, catalog, categories] = await Promise.allSettled([
+        homeFetch("/api/dashboard"),
+        homeFetch("/api/projects?size=6&sort=createdAt,desc&status=ACTIVE"),
+        homeFetch("/api/categories")
+    ]);
+    if (dashboard.status === "fulfilled") currentDashboardData = dashboard.value;
+    else homeDashboardError = true;
+    if (catalog.status === "fulfilled") currentCatalogProjects = catalog.value.content ?? [];
+    else homeCatalogError = true;
+    if (categories.status === "fulfilled") homeCategories = categories.value;
+    homeLoaded = true;
+    renderHomepage();
 
     try {
-        const [projectResponse, reviewsResponse] = await Promise.all([
-            fetch(`/api/projects/${projectId}`),
-            fetch(`/api/projects/${projectId}/reviews`)
-        ]);
-
-        if (!projectResponse.ok) {
-            throw new Error(`Project request failed: ${projectResponse.status}`);
-        }
-
-        const project = await projectResponse.json();
-        const reviews = reviewsResponse.ok ? await reviewsResponse.json() : [];
-        currentModalProject = project;
-        currentModalReviews = reviews;
-        renderProjectModal(project, reviews);
-    } catch (error) {
-        currentModalProject = null;
-        currentModalReviews = [];
-        body.innerHTML = `<p class="panel-kicker">${appT("app.project", "Project")}</p><h3>${appT("app.unavailable", "Unavailable")}</h3><p class="modal-copy">${appT("app.couldNotLoadCampaign", "Could not load this campaign.")}</p>`;
-        console.error(error);
+        homeFeaturedProject = await selectHomeFeaturedProject();
+        homeFeaturedState = homeFeaturedProject ? "ready" : "empty";
+    } catch {
+        homeFeaturedState = "error";
     }
+    renderFeaturedProject();
 }
 
-function renderProjectModal(project, reviews) {
-    const percent = getProgress(project.collectedAmount, project.goalAmount);
-    const body = document.getElementById("modal-body");
-    const coverMarkup = renderProjectCover(project, "project-modal-cover");
-    body.innerHTML = `
-        <p class="panel-kicker">${escapeHtml(translateAppCategoryTitle(project.categoryTitle, "app.project", "Project"))}</p>
-        <div class="project-modal-hero">
-            ${coverMarkup}
-            <div class="project-modal-copy">
-                <h3>${escapeHtml(project.title)}</h3>
-                <p class="modal-copy">${escapeHtml(project.description || project.shortDescription || "")}</p>
-            </div>
-        </div>
-        <div class="modal-metrics">
-            <div class="metric-box">
-                <span>${appT("app.raisedCap", "Raised")}</span>
-                <strong>${formatMoney(project.collectedAmount)}</strong>
-            </div>
-            <div class="metric-box">
-                <span>${appT("app.goal", "Goal")}</span>
-                <strong>${formatMoney(project.goalAmount)}</strong>
-            </div>
-            <div class="metric-box">
-                <span>${appT("app.progress", "Progress")}</span>
-                <strong>${percent}%</strong>
-            </div>
-            <div class="metric-box">
-                <span>${appT("app.author", "Author")}</span>
-                <strong>${escapeHtml(project.authorDisplayName ?? appT("app.unknown", "Unknown"))}</strong>
-            </div>
-        </div>
-        <div class="project-progress">
-            <div class="project-progress-head">
-                <span>${appT("app.fundingStatus", "Funding status")}</span>
-                <span>${percent}%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-value" style="width:${Math.min(percent, 100)}%"></div>
-            </div>
-        </div>
-        <div class="project-card-footer project-modal-actions">
-            <a class="primary-btn small-btn" href="/project.html?id=${project.id}">${appT("app.openFullPage", "Open full page")}</a>
-        </div>
-        <div class="review-list">
-            ${reviews.length ? reviews.map((review) => `
-                <article class="review-card">
-                    <div class="review-head">
-                        <strong>${escapeHtml(review.userDisplayName ?? appT("app.anonymous", "Anonymous"))}</strong>
-                        <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
-                    </div>
-                    <p>${escapeHtml(review.reviewText ?? "")}</p>
-                </article>
-            `).join("") : `<div class="empty-state">${appT("app.noReviewsForCampaign", "No reviews yet for this campaign.")}</div>`}
-        </div>
-    `;
-}
-
-function closeProjectModal() {
-    const modal = document.getElementById("project-modal");
-    modal.classList.add("hidden");
-    document.body.classList.remove("modal-open");
-    currentModalProject = null;
-    currentModalReviews = [];
-}
-
-function renderError(error) {
-    console.error(error);
-    setText("total-raised", appT("app.unavailable", "Unavailable"));
-    setText("active-projects", "-");
-    setText("total-backers", "-");
-    setText("funded-projects", "-");
-}
-
-function formatMoney(value) {
-    return new Intl.NumberFormat(resolveAppLocale(), {
-        style: "currency",
-        currency: "RUB",
-        maximumFractionDigits: 0
-    }).format(Number(value ?? 0));
-}
-
-function renderProjectCover(project, className) {
-    if (project?.hasCoverImage && project?.id) {
-        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
-    }
-
-    const category = translateAppCategoryTitle(project?.categoryTitle, "app.project", "Project");
-    const tone = getProjectCoverTone(project);
-    const initials = getProjectCoverInitials(project?.title);
-
-    return `
-        <div class="${className} ${tone}">
-            <div class="project-cover-glow"></div>
-            <div class="project-cover-copy">
-                <strong>${escapeHtml(initials)}</strong>
-                <span>${escapeHtml(category)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function getProjectCoverInitials(title) {
-    const parts = String(title ?? "")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
-
-    if (!parts.length) {
-        return "PR";
-    }
-
-    return parts
-        .slice(0, 2)
-        .map((part) => Array.from(part)[0] ?? "")
-        .join("")
-        .toUpperCase();
-}
-
-function getProjectCoverTone(project) {
-    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
-}
-
-function formatCompactMoney(value) {
-    return new Intl.NumberFormat(resolveAppLocale(), {
-        style: "currency",
-        currency: "RUB",
-        notation: "compact",
-        maximumFractionDigits: 1
-    }).format(Number(value ?? 0));
-}
-
-function buildSmoothLinePath(coordinates) {
-    if (!coordinates.length) {
-        return "";
-    }
-    if (coordinates.length === 1) {
-        return `M${coordinates[0].x},${coordinates[0].y}`;
-    }
-
-    let path = `M${coordinates[0].x},${coordinates[0].y}`;
-    for (let index = 0; index < coordinates.length - 1; index += 1) {
-        const current = coordinates[index];
-        const next = coordinates[index + 1];
-        const controlX = (current.x + next.x) / 2;
-        path += ` C${controlX},${current.y} ${controlX},${next.y} ${next.x},${next.y}`;
-    }
-    return path;
-}
-
-function buildChartLabels(points) {
-    const step = Math.max(1, Math.ceil(points.length / 8));
-    return points.map((pointItem, index) => {
-        const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
-        return `<span>${shouldShow ? escapeHtml(localizeChartAxisLabel(pointItem.label)) : ""}</span>`;
-    }).join("");
-}
-
-function formatChartRangeBadge(label) {
-    const lang = appI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${appT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const months = {
-        Jan: "января",
-        Feb: "февраля",
-        Mar: "марта",
-        Apr: "апреля",
-        May: "мая",
-        Jun: "июня",
-        Jul: "июля",
-        Aug: "августа",
-        Sep: "сентября",
-        Oct: "октября",
-        Nov: "ноября",
-        Dec: "декабря"
-    };
-
-    const [monthToken, yearToken] = String(label ?? "").split(/\s+/, 2);
-    const localizedMonth = months[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${appT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
-        : `${appT("index.chart.since", "С")} ${localizedMonth}`;
-}
-
-function localizeChartAxisLabel(label) {
-    const value = String(label ?? "").trim();
-    if ((appI18n?.getLang?.() ?? "en") !== "ru") {
-        return value;
-    }
-
-    const [monthToken, yearToken] = value.split(/\s+/, 2);
-    const localizedMonth = CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
-}
-
-function buildRuGenitiveMonthLabel(token) {
-    switch (token) {
-        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
-        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
-        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
-        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
-        case "May": return String.fromCharCode(1084, 1072, 1103);
-        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
-        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
-        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
-        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
-        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
-        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
-        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
-        default: return token ?? "";
-    }
-}
-
-function buildRuSinceText() {
-    return String.fromCharCode(1057);
-}
-
-function formatChartRangeBadge(label) {
-    const lang = appI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${appT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return appT("index.chart.emptyRange", "No data yet");
-    }
-
-    const sinceText = buildRuSinceText();
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = buildRuGenitiveMonthLabel(monthToken);
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = buildRuGenitiveMonthLabel(monthToken);
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
-}
-
-const CHART_MONTH_LABELS_RU_GENITIVE_SAFE = {
-    Jan: "\u044f\u043d\u0432\u0430\u0440\u044f",
-    Feb: "\u0444\u0435\u0432\u0440\u0430\u043b\u044f",
-    Mar: "\u043c\u0430\u0440\u0442\u0430",
-    Apr: "\u0430\u043f\u0440\u0435\u043b\u044f",
-    May: "\u043c\u0430\u044f",
-    Jun: "\u0438\u044e\u043d\u044f",
-    Jul: "\u0438\u044e\u043b\u044f",
-    Aug: "\u0430\u0432\u0433\u0443\u0441\u0442\u0430",
-    Sep: "\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f",
-    Oct: "\u043e\u043a\u0442\u044f\u0431\u0440\u044f",
-    Nov: "\u043d\u043e\u044f\u0431\u0440\u044f",
-    Dec: "\u0434\u0435\u043a\u0430\u0431\u0440\u044f"
-};
-
-function formatChartRangeBadge(label) {
-    const lang = appI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${appT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const sinceText = appT("index.chart.since", "\u0421");
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return appT("index.chart.emptyRange", "\u0414\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442");
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
-}
-
-function getProgress(collectedAmount, goalAmount) {
-    const collected = Number(collectedAmount ?? 0);
-    const goal = Number(goalAmount ?? 0);
-    if (!goal) {
-        return 0;
-    }
-    return Math.round((collected / goal) * 100);
-}
-
-function getInitials(name) {
-    return (name ?? "")
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() ?? "")
-        .join("") || "--";
-}
-
-function setText(id, value) {
-    const element = document.getElementById(id);
-    if (element) {
-        element.textContent = value;
-    }
-}
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
-function wireStaticActions() {
-    const runCatalogSearchDebounced = debounce((value) => {
-        loadCatalog(value).catch(renderError);
-    }, 250);
-    const runLeaderboardSearchDebounced = debounce(handleLeaderboardSearch, 150);
-
-    document.getElementById("catalog-search-btn").addEventListener("click", () => {
-        loadCatalog(document.getElementById("catalog-search").value).catch(renderError);
-    });
-
-    document.getElementById("catalog-search").addEventListener("input", (event) => {
-        runCatalogSearchDebounced(event.target.value);
-    });
-
-    document.getElementById("catalog-search").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            loadCatalog(event.target.value).catch(renderError);
-        }
-    });
-
-    document.getElementById("global-search").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            const value = event.target.value.trim();
-            if (value) {
-                document.getElementById("catalog-search").value = value;
-                document.getElementById("active-campaigns").scrollIntoView({behavior: "smooth", block: "start"});
-                loadCatalog(value).catch(renderError);
+async function selectHomeFeaturedProject() {
+    const details = new Map(currentCatalogProjects.map((project) => [project.id, project]));
+    // Summary rows omit status. Resolve each ID only once, preserving the ranking in each list.
+    for (const ranking of [currentDashboardData?.topProjectsMonth, currentDashboardData?.topProjects]) {
+        for (const row of ranking ?? []) {
+            if (!row.id) continue;
+            try {
+                if (!details.has(row.id)) details.set(row.id, await homeFetch(`/api/projects/${encodeURIComponent(row.id)}`));
+                const project = details.get(row.id);
+                if (project.status === "ACTIVE") return project;
+            } catch {
+                // An unavailable ranked project must not block the remaining candidates.
             }
         }
-    });
+    }
 
-    document.getElementById("leaderboard-search-btn").addEventListener("click", handleLeaderboardSearch);
-    document.getElementById("leaderboard-search").addEventListener("input", () => {
-        runLeaderboardSearchDebounced();
-    });
-    document.getElementById("leaderboard-search").addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-            handleLeaderboardSearch();
+    // Progress is derived from two amounts, not a sortable API field. Inspect every ACTIVE page
+    // so an older, more fully funded project outside the six-card storefront can still win.
+    let best = null;
+    let bestRatio = -1;
+    let page = 0;
+    let totalPages = 1;
+    while (page < totalPages) {
+        const payload = await homeFetch(`/api/projects?status=ACTIVE&size=100&page=${page}&sort=createdAt,desc`);
+        for (const project of payload.content ?? []) {
+            if (project.status !== "ACTIVE") continue;
+            const goal = Number(project.goalAmount);
+            const ratio = goal > 0 ? Number(project.collectedAmount ?? 0) / goal : 0;
+            if (ratio > bestRatio) { best = project; bestRatio = ratio; }
         }
-    });
-    document.querySelectorAll(".leaderboard-head .filters button[data-filter]").forEach((button) => {
-        button.addEventListener("click", () => {
-            setLeaderboardFilter(button.dataset.filter);
-        });
-    });
-
-    document.querySelectorAll(".clickable-card").forEach((card) => {
-        card.addEventListener("click", (event) => {
-            if (event.target.closest("button")) {
-                return;
-            }
-            runCardAction(card.dataset);
-        });
-    });
-
-    document.querySelectorAll("[data-nav], [data-scroll-target]").forEach((control) => {
-        control.addEventListener("click", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            runCardAction(control.dataset);
-        });
-    });
-
-    document.getElementById("project-grid").addEventListener("click", (event) => {
-        const button = event.target.closest("[data-project-id]");
-        if (!button) {
-            return;
-        }
-        openProjectModal(button.getAttribute("data-project-id"));
-    });
-
-    document.getElementById("top-projects-table").addEventListener("click", (event) => {
-        const row = event.target.closest("[data-project-id]");
-        if (!row) {
-            return;
-        }
-        window.location.href = `/project.html?id=${row.getAttribute("data-project-id")}`;
-    });
-
-    document.getElementById("founder-avatars").addEventListener("click", (event) => {
-        const sponsor = event.target.closest("[data-sponsor-index]");
-        if (!sponsor) {
-            return;
-        }
-        window.location.href = "/sponsors.html";
-    });
-
-    document.getElementById("modal-close").addEventListener("click", closeProjectModal);
-    document.getElementById("modal-backdrop").addEventListener("click", closeProjectModal);
-
-    const sectionMap = [
-        {id: "overview-chart", menuHref: "/"}
-    ];
-
-    const observer = new IntersectionObserver((entries) => {
-        const visible = entries
-            .filter((entry) => entry.isIntersecting)
-            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        if (!visible) {
-            return;
-        }
-
-        const section = sectionMap.find((item) => item.id === visible.target.id);
-        if (!section) {
-            return;
-        }
-
-        document.querySelectorAll(".menu-item").forEach((item) => item.classList.remove("active"));
-        const activeLink = [...document.querySelectorAll(".menu-item")].find((item) => item.getAttribute("href") === section.menuHref);
-        if (activeLink) {
-            activeLink.classList.add("active");
-        }
-    }, {threshold: 0.35});
-
-    sectionMap.forEach((section) => {
-        const element = document.getElementById(section.id);
-        if (element) {
-            observer.observe(element);
-        }
-    });
+        totalPages = Math.max(Number(payload.totalPages ?? 1), 1);
+        page += 1;
+    }
+    return best;
 }
 
-function handleLeaderboardSearch() {
-    applyLeaderboardView();
+function renderHomepage() {
+    if (!homeLoaded) return;
+    if (currentDashboardData) {
+        document.getElementById("total-raised").textContent = homePresentation.formatMoney(currentDashboardData.totalRaised, "RUB", true);
+        document.getElementById("active-projects").textContent = String(currentDashboardData.activeProjects ?? 0);
+        document.getElementById("funded-projects").textContent = String(currentDashboardData.fundedProjects ?? 0);
+        document.querySelector('[data-i18n-key="home.active"]').textContent = appI18n.plural("count.activeProject", currentDashboardData.activeProjects ?? 0);
+        document.querySelector('[data-i18n-key="home.funded"]').textContent = appI18n.plural("count.fundedProject", currentDashboardData.fundedProjects ?? 0);
+    }
+    document.getElementById("home-metrics").setAttribute("aria-busy", "false");
+    const status = document.getElementById("home-status");
+    status.hidden = !homeDashboardError;
+    status.textContent = homeDashboardError ? appI18n.t("home.statsError") : "";
+    status.setAttribute("role", homeDashboardError ? "alert" : "status");
+
+    const grid = document.getElementById("project-grid");
+    grid.innerHTML = homeCatalogError ? "" : currentCatalogProjects
+        .filter((project) => project.status === "ACTIVE").slice(0, 6)
+        .map((project) => homePresentation.renderCard(project, homeCategories)).join("");
+    if (!homeCatalogError && !grid.children.length) {
+        grid.innerHTML = `<div class="empty-state">${homePresentation.escapeHtml(appI18n.t("home.empty"))}</div>`;
+    }
+    grid.setAttribute("aria-busy", "false");
+    const gridStatus = document.getElementById("home-grid-status");
+    gridStatus.hidden = !homeCatalogError;
+    gridStatus.textContent = homeCatalogError ? appI18n.t("catalog.error.load") : "";
+    gridStatus.setAttribute("role", homeCatalogError ? "alert" : "status");
+    renderFeaturedProject();
 }
 
-function runCardAction(dataset) {
-    if (dataset.nav) {
-        window.location.href = dataset.nav;
+function renderFeaturedProject() {
+    const host = document.getElementById("featured-project");
+    host.hidden = homeFeaturedState === "empty";
+    host.setAttribute("aria-busy", String(homeFeaturedState === "loading"));
+    if (homeFeaturedState === "loading" || homeFeaturedState === "error") {
+        const key = homeFeaturedState === "loading" ? "home.featuredLoading" : "home.featuredError";
+        host.innerHTML = `<p class="home-featured-placeholder" role="${homeFeaturedState === "error" ? "alert" : "status"}">${homePresentation.escapeHtml(appI18n.t(key))}</p>`;
         return;
     }
-
-    if (dataset.scrollTarget) {
-        const target = document.getElementById(dataset.scrollTarget);
-        if (target) {
-            target.scrollIntoView({behavior: "smooth", block: "start"});
-        }
-    }
+    if (!homeFeaturedProject) return;
+    const project = homeFeaturedProject;
+    const escape = homePresentation.escapeHtml;
+    const money = (value) => escape(homePresentation.formatMoney(value, project.currency));
+    const href = `/project.html?id=${encodeURIComponent(project.id)}`;
+    host.style.setProperty("--category-color", homePresentation.categoryColor(project, homeCategories));
+    host.innerHTML = `<a class="home-featured-cover" href="${href}" aria-label="${escape(project.title)}">
+            ${project.hasCoverImage ? `<img src="/api/projects/${encodeURIComponent(project.id)}/image" alt="">` : ""}
+        </a>
+        <div class="home-featured-body">
+            <div class="home-featured-intro">
+                <span class="home-featured-badge">${escape(appI18n.t("home.featured"))} · ${escape(homePresentation.categoryTitle(project, homeCategories))}</span>
+                <h2><a href="${href}">${escape(project.title)}</a></h2>
+                <p>${escape(project.shortDescription)}</p>
+            </div>
+            <div class="home-featured-funding">
+                <div class="home-featured-totals"><span><strong>${money(project.collectedAmount)}</strong> <span>${escape(appI18n.t("public.of"))} ${money(project.goalAmount)}</span></span><b>${homePresentation.progress(project)}%</b></div>
+                <progress class="progress" value="${homePresentation.progress(project)}" max="100" aria-label="${escape(appI18n.t("public.progress"))}"></progress>
+                <div class="home-amounts" role="group" aria-label="${escape(appI18n.t("home.amountLabel"))}">
+                    ${[300, 1000, 3000, 10000].map((amount) => `<button type="button" class="home-amount-chip" data-featured-amount="${amount}" aria-pressed="${amount === homeSelectedAmount}">${money(amount)}</button>`).join("")}
+                </div>
+                <a class="dark-btn btn-lg home-featured-support" id="featured-support-link" href="${href}#donation-form"></a>
+            </div>
+        </div>`;
+    syncFeaturedAmount();
 }
 
-function debounce(callback, delayMs) {
-    let timeoutId;
-    return (...args) => {
-        window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => callback(...args), delayMs);
-    };
-}
-
-function appT(key, fallback) {
-    return appI18n?.t(key) ?? fallback;
-}
-
-function formatAppProjectStatus(status) {
-    return appT(`project.status.${status}`, status || "UNKNOWN");
-}
-
-function translateAppCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
-    const normalized = String(title ?? "").trim().toLowerCase();
-    const key = APP_CATEGORY_TRANSLATION_KEYS[normalized];
-    return key ? appT(key, title) : (title || appT(fallbackKey, fallbackText));
-}
-function resolveAppLocale() {
-    return appI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
-}
-
-const APP_CATEGORY_TRANSLATION_KEYS = {
-    "general": "category.general",
-    "\u043e\u0431\u0449\u0435\u0435": "category.general",
-    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
-    "technology": "category.tech",
-    "technologies": "category.tech",
-    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
-    "art": "category.art",
-    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
-    "social": "category.social",
-    "social projects": "category.social",
-    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
-    "education": "category.education",
-    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
-    "charity": "category.charity"
-};
-
-const CHART_MONTH_LABELS_RU = {
-    Jan: "Янв",
-    Feb: "Фев",
-    Mar: "Мар",
-    Apr: "Апр",
-    May: "Май",
-    Jun: "Июн",
-    Jul: "Июл",
-    Aug: "Авг",
-    Sep: "Сен",
-    Oct: "Окт",
-    Nov: "Ноя",
-    Dec: "Дек"
-};
-function positionChartCallout(callout, pointX, pointY, svgWidth, svgHeight) {
-    const chartNode = callout.parentElement;
-    const chartWidth = chartNode.clientWidth || svgWidth;
-    const chartHeight = chartNode.clientHeight || svgHeight;
-    const scaledX = (pointX / svgWidth) * chartWidth;
-    const scaledY = (pointY / svgHeight) * chartHeight;
-    const halfWidth = (callout.offsetWidth || 0) / 2;
-    const horizontalPadding = 12;
-    const topPadding = 20;
-    const clampedX = Math.min(Math.max(scaledX, halfWidth + horizontalPadding), chartWidth - halfWidth - horizontalPadding);
-    const clampedY = Math.max(scaledY, topPadding);
-
-    callout.style.left = `${clampedX}px`;
-    callout.style.top = `${clampedY}px`;
-}
-
-const CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD = {
-    Jan: "СЏРЅРІР°СЂСЏ",
-    Feb: "С„РµРІСЂР°Р»СЏ",
-    Mar: "РјР°СЂС‚Р°",
-    Apr: "Р°РїСЂРµР»СЏ",
-    May: "РјР°СЏ",
-    Jun: "РёСЋРЅСЏ",
-    Jul: "РёСЋР»СЏ",
-    Aug: "Р°РІРіСѓСЃС‚Р°",
-    Sep: "СЃРµРЅС‚СЏР±СЂСЏ",
-    Oct: "РѕРєС‚СЏР±СЂСЏ",
-    Nov: "РЅРѕСЏР±СЂСЏ",
-    Dec: "РґРµРєР°Р±СЂСЏ"
-};
-
-function formatChartRangeBadge(label) {
-    const lang = appI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${appT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return appT("index.chart.emptyRange", "No data yet");
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
-        return yearToken
-            ? `${appT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${appT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${appT("index.chart.since", "РЎ")} ${localizedMonth} ${yearToken}`
-        : `${appT("index.chart.since", "РЎ")} ${localizedMonth}`;
-}
-
-function localizeChartAxisLabel(label) {
-    const value = String(label ?? "").trim();
-    if ((appI18n?.getLang?.() ?? "en") !== "ru") {
-        return value;
-    }
-
-    const parts = value.split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return value;
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-        return yearToken ? `${dayToken} ${localizedMonth} ${yearToken}` : `${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
-}
-
-function buildRuGenitiveMonthLabelFinal(token) {
-    switch (token) {
-        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
-        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
-        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
-        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
-        case "May": return String.fromCharCode(1084, 1072, 1103);
-        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
-        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
-        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
-        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
-        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
-        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
-        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
-        default: return token ?? "";
-    }
-}
-
-function formatChartRangeBadge(label) {
-    const lang = appI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${appT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return "No data yet";
-    }
-
-    const sinceText = String.fromCharCode(1057);
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = buildRuGenitiveMonthLabelFinal(monthToken);
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = buildRuGenitiveMonthLabelFinal(monthToken);
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
+function syncFeaturedAmount() {
+    if (!homeFeaturedProject) return;
+    document.querySelectorAll("[data-featured-amount]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.featuredAmount) === homeSelectedAmount));
+    });
+    const link = document.getElementById("featured-support-link");
+    link.textContent = appI18n.t("home.supportAmount").replace("{amount}", homePresentation.formatMoney(homeSelectedAmount, homeFeaturedProject.currency));
+    link.href = `/project.html?id=${encodeURIComponent(homeFeaturedProject.id)}&amount=${homeSelectedAmount}#donation-form`;
 }

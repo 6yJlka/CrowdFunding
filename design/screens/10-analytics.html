@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — аналитика платформы</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="Catalog.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Проекты</a>
+      <a href="Bold.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Как это работает</a>
+      <a href="Analytics.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">Аналитика</a>
+    </nav>
+    <div style="display: flex; gap: 8px">
+      <a href="Auth.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Войти</a>
+      <a href="Edit.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #C6F24E; color: #0E0E10; text-decoration: none; font-weight: 800">Запустить</a>
+    </div>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 24px 24px 16px; display: flex; flex-direction: column; gap: 24px">
+    <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(36px, 5.6vw, 72px); line-height: 1; font-weight: 900; text-transform: uppercase">Аналитика</h1>
+    <dl style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 12px">
+      <div style="padding: 24px; border-radius: 28px; background: #C6F24E; color: #0E0E10"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 34px; font-weight: 700; white-space: nowrap">2,9&#160;млн&#160;₽</dd><dt style="font-weight: 700; font-size: 15px; margin-top: 4px">собрано на платформе</dt></div>
+      <div style="padding: 24px; border-radius: 28px; background: #1C1C20"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 34px; font-weight: 700">128</dd><dt style="color: #A0A0A8; font-weight: 600; font-size: 15px; margin-top: 4px">активных кампаний</dt></div>
+      <div style="padding: 24px; border-radius: 28px; background: #1C1C20"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 34px; font-weight: 700">37</dd><dt style="color: #A0A0A8; font-weight: 600; font-size: 15px; margin-top: 4px">проектов достигли цели</dt></div>
+      <div style="padding: 24px; border-radius: 28px; background: #1C1C20"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 34px; font-weight: 700">4&#160;312</dd><dt style="color: #A0A0A8; font-weight: 600; font-size: 15px; margin-top: 4px">уникальных спонсоров</dt></div>
+    </dl>
+  </section>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 16px 24px">
+    <figure style="margin: 0; padding: 28px; border-radius: 32px; background: #1C1C20; display: flex; flex-direction: column; gap: 20px">
+      <figcaption style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px">
+        <span style="font-family: 'Unbounded', sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase">Рост сборов</span>
+        <span style="color: #A0A0A8; font-size: 15px">Накопленная сумма успешных донатов, 2026</span>
+      </figcaption>
+      <div style="display: flex; gap: 12px">
+        <div aria-hidden="true" style="flex: 0 0 64px; height: 300px; display: flex; flex-direction: column; justify-content: space-between; color: #A0A0A8; font-size: 13px; text-align: right; padding-bottom: 28px; box-sizing: border-box">
+          <span>3 млн</span><span>2 млн</span><span>1 млн</span><span>0</span>
+        </div>
+        <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+          <svg width="100%" height="272" viewBox="0 0 1000 272" preserveAspectRatio="none" role="img" aria-label="Накопленная сумма сборов выросла с 120 тысяч рублей в январе до 2,9 миллиона в октябре 2026 года" style="display: block">
+            <line x1="0" y1="1" x2="1000" y2="1" stroke="#2E2E34" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="91" x2="1000" y2="91" stroke="#2E2E34" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="181" x2="1000" y2="181" stroke="#2E2E34" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+            <line x1="0" y1="271" x2="1000" y2="271" stroke="#3A3A40" stroke-width="2" vector-effect="non-scaling-stroke"></line>
+            <path d="{{area}}" fill="#C6F24E" opacity="0.14"></path>
+            <path d="{{line}}" fill="none" stroke="#C6F24E" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"></path>
+          </svg>
+          <div aria-hidden="true" style="display: flex; justify-content: space-between; color: #A0A0A8; font-size: 13px">
+            <sc-for list="{{months}}" as="m" hint-placeholder-count="10"><span>{{m}}</span></sc-for>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </section>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 16px">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">Топ проектов</h2>
+      <div role="tablist" aria-label="Период" style="display: flex; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+        <sc-for list="{{periods}}" as="t" hint-placeholder-count="3">
+          <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+        </sc-for>
+      </div>
+    </div>
+    <ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+      <sc-for list="{{top}}" as="p" hint-placeholder-count="5">
+        <li>
+          <a href="Project.dc.html" style="display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 16px 20px; border-radius: 24px; background: #1C1C20; color: #F4F4F0; text-decoration: none">
+            <span style="flex: 0 0 40px; font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; color: {{p.rankColor}}">{{p.rank}}</span>
+            <span aria-hidden="true" style="flex: 0 0 48px; height: 48px; border-radius: 14px; background: {{p.color}}"></span>
+            <span style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 2px"><b style="font-size: 17px">{{p.title}}</b><span style="font-size: 14px; color: #A0A0A8">{{p.author}} · {{p.cat}}</span></span>
+            <span style="flex: 0 1 220px; display: flex; flex-direction: column; gap: 6px">
+              <span style="display: flex; justify-content: space-between; font-size: 14px"><b>{{p.sum}}</b><span style="color: #A0A0A8">{{p.pct}}%</span></span>
+              <span style="display: block; height: 6px; border-radius: 999px; background: #2E2E34"><span style="display: block; width: {{p.bar}}%; height: 100%; border-radius: 999px; background: #C6F24E"></span></span>
+            </span>
+          </a>
+        </li>
+      </sc-for>
+    </ol>
+    <p style="margin: 0; color: #A0A0A8; font-size: 14px">{{periodNote}}</p>
+  </section>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 16px 24px 56px; display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+    <div style="flex: 3 1 520px; min-width: 0; padding: 28px; border-radius: 32px; background: #1C1C20; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase">Новые авторы</h2>
+      <div style="flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); grid-auto-rows: 1fr; gap: 10px">
+        <sc-for list="{{founders}}" as="f" hint-placeholder-count="6">
+          <div style="display: flex; align-items: center; gap: 12px; padding: 16px; border-radius: 20px; background: #0E0E10; height: 100%; box-sizing: border-box">
+            <span aria-hidden="true" style="flex: 0 0 44px; height: 44px; border-radius: 50%; background: {{f.color}}; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px">{{f.ini}}</span>
+            <span style="min-width: 0; display: flex; flex-direction: column"><b style="font-size: 15px">{{f.name}}</b><span style="font-size: 13px; color: #A0A0A8">{{f.meta}}</span></span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="flex: 2 1 340px; min-width: 0; padding: 28px; border-radius: 32px; background: #1C1C20; display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; text-transform: uppercase">Новые спонсоры</h2>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+        <sc-for list="{{sponsors}}" as="s" hint-placeholder-count="5">
+          <li style="display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #2E2E34">
+            <span aria-hidden="true" style="flex: 0 0 36px; height: 36px; border-radius: 50%; background: {{s.color}}; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 12px">{{s.ini}}</span>
+            <span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><b style="font-size: 15px">{{s.name}}</b><span style="font-size: 13px; color: #A0A0A8">{{s.meta}}</span></span>
+            <b style="color: #C6F24E; white-space: nowrap">{{s.sum}}</b>
+          </li>
+        </sc-for>
+      </ul>
+    </div>
+  </section>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="Bold.dc.html" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":2240}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { period: 'all' }; }
+  renderVals() {
+    const vals = [120, 310, 540, 780, 1020, 1350, 1710, 2080, 2490, 2916];
+    const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт'];
+    const max = 3000, H = 270, W = 1000;
+    const pts = vals.map((v, i) => [Math.round(i * W / (vals.length - 1)), Math.round(H + 1 - v / max * H)]);
+    const line = 'M' + pts.map((p) => p[0] + ' ' + p[1]).join(' L');
+    const area = line + ' L' + W + ' 271 L0 271 Z';
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    const colors = { 'Творчество': '#C6F24E', 'Технологии': '#5FD4C4', 'Образование': '#FFD23F', 'Благотворительность': '#FF6A3D', 'Социальные проекты': '#7C8CFF' };
+    const sets = {
+      all: [
+        ['Метро 2088', 'Студия «Туннель»', 'Творчество', 820000, 900000],
+        ['Пиксельный рогалик «Подвал»', 'Инди-команда «Люк»', 'Творчество', 820000, 1000000],
+        ['Умная кормушка для птиц', 'Пётр Ильин', 'Технологии', 530000, 750000],
+        ['Тёплый дом для приюта «Лапа»', 'Фонд «Лапа»', 'Благотворительность', 412000, 600000],
+        ['Мастерская керамики в Твери', 'Анна Котова', 'Образование', 310000, 400000]
+      ],
+      year: [
+        ['Пиксельный рогалик «Подвал»', 'Инди-команда «Люк»', 'Творчество', 640000, 1000000],
+        ['Метро 2088', 'Студия «Туннель»', 'Творчество', 610000, 900000],
+        ['Умная кормушка для птиц', 'Пётр Ильин', 'Технологии', 530000, 750000],
+        ['Тёплый дом для приюта «Лапа»', 'Фонд «Лапа»', 'Благотворительность', 388000, 600000],
+        ['Велодорожка вдоль Яузы', 'Городская инициатива', 'Социальные проекты', 188000, 400000]
+      ],
+      month: [
+        ['Тёплый дом для приюта «Лапа»', 'Фонд «Лапа»', 'Благотворительность', 142000, 600000],
+        ['Метро 2088', 'Студия «Туннель»', 'Творчество', 118000, 900000],
+        ['Умная кормушка для птиц', 'Пётр Ильин', 'Технологии', 64000, 750000],
+        ['Велодорожка вдоль Яузы', 'Городская инициатива', 'Социальные проекты', 41000, 400000],
+        ['Сборник рассказов «Ночные трамваи»', 'Вера Ланская', 'Творчество', 23000, 150000]
+      ]
+    };
+    const notes = { all: 'Сумма — всё, что собрано за время кампании.', year: 'Сумма — собрано с 1 января 2026.', month: 'Сумма — собрано с 1 октября 2026.' };
+    const cur = this.state.period;
+    const periods = [['all', 'Всё время'], ['year', 'Год'], ['month', 'Месяц']].map(([k, l]) => {
+      const on = k === cur;
+      return { label: l, on: on ? 'true' : 'false', pick: () => this.setState({ period: k }),
+        style: 'min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; ' + (on ? 'background: #F4F4F0; color: #0E0E10' : 'background: transparent; color: #F4F4F0') };
+    });
+    const top = sets[cur].map(([title, author, cat, sum, goal], i) => {
+      const pct = Math.round(sum / goal * 100);
+      return { rank: String(i + 1).padStart(2, '0'), rankColor: i === 0 ? '#C6F24E' : '#6E6E76', title, author, cat, color: colors[cat], sum: fmt(sum), pct, bar: Math.min(pct, 100) };
+    });
+    const ini = (n) => n.replace(/[«»]/g, '').split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+    const pal = ['#FF6A3D', '#7C8CFF', '#5FD4C4', '#FFD23F', '#F2B8E0', '#C6F24E'];
+    const founders = [
+      ['Студия «Туннель»', '3 проекта · 1,9 млн ₽'], ['Кружок «Байт»', '1 проект · на модерации'], ['Фонд «Лапа»', '2 проекта · 412 тыс ₽'],
+      ['Вера Ланская', '1 проект · 96 тыс ₽'], ['Пётр Ильин', '1 проект · 530 тыс ₽'], ['Анна Котова', '1 проект · 310 тыс ₽']
+    ].map(([name, meta], i) => ({ name, meta, ini: ini(name), color: pal[i % pal.length] }));
+    const sponsors = [
+      ['Мария Смирнова', '4 проекта', '17 500 ₽'], ['Елена Б.', '2 проекта', '6 000 ₽'], ['Олег В.', '1 проект', '10 000 ₽'],
+      ['Никита Р.', '3 проекта', '8 500 ₽'], ['Дарья Л.', '1 проект', '500 ₽']
+    ].map(([name, meta, sum], i) => ({ name, meta, sum, ini: ini(name), color: pal[(i + 1) % pal.length] }));
+    return { line, area, months, periods, top, periodNote: notes[cur], founders, sponsors };
+  }
+}
+</script>
+</body>
+</html>

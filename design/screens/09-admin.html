@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — модерация</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+textarea::placeholder,input::placeholder{color:#6E6E76}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="Catalog.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Проекты</a>
+      <a href="Admin.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">Модерация</a>
+    </nav>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <span style="padding: 6px 12px; border-radius: 999px; background: #FFD23F; color: #0E0E10; font-weight: 800; font-size: 13px">АДМИНИСТРАТОР</span>
+      <a href="Auth.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Выйти</a>
+    </div>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 16px 24px 8px; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px">
+    <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(34px, 5vw, 60px); line-height: 1; font-weight: 900; text-transform: uppercase">Модерация</h1>
+    <div role="tablist" aria-label="Разделы модерации" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="3">
+        <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+  </section>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px">
+
+    <sc-if value="{{isQueue}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+        <div style="flex: 1 1 340px; display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 13px; font-weight: 800; color: #A0A0A8; letter-spacing: 0.04em">ЖДУТ ПРОВЕРКИ · {{queueCount}}</span>
+          <sc-for list="{{queue}}" as="q" hint-placeholder-count="3">
+            <button type="button" onClick="{{q.pick}}" aria-pressed="{{q.on}}" style="{{q.style}}">
+              <span aria-hidden="true" style="flex: 0 0 52px; height: 52px; border-radius: 16px; background: {{q.color}}"></span>
+              <span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: left">
+                <span style="font-weight: 800; font-size: 16px">{{q.title}}</span>
+                <span style="font-size: 13px; opacity: 0.75">{{q.author}} · {{q.sent}}</span>
+              </span>
+            </button>
+          </sc-for>
+          <sc-if value="{{queueEmpty}}" hint-placeholder-val="{{ false }}">
+            <div style="padding: 32px; border-radius: 24px; background: #1C1C20; text-align: center; color: #B4B4BC">Очередь пуста.</div>
+          </sc-if>
+          <span role="status" style="color: #C6F24E; font-weight: 700; font-size: 15px; padding-top: 4px">{{notice}}</span>
+        </div>
+
+        <sc-if value="{{hasSel}}" hint-placeholder-val="{{ true }}">
+          <article style="flex: 999 1 560px; min-width: 0; border-radius: 30px; background: #1C1C20; overflow: hidden">
+            <div style="height: 160px; background: {{sel.color}}; position: relative">
+              <span style="position: absolute; top: 16px; left: 16px; padding: 7px 14px; border-radius: 999px; background: #FFD23F; color: #0E0E10; font-weight: 800; font-size: 13px; border: 2px solid #0E0E10">На модерации</span>
+            </div>
+            <div style="padding: 28px; display: flex; flex-direction: column; gap: 20px">
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase; line-height: 1.05">{{sel.title}}</h2>
+                <p style="margin: 0; color: #D6D6DC; font-size: 17px; line-height: 1.5">{{sel.short}}</p>
+              </div>
+              <dl style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px">
+                <div style="padding: 14px 16px; border-radius: 18px; background: #0E0E10"><dt style="font-size: 13px; color: #A0A0A8; font-weight: 700">Автор</dt><dd style="margin: 4px 0 0; font-weight: 800">{{sel.author}}</dd></div>
+                <div style="padding: 14px 16px; border-radius: 18px; background: #0E0E10"><dt style="font-size: 13px; color: #A0A0A8; font-weight: 700">Категория</dt><dd style="margin: 4px 0 0; font-weight: 800">{{sel.cat}}</dd></div>
+                <div style="padding: 14px 16px; border-radius: 18px; background: #0E0E10"><dt style="font-size: 13px; color: #A0A0A8; font-weight: 700">Цель</dt><dd style="margin: 4px 0 0; font-weight: 800">{{sel.goal}}</dd></div>
+                <div style="padding: 14px 16px; border-radius: 18px; background: #0E0E10"><dt style="font-size: 13px; color: #A0A0A8; font-weight: 700">Сроки</dt><dd style="margin: 4px 0 0; font-weight: 800">{{sel.dates}}</dd></div>
+              </dl>
+              <div style="display: flex; flex-direction: column; gap: 8px">
+                <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: #A0A0A8">Описание</h3>
+                <p style="margin: 0; color: #D6D6DC; line-height: 1.7; white-space: pre-line">{{sel.desc}}</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid #2E2E34">
+                <div style="display: flex; justify-content: space-between"><label for="m-reason" style="font-weight: 700; font-size: 14px">Причина отклонения</label><span style="font-size: 13px; color: #A0A0A8; font-weight: 700">{{reasonLen}} / 500</span></div>
+                <textarea id="m-reason" rows="3" maxlength="500" value="{{reason}}" onInput="{{onReason}}" placeholder="Что автору нужно исправить перед публикацией" style="{{reasonStyle}}"></textarea>
+                <sc-if value="{{reasonError}}" hint-placeholder-val="{{ false }}">
+                  <span role="alert" style="color: #FF8A63; font-size: 14px; font-weight: 700">Чтобы отклонить проект, напишите причину.</span>
+                </sc-if>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 10px">
+                <button type="button" onClick="{{approve}}" style="min-height: 54px; padding: 0 28px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer">Одобрить и опубликовать</button>
+                <button type="button" onClick="{{reject}}" style="min-height: 54px; padding: 0 24px; border-radius: 999px; border: 1.5px solid #FF6A3D; background: transparent; color: #FF8A63; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer">Вернуть на доработку</button>
+              </div>
+            </div>
+          </article>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isUsers}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; gap: 10px">
+          <label for="u-search" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Поиск пользователей</label>
+          <input id="u-search" type="search" placeholder="Имя или email" style="flex: 1 1 320px; min-height: 52px; padding: 0 20px; border-radius: 999px; border: 0; background: #1C1C20; color: #F4F4F0; font: inherit; font-size: 16px">
+        </div>
+        <div style="overflow-x: auto; border-radius: 26px; background: #1C1C20">
+          <table style="width: 100%; min-width: 760px; border-collapse: collapse; font-size: 15px">
+            <thead><tr style="text-align: left; color: #A0A0A8; font-size: 13px"><th style="padding: 16px 20px; font-weight: 800">Пользователь</th><th style="padding: 16px 12px; font-weight: 800">Роль</th><th style="padding: 16px 12px; font-weight: 800">Статус</th><th style="padding: 16px 20px; font-weight: 800; text-align: right">Действие</th></tr></thead>
+            <tbody>
+              <sc-for list="{{users}}" as="u" hint-placeholder-count="5">
+                <tr style="border-top: 1px solid #2E2E34">
+                  <td style="padding: 14px 20px"><div style="display: flex; align-items: center; gap: 12px"><span aria-hidden="true" style="flex: 0 0 40px; height: 40px; border-radius: 50%; background: {{u.color}}; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 13px">{{u.ini}}</span><span style="display: flex; flex-direction: column"><b>{{u.name}}</b><span style="color: #A0A0A8; font-size: 13px">{{u.email}}</span></span></div></td>
+                  <td style="padding: 14px 12px"><label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)" for="{{u.roleId}}">Роль</label><select id="{{u.roleId}}" style="min-height: 44px; padding: 0 12px; border-radius: 14px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-weight: 700"><option>{{u.role}}</option><option>Автор</option><option>Спонсор</option><option>Администратор</option></select></td>
+                  <td style="padding: 14px 12px"><span style="{{u.badge}}">{{u.status}}</span></td>
+                  <td style="padding: 14px 20px; text-align: right"><button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 999px; border: 1.5px solid #3A3A40; background: transparent; color: #F4F4F0; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer">{{u.action}}</button></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin: 0; color: #A0A0A8; font-size: 14px">Удаление мягкое: аккаунт получает статус «Удалён», данные сохраняются.</p>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isComments}}" hint-placeholder-val="{{ false }}">
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <sc-for list="{{comments}}" as="c" hint-placeholder-count="4">
+          <article style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; padding: 20px 22px; border-radius: 24px; background: #1C1C20">
+            <div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 6px">
+              <div style="font-size: 14px; color: #A0A0A8"><b style="color: #F4F4F0">{{c.who}}</b> · к проекту <a href="Project.dc.html">{{c.project}}</a> · {{c.when}}</div>
+              <p style="{{c.textStyle}}">{{c.text}}</p>
+            </div>
+            <sc-if value="{{c.alive}}" hint-placeholder-val="{{ true }}">
+              <button type="button" onClick="{{c.del}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #FF6A3D; background: transparent; color: #FF8A63; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer">Удалить</button>
+            </sc-if>
+          </article>
+        </sc-for>
+      </div>
+    </sc-if>
+  </main>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="Bold.dc.html" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'queue', sel: 1, done: {}, reason: '', reasonError: false, notice: '', deleted: {} };
+  }
+  renderVals() {
+    const tabsDef = [['queue', 'Очередь'], ['users', 'Пользователи'], ['comments', 'Комментарии']];
+    const tab = this.state.tab;
+    const tabs = tabsDef.map(([k, l]) => {
+      const on = k === tab;
+      return { label: l, on: on ? 'true' : 'false', pick: () => this.setState({ tab: k }),
+        style: 'min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; ' + (on ? 'background: #F4F4F0; color: #0E0E10' : 'background: transparent; color: #F4F4F0') };
+    });
+
+    const all = [
+      { id: 1, title: 'Карманная версия «Метро»', author: 'Студия «Туннель»', sent: 'сегодня, 14:20', cat: 'Творчество', goal: '600 000 ₽', dates: '1 нояб — 31 дек', color: '#C6F24E',
+        short: 'Компактная коробка для поездок, 30 минут на партию.',
+        desc: 'Упрощённая версия «Метро 2088»: 60 карт, складное поле и правила на одной странице.\n\nДеньги пойдут на печать первой партии в 1 000 коробок и доставку.' },
+      { id: 2, title: 'Робот-сортировщик для школьной лаборатории', author: 'Кружок «Байт»', sent: 'вчера, 19:05', cat: 'Технологии', goal: '350 000 ₽', dates: 'без сроков', color: '#5FD4C4',
+        short: 'Учим школьников собирать и программировать манипулятор.',
+        desc: 'Комплект на 12 рабочих мест: серво-приводы, контроллеры и методичка на 16 занятий.' },
+      { id: 3, title: 'Корм на зиму для приюта «Лапа»', author: 'Фонд «Лапа»', sent: '21 октября', cat: 'Благотворительность', goal: '200 000 ₽', dates: '1 нояб — 1 фев', color: '#FF6A3D',
+        short: 'Закупаем корм для сорока собак на три зимних месяца.',
+        desc: 'Отчёт о закупках публикуем в новостях проекта каждые две недели.' }
+    ];
+    const queue0 = all.filter((p) => !this.state.done[p.id]);
+    const selId = queue0.some((p) => p.id === this.state.sel) ? this.state.sel : (queue0[0] ? queue0[0].id : null);
+    const queue = queue0.map((p) => {
+      const on = p.id === selId;
+      return { ...p, on: on ? 'true' : 'false', pick: () => this.setState({ sel: p.id, reason: '', reasonError: false }),
+        style: 'display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; border-radius: 22px; font: inherit; cursor: pointer; ' + (on ? 'background: #F4F4F0; color: #0E0E10; border: 0' : 'background: #1C1C20; color: #F4F4F0; border: 0') };
+    });
+    const sel = all.find((p) => p.id === selId) || all[0];
+    const r = this.state.reason;
+    const finish = (verb) => {
+      const done = { ...this.state.done, [selId]: true };
+      this.setState({ done, reason: '', reasonError: false, notice: '«' + sel.title + '» ' + verb });
+    };
+
+    const users = [
+      ['Студия «Туннель»', 'studio@tunnel.ru', 'Автор', 'ACTIVE', '#FF6A3D'],
+      ['Мария Смирнова', 'maria@example.com', 'Спонсор', 'ACTIVE', '#7C8CFF'],
+      ['Кружок «Байт»', 'byte@school.ru', 'Автор', 'ACTIVE', '#5FD4C4'],
+      ['spam-bot-17', 'bot17@mail.xyz', 'Спонсор', 'BLOCKED', '#3A3A40'],
+      ['Олег Васильев', 'oleg@example.com', 'Спонсор', 'DELETED', '#3A3A40']
+    ].map(([name, email, role, st, color], i) => {
+      const S = { ACTIVE: ['Активен', '#C6F24E', '#0E0E10'], BLOCKED: ['Заблокирован', '#2E2E34', '#FF8A63'], DELETED: ['Удалён', '#2E2E34', '#B4B4BC'] }[st];
+      return { name, email, role, color, roleId: 'u-role-' + i,
+        ini: name.replace(/[«»]/g, '').split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase(),
+        status: S[0], badge: 'display: inline-block; white-space: nowrap; padding: 6px 12px; border-radius: 999px; font-weight: 800; font-size: 13px; background: ' + S[1] + '; color: ' + S[2],
+        action: st === 'ACTIVE' ? 'Заблокировать' : 'Восстановить' };
+    });
+
+    const comments = [
+      { id: 1, who: 'Алексей М.', project: 'Метро 2088', when: '2 дня назад', text: 'Доставка в Казань будет? Готов взять две коробки.' },
+      { id: 2, who: 'spam-bot-17', project: 'Умная кормушка для птиц', when: '3 дня назад', text: 'Лучшие ставки тут → bit.ly/xxxxx' },
+      { id: 3, who: 'Ирина К.', project: 'Метро 2088', when: '4 дня назад', text: 'Играли на тестовой сессии — напряжённо и очень командно.' },
+      { id: 4, who: 'Дарья Л.', project: 'Тёплый дом для приюта «Лапа»', when: 'неделю назад', text: 'Можно привезти корм лично?' }
+    ].map((c) => {
+      const del = !!this.state.deleted[c.id];
+      return { ...c, alive: !del, text: del ? '[удалено модератором]' : c.text,
+        textStyle: 'margin: 0; line-height: 1.6; ' + (del ? 'color: #6E6E76; font-style: italic' : 'color: #D6D6DC'),
+        del: () => this.setState({ deleted: { ...this.state.deleted, [c.id]: true } }) };
+    });
+
+    return {
+      tabs, isQueue: tab === 'queue', isUsers: tab === 'users', isComments: tab === 'comments',
+      queue, queueCount: queue.length, queueEmpty: queue.length === 0, hasSel: queue.length > 0, sel,
+      notice: this.state.notice,
+      reason: r, reasonLen: r.length, reasonError: this.state.reasonError,
+      reasonStyle: 'padding: 14px 18px; border-radius: 18px; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 15px; line-height: 1.5; resize: vertical; border: 1.5px solid ' + (this.state.reasonError ? '#FF6A3D' : '#3A3A40'),
+      onReason: (e) => this.setState({ reason: String(e.target.value || '').slice(0, 500), reasonError: false }),
+      approve: () => finish('одобрен и опубликован'),
+      reject: () => { if (!r.trim()) { this.setState({ reasonError: true }); return; } finish('возвращён автору'); },
+      users, comments
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,370 +1,216 @@
 const authorAuth = readStoredAuth();
 const authorProjectsNode = document.getElementById("author-projects");
 const authorStatusNode = document.getElementById("author-status");
-const authorStatsNode = document.getElementById("author-stats");
-const authorActivitiesNode = document.getElementById("author-activities");
 const authorNameNode = document.getElementById("author-name");
-const authorBioNode = document.getElementById("author-bio");
-const authorEmailNode = document.getElementById("author-email");
-const authorRegistrationDateNode = document.getElementById("author-registration-date");
-const authorBioEditButtonNode = document.getElementById("author-bio-edit-btn");
-const authorBioFormNode = document.getElementById("author-bio-form");
 const authorBioInputNode = document.getElementById("author-bio-input");
-const authorBioCounterNode = document.getElementById("author-bio-counter");
-const authorBioCancelButtonNode = document.getElementById("author-bio-cancel-btn");
-const authorBioSaveButtonNode = document.getElementById("author-bio-save-btn");
-const authorProfileKickerNode = document.getElementById("author-profile-kicker");
-const authorRegistrationLabelNode = document.getElementById("author-registration-label");
-const authorEmailLabelNode = document.getElementById("author-email-label");
-const authorHomeLinkNode = document.getElementById("author-home-link");
-const authorNewProjectLinkNode = document.getElementById("author-new-project-link");
-const authorActivityKickerNode = document.getElementById("author-activity-kicker");
-const authorActivityTitleNode = document.getElementById("author-activity-title");
-const authorGuideKickerNode = document.getElementById("author-guide-kicker");
-const authorGuideTitleNode = document.getElementById("author-guide-title");
-const authorGuideListNode = document.getElementById("author-guide-list");
-const authorProjectsKickerNode = document.getElementById("author-projects-kicker");
-const authorProjectsTitleNode = document.getElementById("author-projects-title");
 const authorAvatarInputNode = document.getElementById("author-avatar-input");
 const authorAvatarPreviewNode = document.getElementById("author-avatar-preview");
 const authorAvatarFallbackNode = document.getElementById("author-avatar-fallback");
-const authorAvatarUploadLabelNode = document.getElementById("author-avatar-upload-label");
+const authorDialog = document.getElementById("author-profile-dialog");
 let currentAvatarObjectUrl = "";
 let currentProfileHasAvatar = false;
 let currentAuthorProfile = null;
 let currentAuthorProjects = [];
+let authorCategories = [];
+let authorTab = "all";
+let authorPage = 0;
+let authorStatus = {message: "", type: ""};
+let profileBusy = false;
+const authorTabs = {all: null, active: ["ACTIVE"], draft: ["DRAFT", "MODERATION"], rejected: ["REJECTED"], done: ["FUNDED"]};
+const t = (key, fallback = key) => window.AppI18n.t(key) === key ? fallback : window.AppI18n.t(key);
+const escapeHtml = window.RiseUpProjects.escapeHtml;
+const resolveAuthorLocale = () => window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+const formatMoney = window.RiseUpProjects.formatMoney;
 
-if (!authorAuth?.accessToken) {
-    window.location.href = "/auth.html";
-}
+if (!authorAuth?.accessToken) window.location.href = "/auth.html";
+else initializeAuthorDashboard().catch((error) => setAuthorStatus(error.message, "error"));
 
-initializeAuthorDashboard().catch((error) => setAuthorStatus(error.message, "error"));
-
-authorAvatarInputNode?.addEventListener("change", handleAvatarChange);
-authorBioEditButtonNode?.addEventListener("click", openBioEditor);
-authorBioCancelButtonNode?.addEventListener("click", closeBioEditor);
-authorBioInputNode?.addEventListener("input", syncBioCounter);
-authorBioFormNode?.addEventListener("submit", saveBio);
+document.getElementById("author-bio-edit-btn").addEventListener("click", openBioEditor);
+document.getElementById("author-avatar-open").addEventListener("click", openBioEditor);
+document.getElementById("author-avatar-upload").addEventListener("click", () => authorAvatarInputNode.click());
+authorAvatarInputNode.addEventListener("change", (event) => handleAvatarChange(event).catch(() => setAuthorStatus("author.status.avatarSaveError", "error")));
+authorBioInputNode.addEventListener("input", syncBioCounter);
+document.getElementById("author-bio-form").addEventListener("submit", saveBio);
+document.getElementById("author-prev").addEventListener("click", () => { authorPage--; renderAuthorProjects(); });
+document.getElementById("author-next").addEventListener("click", () => { authorPage++; renderAuthorProjects(); });
 document.addEventListener("app:lang-changed", () => {
-    applyAuthorStaticTranslations();
-    if (currentAuthorProfile) {
-        renderAuthorProfile(currentAuthorProfile);
-        void loadAuthorAvatar(currentProfileHasAvatar);
-    }
-    renderDashboardStats(currentAuthorProjects);
-    renderRecentActivities(currentAuthorProjects);
-    renderAuthorProjects(currentAuthorProjects);
+    if (currentAuthorProfile) renderAuthorProfile();
+    renderAuthorProjects();
 });
+authorDialog.addEventListener("cancel", (event) => { if (profileBusy) event.preventDefault(); });
 
 async function initializeAuthorDashboard() {
-    applyAuthorStaticTranslations();
-    setAuthorStatus(t("author.status.loadingProfile", "Loading profile..."), "info");
-
-    const [profile, projects] = await Promise.all([
-        loadAuthorProfile(),
-        loadAuthorProjects()
+    setAuthorStatus("author.status.loadingProfile", "info");
+    const [profile, projects, categories] = await Promise.all([
+        fetchAuthorJson("/api/auth/me"), loadAuthorProjects(), window.RiseUpSession.request("/api/categories").then((r) => r.ok ? r.json() : [])
     ]);
-
     currentAuthorProfile = profile;
     currentAuthorProjects = projects;
-    renderAuthorProfile(profile);
+    authorCategories = categories;
+    renderAuthorProfile();
     await loadAuthorAvatar(profile.hasAvatar);
-    renderDashboardStats(projects);
-    renderRecentActivities(projects);
-    renderAuthorProjects(projects);
-    setAuthorStatus("", "");
+    renderAuthorProjects();
+    setAuthorStatus("");
 }
 
-async function loadAuthorProfile() {
-    const response = await fetch("/api/auth/me", {
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(t("author.status.profileError", "Could not load author profile"));
-    }
-
-    return response.json();
+async function fetchAuthorJson(url, options = {}) {
+    const response = await window.RiseUpSession.request(url, options);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || body.error || t("author.status.projectsError"));
+    return body;
 }
 
 async function loadAuthorProjects() {
-    const response = await fetch("/api/me/projects?size=24", {
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(t("author.status.projectsError", "Could not load author projects"));
-    }
-
-    const payload = await response.json();
-    return payload.content ?? [];
+    const projects = [];
+    let page = 0, pages = 1;
+    do {
+        const payload = await fetchAuthorJson(`/api/me/projects?size=24&page=${page}`);
+        projects.push(...(payload.content ?? []));
+        pages = Number(payload.totalPages ?? 1);
+    } while (++page < pages);
+    return projects;
 }
 
-function renderAuthorProfile(profile) {
-    const displayName = profile.displayName || (profile.email || "author").split("@")[0];
+function renderAuthorProfile() {
+    const profile = currentAuthorProfile;
+    const name = profile.displayName || (profile.email || "").split("@")[0];
     currentProfileHasAvatar = Boolean(profile.hasAvatar);
-
-    document.title = t("author.title", "Author Dashboard | RiseUp");
-    authorNameNode.textContent = displayName;
-    authorBioNode.textContent = profile.bio || t("author.bio", "Lead developer, building open-source projects.");
-    authorBioInputNode.value = profile.bio || "";
-    syncBioCounter();
-    authorEmailNode.textContent = profile.email || "-";
-    authorRegistrationDateNode.textContent = formatAuthorDate(profile.createdAt);
-    authorAvatarFallbackNode.textContent = getInitials(displayName);
-
-    showAvatarFallback(displayName);
+    const color = window.RiseUpUI.resolveProfileColor(profile.id);
+    document.getElementById("author-profile-banner").style.setProperty("--profile-color", color);
+    document.getElementById("profile-modal-avatar").style.setProperty("--profile-color", color);
+    authorNameNode.textContent = name;
+    authorAvatarFallbackNode.textContent = getInitials(name);
+    document.getElementById("author-bio").textContent = profile.bio || t("profile.emptyBio");
+    const date = window.AppI18n.formatMembershipDate(profile.createdAt);
+    document.getElementById("author-membership").textContent = t("author.membership").replace("{date}", date);
+    document.getElementById("profile-name").value = name;
+    document.getElementById("profile-email").value = profile.email || "";
+    syncModalAvatar();
+    const successful = currentAuthorProjects.filter((project) => project.status === "FUNDED").length;
+    const count = currentAuthorProjects.length;
+    const raised = currentAuthorProjects.reduce((sum, project) => sum + Number(project.collectedAmount || 0), 0);
+    const currency = currentAuthorProjects.find((project) => project.currency)?.currency || "RUB";
+    const metrics = [
+        [formatMoney(raised, currency, true), t("auth.stat.raised")],
+        [count, window.AppI18n.plural("count.project", count)],
+        [successful, window.AppI18n.plural("author.successful", successful)],
+        [`${count ? Math.round(successful / count * 100) : 0}%`, t("author.stats.successRate")]
+    ];
+    document.getElementById("author-stats").innerHTML = metrics.map(([value, label]) => `<div><dd>${escapeHtml(value)}</dd><dt>${escapeHtml(label)}</dt></div>`).join("");
 }
 
 function openBioEditor() {
-    authorBioFormNode.classList.remove("hidden");
-    authorBioEditButtonNode.classList.add("hidden");
-    authorBioInputNode.value = currentAuthorProfile?.bio || "";
+    if (!currentAuthorProfile) return;
+    authorBioInputNode.value = currentAuthorProfile.bio || "";
     syncBioCounter();
-    authorBioInputNode.focus();
-    authorBioInputNode.setSelectionRange(authorBioInputNode.value.length, authorBioInputNode.value.length);
-}
-
-function closeBioEditor() {
-    authorBioFormNode.classList.add("hidden");
-    authorBioEditButtonNode.classList.remove("hidden");
-    authorBioInputNode.value = currentAuthorProfile?.bio || "";
-    syncBioCounter();
+    document.getElementById("profile-status").textContent = "";
+    syncModalAvatar();
+    window.RiseUpUI.openModal(authorDialog);
 }
 
 function syncBioCounter() {
-    authorBioCounterNode.textContent = `${authorBioInputNode.value.length} / 280`;
+    document.getElementById("author-bio-counter").textContent = `${authorBioInputNode.value.length} / 280`;
 }
 
 async function saveBio(event) {
     event.preventDefault();
-
     const bio = authorBioInputNode.value.trim();
-    if (!bio) {
-        setAuthorStatus(t("author.status.bioRequired", "Please fill in your profile description"), "error");
-        return;
+    if (!bio || profileBusy) { if (!bio) setAuthorStatus("author.status.bioRequired", "error"); return; }
+    profileBusy = true;
+    document.getElementById("author-bio-save-btn").disabled = true;
+    setAuthorStatus("author.status.bioSaving", "info");
+    try {
+        currentAuthorProfile = await window.RiseUpProfile.saveBio(bio);
+        renderAuthorProfile();
+        await loadAuthorAvatar(currentProfileHasAvatar);
+        authorDialog.close();
+        setAuthorStatus("author.status.bioSaved", "success");
+    } catch {
+        setAuthorStatus("author.status.bioSaveError", "error");
+    } finally {
+        profileBusy = false;
+        document.getElementById("author-bio-save-btn").disabled = false;
     }
-
-    setAuthorStatus(t("author.status.bioSaving", "Saving description..."), "info");
-
-    const response = await fetch("/api/me/profile", {
-        method: "PATCH",
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({bio})
-    });
-
-    if (!response.ok) {
-        setAuthorStatus(t("author.status.bioSaveError", "Could not save description"), "error");
-        return;
-    }
-
-    currentAuthorProfile = await response.json();
-    renderAuthorProfile(currentAuthorProfile);
-    await loadAuthorAvatar(currentProfileHasAvatar);
-    closeBioEditor();
-    setAuthorStatus(t("author.status.bioSaved", "Description saved"), "success");
 }
 
-function renderDashboardStats(projects) {
-    const totalProjects = projects.length;
-    const successfulProjects = projects.filter(isSuccessfulProject).length;
-    const successRate = totalProjects ? Math.round((successfulProjects / totalProjects) * 100) : 0;
-    const totalCollected = projects.reduce((sum, project) => sum + normalizeNumber(project.collectedAmount), 0);
-    const currency = resolveCurrency(projects);
-
-    const stats = [
-        { title: t("author.stats.totalProjects", "Total projects"), value: String(totalProjects), icon: "◥", accentClass: "accent-violet" },
-        { title: t("author.stats.successfulProjects", "Successful campaigns"), value: String(successfulProjects), icon: "↗", accentClass: "accent-green" },
-        { title: t("author.stats.successRate", "Success rate"), value: `${successRate}%`, icon: "%", accentClass: "accent-cyan" },
-        { title: t("author.stats.totalRaised", "Total raised"), value: formatMoney(totalCollected, currency), icon: resolveCurrencyIcon(currency), accentClass: "accent-orange" }
-    ];
-
-    authorStatsNode.innerHTML = stats.map((stat) => `
-        <article class="stat-card ${stat.accentClass}">
-            <div class="stat-head">
-                <span class="stat-link stat-link-static">${escapeHtml(stat.title)}</span>
-                <span class="stat-icon stat-icon-soft">${escapeHtml(stat.icon)}</span>
-            </div>
-            <div class="stat-copy">
-                <h2>${escapeHtml(stat.value)}</h2>
-                <p>${escapeHtml(stat.title)}</p>
-            </div>
-            <div class="mini-bars mini-bars-soft">
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
-            </div>
-        </article>
-    `).join("");
-}
-
-function renderRecentActivities(projects) {
-    const activities = projects
-        .slice()
-        .sort((left, right) => new Date(right.updatedAt || right.createdAt || 0) - new Date(left.updatedAt || left.createdAt || 0))
-        .slice(0, 3)
-        .map((project) => {
-            const dateLabel = formatAuthorDate(project.updatedAt || project.createdAt);
-            const verb = project.updatedAt && project.updatedAt !== project.createdAt
-                ? formatActivityVerb(t("author.activity.updated", "updated"))
-                : t("author.activity.created", "created");
-            return `
-                <li class="author-activity-item">
-                    <div class="author-activity-dot"></div>
-                    <div>
-                        <strong>${escapeHtml(project.title || t("author.project.untitled", "Untitled"))}</strong>
-                        <p>${escapeHtml(formatActivityDescription(verb, project.status))}</p>
-                        <span>${escapeHtml(dateLabel)}</span>
-                    </div>
-                </li>
-            `;
+function renderAuthorProjects() {
+    const tabs = document.getElementById("author-status-tabs");
+    tabs.innerHTML = Object.keys(authorTabs).map((key) => `<button type="button" role="tab" id="author-tab-${key}" aria-controls="author-projects" aria-selected="${authorTab === key}" tabindex="${authorTab === key ? 0 : -1}" data-author-tab="${key}">${escapeHtml(t(`author.tab.${key}`))}</button>`).join("");
+    tabs.querySelectorAll("button").forEach((button, index, buttons) => {
+        button.addEventListener("click", () => { authorTab = button.dataset.authorTab; authorPage = 0; renderAuthorProjects(); document.getElementById(`author-tab-${authorTab}`).focus(); });
+        button.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + buttons.length) % buttons.length;
+            buttons[next].click();
         });
-
-    authorActivitiesNode.innerHTML = activities.length
-        ? activities.join("")
-        : `<li class="empty-state">${escapeHtml(t("author.activity.empty", "No activity yet. Create your first project to bring this dashboard to life."))}</li>`;
+    });
+    authorProjectsNode.setAttribute("aria-labelledby", `author-tab-${authorTab}`);
+    document.getElementById("author-filter-hint").textContent = t(`author.hint.${authorTab}`);
+    const filtered = currentAuthorProjects.filter((project) => !authorTabs[authorTab] || authorTabs[authorTab].includes(project.status));
+    const pages = Math.max(1, Math.ceil(filtered.length / 4));
+    authorPage = Math.max(0, Math.min(authorPage, pages - 1));
+    authorProjectsNode.innerHTML = filtered.length ? filtered.slice(authorPage * 4, authorPage * 4 + 4).map(renderAuthorCard).join("") : `<div class="empty-state">${escapeHtml(t(currentAuthorProjects.length ? "author.emptyFilter" : "author.projects.empty"))}</div>`;
+    authorProjectsNode.setAttribute("aria-busy", "false");
+    document.getElementById("author-page-info").textContent = t("catalog.pageOf").replace("{current}", authorPage + 1).replace("{total}", pages).replace("{page}", authorPage + 1);
+    document.getElementById("author-prev").disabled = authorPage === 0;
+    document.getElementById("author-next").disabled = authorPage >= pages - 1;
 }
 
-function renderAuthorProjects(projects) {
-    if (!projects.length) {
-        authorProjectsNode.innerHTML = `<div class="empty-state">${escapeHtml(t("author.projects.empty", "You do not have any projects yet."))}</div>`;
-        return;
-    }
-
-    authorProjectsNode.innerHTML = projects.map((project) => {
-        const canSubmit = project.status === "DRAFT" || project.status === "REJECTED";
-        const progress = resolveAuthorProjectProgress(project);
-        return `
-            <article class="project-card author-project-card">
-                <div class="project-card-media author-project-card-media">
-                    ${renderAuthorProjectCover(project)}
-                </div>
-                <div class="project-card-content author-project-card-content">
-                    <div class="author-project-card-topline">
-                        <div class="author-project-card-copy">
-                            <h4>${escapeHtml(project.title || t("author.project.untitled", "Untitled"))}</h4>
-                            <p>${escapeHtml(project.shortDescription ?? "")}</p>
-                        </div>
-                        <div class="author-project-card-goal">
-                            <span>${escapeHtml(t("author.project.goal", "Goal"))}</span>
-                            <strong>${escapeHtml(formatMoney(project.goalAmount, project.currency))}</strong>
-                        </div>
-                    </div>
-                    <div class="project-progress author-project-progress">
-                        <div class="project-progress-head">
-                            <span>${escapeHtml(t("author.project.raised", "Raised"))}: ${escapeHtml(formatMoney(project.collectedAmount, project.currency))}</span>
-                            <span>${progress}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-value" style="width:${Math.min(progress, 100)}%"></div>
-                        </div>
-                    </div>
-                    <div class="author-project-card-meta">
-                        <span>${escapeHtml(t("author.project.updated", "Updated"))}: ${escapeHtml(formatAuthorDate(project.updatedAt || project.createdAt))}</span>
-                        <span>${escapeHtml(t("author.project.currency", "Currency"))}: ${escapeHtml(project.currency ?? "RUB")}</span>
-                    </div>
-                    <div class="project-card-header author-project-card-badges">
-                        <span class="status-badge">${escapeHtml(formatProjectStatus(project.status))}</span>
-                        <span class="meta-pill">${escapeHtml(project.categoryTitle ?? t("app.general", "General"))}</span>
-                    </div>
-                    ${project.rejectionReason ? `<div class="project-rejection-note"><strong>${escapeHtml(t("author.project.moderationNote", "Moderation note"))}:</strong> ${escapeHtml(project.rejectionReason)}</div>` : ""}
-                    <div class="project-card-footer author-project-card-footer">
-                        <div class="project-card-footer-actions">
-                            <a class="ghost-btn" href="/project.html?id=${project.id}">${escapeHtml(t("author.project.open", "Open"))}</a>
-                            <a class="ghost-btn" href="/edit-project.html?id=${project.id}">${escapeHtml(t("author.project.edit", "Edit"))}</a>
-                        </div>
-                        ${canSubmit ? `<button class="primary-btn small-btn" type="button" data-submit-id="${project.id}">${escapeHtml(t("author.project.submit", "Submit"))}</button>` : ""}
-                    </div>
-                </div>
-            </article>
-        `;
-    }).join("");
-}
-
-function renderAuthorProjectCover(project) {
-    const className = "project-card-cover author-project-card-cover";
-    if (project?.hasCoverImage && project?.id) {
-        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
-    }
-
-    const category = project.categoryTitle ?? t("app.project", "Project");
-    const initials = getInitials(project.title || "PR");
-    const tone = resolveAuthorProjectTone(project);
-    return `
-        <div class="${className} ${tone}">
-            <div class="project-cover-glow"></div>
-            <div class="project-cover-copy">
-                <strong>${escapeHtml(initials)}</strong>
-                <span>${escapeHtml(category)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function resolveAuthorProjectProgress(project) {
-    const goal = normalizeNumber(project.goalAmount);
-    if (!goal) {
-        return 0;
-    }
-    return Math.round((normalizeNumber(project.collectedAmount) / goal) * 100);
-}
-
-function resolveAuthorProjectTone(project) {
-    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
+function renderAuthorCard(project) {
+    const id = encodeURIComponent(project.id);
+    const editable = ["DRAFT", "REJECTED"].includes(project.status);
+    const live = ["ACTIVE", "FUNDED"].includes(project.status);
+    const progress = window.RiseUpProjects.progress(project);
+    const cover = project.hasCoverImage ? `<img src="/api/projects/${id}/image" alt="" loading="lazy">` : "";
+    const updated = project.updatedAt || project.createdAt;
+    const date = updated ? new Intl.DateTimeFormat(resolveAuthorLocale(), {day: "numeric", month: "short"}).format(new Date(updated)) : "";
+    return `<article class="author-campaign-card"><a class="author-campaign-cover" href="/project.html?id=${id}" style="--category-color:${window.RiseUpProjects.categoryColor(project, authorCategories)}" aria-label="${escapeHtml(project.title)}">${cover}<span class="status-badge" data-status="${escapeHtml(project.status)}">${escapeHtml(t(`project.status.${project.status}`))}</span></a><div class="author-campaign-body"><div class="author-campaign-heading"><h3><a href="/project.html?id=${id}">${escapeHtml(project.title)}</a></h3><time>${escapeHtml(date)}</time></div><progress class="progress" max="100" value="${Math.min(progress, 100)}" aria-label="${escapeHtml(t("public.progress"))}"></progress><div class="public-project-totals"><span><b>${escapeHtml(formatMoney(project.collectedAmount, project.currency))}</b> ${escapeHtml(t("public.of"))} ${escapeHtml(formatMoney(project.goalAmount, project.currency))}</span><b>${progress}%</b></div>${project.status === "REJECTED" && project.rejectionReason ? `<p class="project-revision-note">${escapeHtml(t("editor.moderator"))} ${escapeHtml(project.rejectionReason)}</p>` : ""}<div class="author-campaign-actions">${editable ? `<a class="secondary-btn" href="/edit-project.html?id=${id}">${escapeHtml(t("author.project.edit"))}</a><button class="primary-btn" type="button" data-submit-id="${escapeHtml(project.id)}">${escapeHtml(t("author.project.submit"))}</button>` : `<a class="secondary-btn" href="/project.html?id=${id}${live ? "#news" : ""}">${escapeHtml(t(live ? "author.openNews" : "author.project.open"))}</a>`}</div></div></article>`;
 }
 
 authorProjectsNode.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-submit-id]");
-    if (!button) {
-        return;
+    if (!button) return;
+    button.disabled = true;
+    setAuthorStatus("author.status.submitting", "info");
+    try {
+        await fetchAuthorJson(`/api/me/projects/${encodeURIComponent(button.dataset.submitId)}/submit`, {method: "POST"});
+        currentAuthorProjects = await loadAuthorProjects();
+        renderAuthorProfile();
+        renderAuthorProjects();
+        setAuthorStatus("author.status.submitted", "success");
+    } catch {
+        button.disabled = false;
+        setAuthorStatus("author.status.submitError", "error");
     }
-
-    setAuthorStatus(t("author.status.submitting", "Submitting project for moderation..."), "info");
-    const response = await fetch(`/api/me/projects/${button.getAttribute("data-submit-id")}/submit`, {
-        method: "POST",
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        setAuthorStatus(t("author.status.submitError", "Could not submit project for moderation"), "error");
-        return;
-    }
-
-    setAuthorStatus(t("author.status.submitted", "Project submitted for moderation"), "success");
-    const projects = await loadAuthorProjects();
-    currentAuthorProjects = projects;
-    renderDashboardStats(projects);
-    renderRecentActivities(projects);
-    renderAuthorProjects(projects);
 });
 
-function readStoredAuth() {
-    try {
-        return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null");
-    } catch {
-        return null;
+function setAuthorStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
+    authorStatus = {message, type};
+    if (!message.endsWith("loadingProfile")) window.RiseUpToast.show(message, type);
+    for (const node of [authorStatusNode, document.getElementById("profile-status")]) {
+        node.hidden = true;
+        node.removeAttribute("role");
+        node.textContent = t(message, message);
+        node.className = `auth-status ${type}`.trim();
+
     }
 }
 
-function setAuthorStatus(message, type = "") {
-    authorStatusNode.textContent = message;
-    authorStatusNode.className = `auth-status ${type}`.trim();
+function readStoredAuth() {
+    try { return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null"); } catch { return null; }
+}
+
+function syncModalAvatar() {
+    const node = document.getElementById("profile-modal-avatar");
+    node.replaceChildren();
+    if (currentAvatarObjectUrl) {
+        const image = document.createElement("img");
+        image.src = currentAvatarObjectUrl;
+        image.alt = "";
+        node.append(image);
+    } else node.textContent = getInitials(authorNameNode.textContent);
 }
 
 async function handleAvatarChange(event) {
@@ -374,13 +220,13 @@ async function handleAvatarChange(event) {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        setAuthorStatus(t("author.status.avatarTooLarge", "Avatar must be 5 MB or smaller"), "error");
+        setAuthorStatus("author.status.avatarTooLarge", "error");
         event.target.value = "";
         return;
     }
 
     if (!file.type.startsWith("image/")) {
-        setAuthorStatus(t("author.status.avatarImageOnly", "Please choose an image file"), "error");
+        setAuthorStatus("author.status.avatarImageOnly", "error");
         event.target.value = "";
         return;
     }
@@ -396,7 +242,6 @@ async function handleAvatarChange(event) {
         saveLabel: t("avatar.crop.save", "Apply")
     }).catch(() => null);
     if (!croppedAvatar) {
-        setAuthorStatus(t("avatar.crop.error", "Could not open avatar editor"), "error");
         event.target.value = "";
         return;
     }
@@ -404,29 +249,23 @@ async function handleAvatarChange(event) {
     const uploadFile = new File([croppedAvatar], "avatar.png", {type: "image/png"});
 
     setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
-    setAuthorStatus(t("author.status.avatarSaving", "Saving avatar..."), "info");
+    setAuthorStatus("author.status.avatarSaving", "info");
 
-    const formData = new FormData();
-    formData.append("avatar", uploadFile);
-
-    const response = await fetch("/api/me/avatar", {
-        method: "POST",
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        },
-        body: formData
-    });
-
-    if (!response.ok) {
-        await loadAuthorAvatar(currentProfileHasAvatar);
-        setAuthorStatus(t("author.status.avatarSaveError", "Could not save avatar"), "error");
+    try {
+        await window.RiseUpProfile.uploadAvatar(uploadFile);
+    } catch {
+        if (!window.RiseUpSession.expiring) {
+            await loadAuthorAvatar(currentProfileHasAvatar);
+            setAuthorStatus("profile.avatarSaveError", "error");
+        }
         event.target.value = "";
         return;
     }
 
     currentProfileHasAvatar = true;
+    currentAuthorProfile.hasAvatar = true;
     await loadAuthorAvatar(true);
-    setAuthorStatus(t("author.status.avatarSaved", "Avatar saved"), "success");
+    setAuthorStatus("author.status.avatarSaved", "success");
     event.target.value = "";
 }
 
@@ -436,25 +275,19 @@ async function loadAuthorAvatar(hasAvatar) {
         return;
     }
 
-    const response = await fetch("/api/me/avatar", {
-        headers: {
-            "Authorization": `${authorAuth.tokenType || "Bearer"} ${authorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
+    const blob = await window.RiseUpProfile.loadAvatar();
+    if (!blob) {
         showAvatarFallback(authorNameNode.textContent.trim());
         return;
     }
-
-    const blob = await response.blob();
     setAvatarPreviewUrl(URL.createObjectURL(blob));
 }
 
 function showAvatarFallback(displayName) {
     revokeCurrentAvatarUrl();
-    authorAvatarPreviewNode.classList.add("hidden");
-    authorAvatarFallbackNode.classList.remove("hidden");
+    authorAvatarPreviewNode.hidden = true;
+    authorAvatarFallbackNode.hidden = false;
+    syncModalAvatar();
     authorAvatarFallbackNode.textContent = getInitials(displayName);
 }
 
@@ -462,8 +295,9 @@ function setAvatarPreviewUrl(url) {
     revokeCurrentAvatarUrl();
     currentAvatarObjectUrl = url;
     authorAvatarPreviewNode.src = url;
-    authorAvatarPreviewNode.classList.remove("hidden");
-    authorAvatarFallbackNode.classList.add("hidden");
+    authorAvatarPreviewNode.hidden = false;
+    authorAvatarFallbackNode.hidden = true;
+    syncModalAvatar();
 }
 
 function revokeCurrentAvatarUrl() {
@@ -482,126 +316,13 @@ function getInitials(value) {
         .join("") || "AU";
 }
 
-function isSuccessfulProject(project) {
-    return project.status === "FUNDED" || normalizeNumber(project.collectedAmount) >= normalizeNumber(project.goalAmount);
-}
-
-function normalizeNumber(value) {
-    const parsed = Number(value ?? 0);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function resolveCurrency(projects) {
-    return projects.find((project) => project.currency)?.currency || "RUB";
-}
-
-function formatMoney(value, currency = "RUB") {
-    return new Intl.NumberFormat(resolveAuthorLocale(), {
-        style: "currency",
-        currency,
-        maximumFractionDigits: 0
-    }).format(normalizeNumber(value));
-}
-
-function resolveCurrencyIcon(currency) {
-    switch (String(currency || "").toUpperCase()) {
-        case "USD":
-            return "$";
-        case "EUR":
-            return "€";
-        default:
-            return "₽";
-    }
-}
-
-function formatAuthorDate(value) {
-    if (!value) {
-        return "-";
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return "-";
-    }
-
-    return new Intl.DateTimeFormat(resolveAuthorLocale(), {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-    }).format(date);
-}
-
-function formatProjectStatus(status) {
-    return t(`project.status.${status}`, status || "UNKNOWN");
-}
-
-function formatAuthorGuideTip(key, fallback, statusCodes) {
-    return statusCodes.reduce(
-        (text, statusCode) => text.replaceAll(statusCode, formatProjectStatus(statusCode)),
-        t(key, fallback)
-    );
-}
-
-function formatActivityVerb(verb) {
-    return String(verb ?? "").replaceAll("обновлен", "обновлён");
-}
-
-function formatActivityDescription(verb, status) {
-    return t("author.activity.description", "Project {verb}, status: {status}.")
-        .replace("{verb}", verb)
-        .replace("{status}", formatProjectStatus(status || "UNKNOWN"));
-}
-
-function applyAuthorStaticTranslations() {
-    document.title = t("author.title", "Author Dashboard | RiseUp");
-    authorAvatarPreviewNode.alt = t("author.avatar.alt", "User avatar");
-    authorAvatarUploadLabelNode.setAttribute("aria-label", t("author.avatar.upload", "Upload avatar"));
-    authorProfileKickerNode.textContent = t("author.profile.kicker", "Author profile");
-    authorRegistrationLabelNode.textContent = t("author.profile.registeredAt", "Registration date");
-    authorEmailLabelNode.textContent = t("author.profile.email", "Email");
-    authorHomeLinkNode.textContent = t("author.action.home", "Back home");
-    authorNewProjectLinkNode.textContent = t("author.action.newProject", "New project");
-    authorBioEditButtonNode.textContent = t("author.bio.edit", "Edit");
-    authorBioSaveButtonNode.textContent = t("author.bio.save", "Save");
-    authorBioCancelButtonNode.textContent = t("author.bio.cancel", "Cancel");
-    authorActivityKickerNode.textContent = t("author.activity.kicker", "Activity");
-    authorActivityTitleNode.textContent = t("author.activity.title", "Recent activity");
-    authorGuideKickerNode.textContent = t("author.guide.kicker", "Statuses");
-    authorGuideTitleNode.textContent = t("author.guide.title", "What happens to projects");
-    authorProjectsKickerNode.textContent = t("author.projects.kicker", "Projects");
-    authorProjectsTitleNode.textContent = t("author.projects.title", "Your campaigns");
-    authorBioFormNode.querySelector(".author-bio-label").textContent = t("author.bio.label", "About");
-    authorGuideListNode.innerHTML = `
-        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip1", "DRAFT — the project is still being edited and is not public yet.", ["DRAFT"]))}</li>
-        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip2", "MODERATION — the project is waiting for admin review.", ["MODERATION"]))}</li>
-        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip3", "ACTIVE — the project is published and accepting support.", ["ACTIVE"]))}</li>
-        <li>${escapeHtml(formatAuthorGuideTip("author.guide.tip4", "FUNDED and CLOSED — final campaign states.", ["FUNDED", "CLOSED"]))}</li>
-    `;
-}
-
-function t(key, fallback) {
-    return window.AppI18n?.t?.(key) ?? fallback;
-}
-
-function resolveAuthorLocale() {
-    return window.AppI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
-}
-
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
 async function openAvatarCropper(options) {
     const image = await loadAvatarCropperImage(options.file);
     return new Promise((resolve) => {
         const outputSize = 512;
-        const modal = document.createElement("div");
-        modal.className = "avatar-cropper-modal";
+        const modal = document.createElement("dialog");
+        modal.className = "modal-dialog media-crop-dialog";
+        modal.setAttribute("aria-label", options.title);
         modal.innerHTML = `
             <div class="avatar-cropper-dialog">
                 <div class="avatar-cropper-head">
@@ -672,6 +393,7 @@ async function openAvatarCropper(options) {
         }
 
         function close(result) {
+            if (modal.open) modal.close();
             modal.remove();
             document.body.classList.remove("avatar-cropper-open");
             resolve(result);
@@ -737,7 +459,19 @@ async function openAvatarCropper(options) {
             canvas.toBlob((blob) => close(blob || null), "image/png");
         });
 
+        modal.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            close(null);
+        });
+        modal.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.setTimeout(() => close(null), 0);
+        });
         document.body.appendChild(modal);
+        window.RiseUpUI.openModal(modal);
         document.body.classList.add("avatar-cropper-open");
         resetView();
     });

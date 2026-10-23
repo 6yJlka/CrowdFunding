@@ -1,259 +1,232 @@
-const sponsorAuth = readSponsorAuth();
-const sponsorProjectsNode = document.getElementById("sponsor-projects");
+const sponsorAuth = readStoredAuth();
+const sponsorDonationsNode = document.getElementById("sponsor-donations");
 const sponsorStatusNode = document.getElementById("sponsor-status");
-const sponsorStatsNode = document.getElementById("sponsor-stats");
-const sponsorActivitiesNode = document.getElementById("sponsor-activities");
 const sponsorNameNode = document.getElementById("sponsor-name");
-const sponsorBioNode = document.getElementById("sponsor-bio");
-const sponsorEmailNode = document.getElementById("sponsor-email");
-const sponsorRegistrationDateNode = document.getElementById("sponsor-registration-date");
-const sponsorProfileKickerNode = document.getElementById("sponsor-profile-kicker");
-const sponsorRegistrationLabelNode = document.getElementById("sponsor-registration-label");
-const sponsorEmailLabelNode = document.getElementById("sponsor-email-label");
-const sponsorHomeLinkNode = document.getElementById("sponsor-home-link");
-const sponsorProjectsLinkNode = document.getElementById("sponsor-projects-link");
-const sponsorActivityKickerNode = document.getElementById("sponsor-activity-kicker");
-const sponsorActivityTitleNode = document.getElementById("sponsor-activity-title");
-const sponsorGuideKickerNode = document.getElementById("sponsor-guide-kicker");
-const sponsorGuideTitleNode = document.getElementById("sponsor-guide-title");
-const sponsorGuideListNode = document.getElementById("sponsor-guide-list");
-const sponsorProjectsKickerNode = document.getElementById("sponsor-projects-kicker");
-const sponsorProjectsTitleNode = document.getElementById("sponsor-projects-title");
+const sponsorBioInputNode = document.getElementById("sponsor-bio-input");
+const sponsorAvatarInputNode = document.getElementById("sponsor-avatar-input");
 const sponsorAvatarPreviewNode = document.getElementById("sponsor-avatar-preview");
 const sponsorAvatarFallbackNode = document.getElementById("sponsor-avatar-fallback");
-const sponsorAvatarUploadLabelNode = document.getElementById("sponsor-avatar-upload-label");
-const sponsorAvatarInputNode = document.getElementById("sponsor-avatar-input");
-let sponsorAvatarObjectUrl = "";
+const sponsorDialog = document.getElementById("sponsor-profile-dialog");
+let currentAvatarObjectUrl = "";
+let currentProfileHasAvatar = false;
 let currentSponsorProfile = null;
 let currentSponsorDonations = [];
+let sponsorCategories = [];
+let sponsorTab = "all";
+const sponsorProjectDetails = new Map();
+let sponsorStatus = {message: "", type: ""};
+let profileBusy = false;
+let sponsorDonationsLoaded = false;
+const sponsorTabs = {all: null, ok: ["SUCCEEDED"], pending: ["PENDING"], failed: ["FAILED", "CANCELED"]};
+const t = (key, fallback = key) => window.AppI18n.t(key) === key ? fallback : window.AppI18n.t(key);
+const escapeHtml = window.RiseUpProjects.escapeHtml;
+const resolveSponsorLocale = () => window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+const formatMoney = window.RiseUpProjects.formatMoney;
 
-if (!sponsorAuth?.accessToken) {
-    window.location.href = "/auth.html";
-}
-
-initializeSponsorDashboard().catch((error) => setSponsorStatus(error.message, "error"));
-
-sponsorAvatarInputNode?.addEventListener("change", handleSponsorAvatarChange);
-
-document.addEventListener("app:lang-changed", () => {
-    applySponsorStaticTranslations();
-    if (currentSponsorProfile) {
-        renderSponsorProfile(currentSponsorProfile);
-        void loadSponsorAvatar(Boolean(currentSponsorProfile.hasAvatar));
-    }
-    renderSponsorStats(currentSponsorDonations);
-    renderSponsorActivities(currentSponsorDonations);
-    renderSponsorProjects(currentSponsorDonations);
+if (!sponsorAuth?.accessToken) window.location.href = "/auth.html";
+else initializeSponsorDashboard().catch((error) => {
+    setSponsorStatus(error.message, "error");
+    document.getElementById("sponsor-donations-panel").setAttribute("aria-busy", "false");
 });
 
+document.getElementById("sponsor-bio-edit-btn").addEventListener("click", openBioEditor);
+document.getElementById("sponsor-avatar-open").addEventListener("click", openBioEditor);
+document.getElementById("sponsor-avatar-upload").addEventListener("click", () => sponsorAvatarInputNode.click());
+sponsorAvatarInputNode.addEventListener("change", (event) => handleAvatarChange(event).catch(() => setSponsorStatus("sponsor.status.avatarSaveError", "error")));
+sponsorBioInputNode.addEventListener("input", syncBioCounter);
+document.getElementById("sponsor-bio-form").addEventListener("submit", saveBio);
+document.addEventListener("app:lang-changed", () => {
+    if (currentSponsorProfile) renderSponsorProfile();
+    renderSponsorDonations();
+});
+sponsorDialog.addEventListener("cancel", (event) => { if (profileBusy) event.preventDefault(); });
+
 async function initializeSponsorDashboard() {
-    applySponsorStaticTranslations();
-    setSponsorStatus(t("sponsor.status.loadingProfile", "Loading sponsor dashboard..."), "info");
-
+    setSponsorStatus("sponsor.status.loadingProfile", "info");
     const [profile, donations] = await Promise.all([
-        loadSponsorProfile(),
-        loadSponsorDonations()
+        fetchSponsorJson("/api/auth/me"), loadSponsorDonations()
     ]);
-
     currentSponsorProfile = profile;
     currentSponsorDonations = donations;
-    renderSponsorProfile(profile);
-    await loadSponsorAvatar(Boolean(profile.hasAvatar));
-    renderSponsorStats(donations);
-    renderSponsorActivities(donations);
-    renderSponsorProjects(donations);
-    setSponsorStatus("", "");
+    sponsorDonationsLoaded = true;
+    renderSponsorProfile();
+    renderSponsorDonations();
+    setSponsorStatus("");
+    await Promise.allSettled([loadSponsorAvatar(profile.hasAvatar), loadSponsorProjectPresentation()]);
 }
 
-async function loadSponsorProfile() {
-    const response = await fetch("/api/auth/me", {
-        headers: {
-            "Authorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(t("sponsor.status.profileError", "Could not load sponsor profile"));
-    }
-
-    return response.json();
+async function fetchSponsorJson(url, options = {}) {
+    const response = await window.RiseUpSession.request(url, options);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || body.error || "sponsor.status.loadError");
+    return body;
 }
 
 async function loadSponsorDonations() {
-    const response = await fetch("/api/me/donations?size=24", {
-        headers: {
-            "Authorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(t("sponsor.status.donationsError", "Could not load donations history"));
-    }
-
-    const payload = await response.json();
-    return payload.content ?? [];
+    const donations = [];
+    let page = 0, pages = 1;
+    do {
+        const payload = await fetchSponsorJson(`/api/me/donations?size=24&page=${page}`);
+        donations.push(...(payload.content ?? []));
+        pages = Number(payload.totalPages ?? 1);
+    } while (++page < pages);
+    return donations;
 }
 
-function renderSponsorProfile(profile) {
-    const displayName = profile.displayName || (profile.email || "sponsor").split("@")[0];
-    sponsorNameNode.textContent = displayName;
-    sponsorBioNode.textContent = profile.bio || t("sponsor.bio", "I support projects that make the platform stronger.");
-    sponsorEmailNode.textContent = profile.email || "-";
-    sponsorRegistrationDateNode.textContent = formatSponsorDate(profile.createdAt);
-    sponsorAvatarFallbackNode.textContent = getSponsorInitials(displayName);
-    document.title = t("sponsor.title", "Sponsor Dashboard | RiseUp");
-    showSponsorAvatarFallback(displayName);
+async function loadSponsorProjectPresentation() {
+    const ids = [...new Set(currentSponsorDonations.filter((item) => !item.hasProjectCoverImage).map((item) => item.projectId).filter(Boolean))];
+    await Promise.allSettled([
+        window.RiseUpSession.request("/api/categories").then((response) => response.ok ? response.json() : []).then((items) => { sponsorCategories = items; }),
+        ...ids.map(async (id) => {
+            const response = await window.RiseUpSession.request(`/api/projects/${encodeURIComponent(id)}`);
+            if (response.ok) sponsorProjectDetails.set(String(id), await response.json());
+        })
+    ]);
+    renderSponsorDonations();
 }
 
-function renderSponsorStats(donations) {
-    const totalDonations = donations.length;
-    const successfulDonations = donations.filter((item) => item.status === "SUCCEEDED").length;
-    const supportedProjects = new Set(donations.map((item) => item.projectId).filter(Boolean)).size;
-    const totalAmount = donations.reduce((sum, item) => sum + normalizeSponsorNumber(item.amount), 0);
-
-    const stats = [
-        { title: t("sponsor.stats.totalDonations", "Total donations"), value: String(totalDonations), icon: "◣", accentClass: "accent-violet" },
-        { title: t("sponsor.stats.successfulDonations", "Successful payments"), value: String(successfulDonations), icon: "↗", accentClass: "accent-green" },
-        { title: t("sponsor.stats.supportedProjects", "Supported projects"), value: String(supportedProjects), icon: "#", accentClass: "accent-cyan" },
-        { title: t("sponsor.stats.totalAmount", "Support amount"), value: formatSponsorMoney(totalAmount), icon: "₽", accentClass: "accent-orange" }
+function renderSponsorProfile() {
+    const profile = currentSponsorProfile;
+    const name = profile.displayName || (profile.email || "").split("@")[0];
+    currentProfileHasAvatar = Boolean(profile.hasAvatar);
+    const color = window.RiseUpUI.resolveProfileColor(profile.id);
+    document.getElementById("sponsor-profile-banner").style.setProperty("--profile-color", color);
+    document.getElementById("profile-modal-avatar").style.setProperty("--profile-color", color);
+    sponsorNameNode.textContent = name;
+    sponsorAvatarFallbackNode.textContent = getInitials(name);
+    document.getElementById("sponsor-bio").textContent = profile.bio || t("profile.emptyBio");
+    const date = window.AppI18n.formatMembershipDate(profile.createdAt);
+    document.getElementById("sponsor-membership").textContent = t("sponsor.membership").replace("{date}", date);
+    document.getElementById("profile-name").value = name;
+    document.getElementById("profile-email").value = profile.email || "";
+    syncModalAvatar();
+    const successful = currentSponsorDonations.filter((item) => item.status === "SUCCEEDED").length;
+    const count = currentSponsorDonations.length;
+    const supported = new Set(currentSponsorDonations.map((item) => item.projectId).filter(Boolean)).size;
+    const amount = currentSponsorDonations.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const metrics = [
+        [formatMoney(amount, "RUB", true), t("sponsor.metric.amount")],
+        [supported, window.AppI18n.plural("sponsor.metric.projects", supported)],
+        [count, window.AppI18n.plural("sponsor.metric.donations", count)],
+        [successful, window.AppI18n.plural("sponsor.metric.paid", successful)]
     ];
-
-    sponsorStatsNode.innerHTML = stats.map((stat) => `
-        <article class="stat-card ${stat.accentClass}">
-            <div class="stat-head">
-                <span class="stat-link stat-link-static">${escapeSponsorHtml(stat.title)}</span>
-                <span class="stat-icon stat-icon-soft">${escapeSponsorHtml(stat.icon)}</span>
-            </div>
-            <div class="stat-copy">
-                <h2>${escapeSponsorHtml(stat.value)}</h2>
-                <p>${escapeSponsorHtml(stat.title)}</p>
-            </div>
-            <div class="mini-bars mini-bars-soft">
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
-            </div>
-        </article>
-    `).join("");
+    document.getElementById("sponsor-stats").innerHTML = metrics.map(([value, label]) => `<div><dd>${escapeHtml(value)}</dd><dt>${escapeHtml(label)}</dt></div>`).join("");
 }
 
-function renderSponsorActivities(donations) {
-    const activities = donations
-        .slice()
-        .sort((left, right) => new Date(right.confirmedAt || right.createdAt || 0) - new Date(left.confirmedAt || left.createdAt || 0))
-        .slice(0, 3)
-        .map((item) => `
-            <li class="author-activity-item">
-                <div class="author-activity-dot"></div>
-                <div>
-                    <strong>${escapeSponsorHtml(item.projectTitle || t("sponsor.project.untitled", "Untitled"))}</strong>
-                    <p>${escapeSponsorHtml(formatSponsorActivity(item))}</p>
-                    <span>${escapeSponsorHtml(formatSponsorDate(item.confirmedAt || item.createdAt))}</span>
-                </div>
-            </li>
-        `);
-
-    sponsorActivitiesNode.innerHTML = activities.length
-        ? activities.join("")
-        : `<li class="empty-state">${escapeSponsorHtml(t("sponsor.activity.empty", "No donations yet. Pick a project and support it."))}</li>`;
+function openBioEditor() {
+    if (!currentSponsorProfile) return;
+    sponsorBioInputNode.value = currentSponsorProfile.bio || "";
+    syncBioCounter();
+    document.getElementById("profile-status").textContent = "";
+    syncModalAvatar();
+    window.RiseUpUI.openModal(sponsorDialog);
 }
 
-function renderSponsorProjects(items) {
-    if (!items.length) {
-        sponsorProjectsNode.innerHTML = `<div class="empty-state">${escapeSponsorHtml(t("sponsor.projects.empty", "You have not supported any project yet."))}</div>`;
-        return;
+function syncBioCounter() {
+    document.getElementById("sponsor-bio-counter").textContent = `${sponsorBioInputNode.value.length} / 280`;
+}
+
+async function saveBio(event) {
+    event.preventDefault();
+    const bio = sponsorBioInputNode.value.trim();
+    if (!bio || profileBusy) { if (!bio) setSponsorStatus("sponsor.status.bioRequired", "error"); return; }
+    profileBusy = true;
+    document.getElementById("sponsor-bio-save-btn").disabled = true;
+    setSponsorStatus("sponsor.status.bioSaving", "info");
+    try {
+        currentSponsorProfile = await window.RiseUpProfile.saveBio(bio);
+        renderSponsorProfile();
+        await loadSponsorAvatar(currentProfileHasAvatar);
+        sponsorDialog.close();
+        setSponsorStatus("sponsor.status.bioSaved", "success");
+    } catch {
+        setSponsorStatus("sponsor.status.bioSaveError", "error");
+    } finally {
+        profileBusy = false;
+        document.getElementById("sponsor-bio-save-btn").disabled = false;
     }
-
-    sponsorProjectsNode.innerHTML = items.map((item) => `
-        <article class="project-card sponsor-support-card">
-            <div class="project-card-media sponsor-support-card-media">
-                ${renderSponsorProjectCover(item)}
-            </div>
-            <div class="project-card-content sponsor-support-card-content">
-                <div class="sponsor-support-card-topline">
-                    <div class="sponsor-support-card-copy">
-                        <h4>${escapeSponsorHtml(item.projectTitle ?? t("sponsor.project.untitled", "Untitled"))}</h4>
-                        <p>${escapeSponsorHtml(t("sponsor.project.supportedOn", "Supported on"))}: ${escapeSponsorHtml(formatSponsorDate(item.confirmedAt || item.createdAt))}</p>
-                    </div>
-                    <div class="sponsor-support-card-amount">
-                        <span>${escapeSponsorHtml(t("sponsor.project.yourSupport", "Your support"))}</span>
-                        <strong>${escapeSponsorHtml(formatSponsorMoney(item.amount))}</strong>
-                    </div>
-                </div>
-                <div class="sponsor-support-card-meta">
-                    <span>${escapeSponsorHtml(t("sponsor.project.paymentStatus", "Payment status"))}: ${escapeSponsorHtml(formatSponsorStatus(item.status))}</span>
-                    <span>${escapeSponsorHtml(t("sponsor.project.paymentId", "Payment"))}: ${escapeSponsorHtml(item.externalPaymentId ?? t("sponsor.project.noPaymentId", "No id"))}</span>
-                </div>
-                <div class="project-card-header sponsor-support-card-badges">
-                    <span class="status-badge">${escapeSponsorHtml(formatSponsorStatus(item.status))}</span>
-                    <span class="meta-pill">${escapeSponsorHtml(item.provider ?? t("sponsor.project.provider", "Provider"))}</span>
-                </div>
-                <div class="project-card-footer sponsor-support-card-footer">
-                    <strong>${escapeSponsorHtml(t("sponsor.project.viaProvider", "Via {provider}").replace("{provider}", item.provider ?? t("sponsor.project.provider", "Provider")))}</strong>
-                    <div class="project-card-footer-actions">
-                        <a class="ghost-btn" href="/project.html?id=${item.projectId}">${escapeSponsorHtml(t("sponsor.project.open", "Open project"))}</a>
-                    </div>
-                </div>
-            </div>
-        </article>
-    `).join("");
 }
 
-function renderSponsorProjectCover(item) {
-    const title = item?.projectTitle ?? t("sponsor.project.untitled", "Project");
-    const className = "project-card-cover sponsor-support-card-cover";
-    if (item?.hasProjectCoverImage && item?.projectId) {
-        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(item.projectId)}/image" alt="${escapeSponsorHtml(title)}">`;
-    }
-
-    const provider = item?.provider ?? t("sponsor.project.provider", "Provider");
-    const tone = resolveSponsorProjectTone(item);
-    const initials = getSponsorProjectInitials(title);
-    return `
-        <div class="${className} ${tone}">
-            <div class="project-cover-glow"></div>
-            <div class="project-cover-copy">
-                <strong>${escapeSponsorHtml(initials)}</strong>
-                <span>${escapeSponsorHtml(provider)}</span>
-            </div>
-        </div>
-    `;
-}
-
-async function loadSponsorAvatar(hasAvatar) {
-    if (!hasAvatar) {
-        showSponsorAvatarFallback(sponsorNameNode.textContent.trim());
-        return;
-    }
-
-    const response = await fetch("/api/me/avatar", {
-        headers: {
-            "Authorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        }
+function renderSponsorDonations() {
+    if (!sponsorDonationsLoaded) return;
+    const tabs = document.getElementById("sponsor-status-tabs");
+    const focusedTab = tabs.contains(document.activeElement) ? document.activeElement.dataset.sponsorTab : null;
+    tabs.innerHTML = Object.keys(sponsorTabs).map((key) => `<button type="button" role="tab" id="sponsor-tab-${key}" aria-controls="sponsor-donations-panel" aria-selected="${sponsorTab === key}" tabindex="${sponsorTab === key ? 0 : -1}" data-sponsor-tab="${key}">${escapeHtml(t(`sponsor.tab.${key}`))}</button>`).join("");
+    tabs.querySelectorAll("button").forEach((button, index, buttons) => {
+        button.addEventListener("click", () => { sponsorTab = button.dataset.sponsorTab; renderSponsorDonations(); document.getElementById(`sponsor-tab-${sponsorTab}`).focus(); });
+        button.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + buttons.length) % buttons.length;
+            buttons[next].click();
+        });
     });
-
-    if (!response.ok) {
-        showSponsorAvatarFallback(sponsorNameNode.textContent.trim());
-        return;
-    }
-
-    const blob = await response.blob();
-    setSponsorAvatarPreview(URL.createObjectURL(blob));
+    if (focusedTab !== null) document.getElementById(`sponsor-tab-${focusedTab}`)?.focus({preventScroll: true});
+    const panel = document.getElementById("sponsor-donations-panel");
+    panel.setAttribute("aria-labelledby", `sponsor-tab-${sponsorTab}`);
+    const filtered = currentSponsorDonations.filter((item) => !sponsorTabs[sponsorTab] || sponsorTabs[sponsorTab].includes(item.status));
+    sponsorDonationsNode.innerHTML = filtered.map(renderSponsorDonation).join("");
+    panel.setAttribute("aria-busy", "false");
+    const empty = document.getElementById("sponsor-empty");
+    empty.hidden = Boolean(filtered.length);
+    empty.dataset.i18nKey = currentSponsorDonations.length ? "sponsor.emptyFilter" : "sponsor.projects.empty";
+    empty.textContent = t(empty.dataset.i18nKey);
 }
 
-async function handleSponsorAvatarChange(event) {
+function renderSponsorDonation(item) {
+    const projectId = encodeURIComponent(item.projectId);
+    const title = item.projectTitle || t("sponsor.project.untitled");
+    const dateValue = item.confirmedAt || item.createdAt;
+    const date = dateValue ? new Intl.DateTimeFormat(resolveSponsorLocale(), {day: "numeric", month: "long", year: "numeric"}).format(new Date(dateValue)) : "—";
+    const project = sponsorProjectDetails.get(String(item.projectId));
+    const color = project ? window.RiseUpProjects.categoryColor(project, sponsorCategories) : "#3A3A40";
+    const href = `/project.html?id=${projectId}`;
+    const pending = item.status === "PENDING";
+    return `<li class="sponsor-donation-row"><span class="sponsor-donation-cover" style="--category-color:${color}" aria-hidden="true">${item.hasProjectCoverImage ? `<img src="/api/projects/${projectId}/image" alt="" loading="lazy">` : ""}</span><div class="sponsor-donation-copy"><a href="${href}">${escapeHtml(title)}</a><time>${escapeHtml(date)}</time></div><span class="status-badge" data-status="${escapeHtml(item.status)}">${escapeHtml(t(`donation.status.${item.status}`))}</span><strong class="sponsor-donation-amount">${escapeHtml(formatMoney(item.amount, "RUB"))}</strong><div class="sponsor-donation-action"><a class="${pending ? "primary-btn" : "secondary-btn"}" href="${pending ? `/pay.html?donationId=${encodeURIComponent(item.id)}` : href}">${escapeHtml(t(pending ? "sponsor.finishPayment" : "sponsor.toProject"))}</a></div></li>`;
+}
+
+function setSponsorStatus(message, type = "") {
+    if (window.RiseUpSession.expiring) return;
+    sponsorStatus = {message, type};
+    if (!message.endsWith("loadingProfile")) window.RiseUpToast.show(message, type);
+    for (const node of [sponsorStatusNode, document.getElementById("profile-status")]) {
+        node.hidden = true;
+        node.removeAttribute("role");
+        node.textContent = t(message, message);
+        node.className = `auth-status ${type}`.trim();
+
+    }
+}
+
+function readStoredAuth() {
+    try { return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null"); } catch { return null; }
+}
+
+function syncModalAvatar() {
+    const node = document.getElementById("profile-modal-avatar");
+    node.replaceChildren();
+    if (currentAvatarObjectUrl) {
+        const image = document.createElement("img");
+        image.src = currentAvatarObjectUrl;
+        image.alt = "";
+        node.append(image);
+    } else node.textContent = getInitials(sponsorNameNode.textContent);
+}
+
+async function handleAvatarChange(event) {
     const file = event.target.files?.[0];
     if (!file) {
         return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        setSponsorStatus(t("sponsor.status.avatarTooLarge", "Avatar must be 5 MB or smaller"), "error");
+        setSponsorStatus("sponsor.status.avatarTooLarge", "error");
         event.target.value = "";
         return;
     }
 
     if (!file.type.startsWith("image/")) {
-        setSponsorStatus(t("sponsor.status.avatarImageOnly", "Only image files are allowed"), "error");
+        setSponsorStatus("sponsor.status.avatarImageOnly", "error");
         event.target.value = "";
         return;
     }
@@ -269,106 +242,72 @@ async function handleSponsorAvatarChange(event) {
         saveLabel: t("avatar.crop.save", "Apply")
     }).catch(() => null);
     if (!croppedAvatar) {
-        setSponsorStatus(t("avatar.crop.error", "Could not open avatar editor"), "error");
         event.target.value = "";
         return;
     }
 
     const uploadFile = new File([croppedAvatar], "avatar.png", {type: "image/png"});
 
-    setSponsorAvatarPreview(URL.createObjectURL(uploadFile));
-    setSponsorStatus(t("sponsor.status.avatarSaving", "Saving avatar..."), "info");
+    setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
+    setSponsorStatus("sponsor.status.avatarSaving", "info");
 
-    const formData = new FormData();
-    formData.append("avatar", uploadFile);
-
-    const response = await fetch("/api/me/avatar", {
-        method: "POST",
-        headers: {
-            "Authorization": `${sponsorAuth.tokenType || "Bearer"} ${sponsorAuth.accessToken}`
-        },
-        body: formData
-    });
-
-    if (!response.ok) {
-        await loadSponsorAvatar(Boolean(currentSponsorProfile?.hasAvatar));
-        setSponsorStatus(t("sponsor.status.avatarSaveError", "Could not save avatar"), "error");
+    try {
+        await window.RiseUpProfile.uploadAvatar(uploadFile);
+    } catch {
+        if (!window.RiseUpSession.expiring) {
+            await loadSponsorAvatar(currentProfileHasAvatar);
+            setSponsorStatus("profile.avatarSaveError", "error");
+        }
         event.target.value = "";
         return;
     }
 
-    if (currentSponsorProfile) {
-        currentSponsorProfile.hasAvatar = true;
-    }
+    currentProfileHasAvatar = true;
+    currentSponsorProfile.hasAvatar = true;
     await loadSponsorAvatar(true);
-    setSponsorStatus(t("sponsor.status.avatarSaved", "Avatar saved"), "success");
+    setSponsorStatus("sponsor.status.avatarSaved", "success");
     event.target.value = "";
 }
 
-function setSponsorAvatarPreview(url) {
-    revokeSponsorAvatarUrl();
-    sponsorAvatarObjectUrl = url;
+async function loadSponsorAvatar(hasAvatar) {
+    if (!hasAvatar) {
+        showAvatarFallback(sponsorNameNode.textContent.trim());
+        return;
+    }
+
+    const blob = await window.RiseUpProfile.loadAvatar();
+    if (!blob) {
+        showAvatarFallback(sponsorNameNode.textContent.trim());
+        return;
+    }
+    setAvatarPreviewUrl(URL.createObjectURL(blob));
+}
+
+function showAvatarFallback(displayName) {
+    revokeCurrentAvatarUrl();
+    sponsorAvatarPreviewNode.hidden = true;
+    sponsorAvatarFallbackNode.hidden = false;
+    syncModalAvatar();
+    sponsorAvatarFallbackNode.textContent = getInitials(displayName);
+}
+
+function setAvatarPreviewUrl(url) {
+    revokeCurrentAvatarUrl();
+    currentAvatarObjectUrl = url;
     sponsorAvatarPreviewNode.src = url;
-    sponsorAvatarPreviewNode.classList.remove("hidden");
-    sponsorAvatarFallbackNode.classList.add("hidden");
+    sponsorAvatarPreviewNode.hidden = false;
+    sponsorAvatarFallbackNode.hidden = true;
+    syncModalAvatar();
 }
 
-function showSponsorAvatarFallback(displayName) {
-    revokeSponsorAvatarUrl();
-    sponsorAvatarPreviewNode.classList.add("hidden");
-    sponsorAvatarFallbackNode.classList.remove("hidden");
-    sponsorAvatarFallbackNode.textContent = getSponsorInitials(displayName);
-}
-
-function revokeSponsorAvatarUrl() {
-    if (sponsorAvatarObjectUrl) {
-        URL.revokeObjectURL(sponsorAvatarObjectUrl);
-        sponsorAvatarObjectUrl = "";
+function revokeCurrentAvatarUrl() {
+    if (currentAvatarObjectUrl) {
+        URL.revokeObjectURL(currentAvatarObjectUrl);
+        currentAvatarObjectUrl = "";
     }
 }
 
-function formatSponsorActivity(item) {
-    return t("sponsor.activity.description", "Supported project {title}, amount: {amount}, status: {status}.")
-        .replace("{title}", item.projectTitle || t("sponsor.project.untitled", "Untitled"))
-        .replace("{amount}", formatSponsorMoney(item.amount))
-        .replace("{status}", formatSponsorStatus(item.status));
-}
-
-function formatSponsorStatus(status) {
-    return t(`donation.status.${status}`, status || "UNKNOWN");
-}
-
-function formatSponsorMoney(value) {
-    return new Intl.NumberFormat(resolveSponsorLocale(), {
-        style: "currency",
-        currency: "RUB",
-        maximumFractionDigits: 0
-    }).format(normalizeSponsorNumber(value));
-}
-
-function normalizeSponsorNumber(value) {
-    const parsed = Number(value ?? 0);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function formatSponsorDate(value) {
-    if (!value) {
-        return "-";
-    }
-
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return "-";
-    }
-
-    return new Intl.DateTimeFormat(resolveSponsorLocale(), {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-    }).format(date);
-}
-
-function getSponsorInitials(value) {
+function getInitials(value) {
     return String(value || "SP")
         .split(/\s+/)
         .filter(Boolean)
@@ -377,91 +316,19 @@ function getSponsorInitials(value) {
         .join("") || "SP";
 }
 
-function getSponsorProjectInitials(value) {
-    return String(value || "PR")
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part[0]?.toUpperCase() || "")
-        .join("") || "PR";
-}
-
-function resolveSponsorProjectTone(item) {
-    const source = `${item?.provider ?? ""}:${item?.projectTitle ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
-}
-
-function readSponsorAuth() {
-    try {
-        return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null");
-    } catch {
-        return null;
-    }
-}
-
-function setSponsorStatus(message, type = "") {
-    sponsorStatusNode.textContent = message;
-    sponsorStatusNode.className = `auth-status ${type}`.trim();
-}
-
-function applySponsorStaticTranslations() {
-    document.title = t("sponsor.title", "Sponsor Dashboard | RiseUp");
-    sponsorAvatarPreviewNode.alt = t("sponsor.avatar.alt", "Sponsor avatar");
-    sponsorAvatarUploadLabelNode.setAttribute("aria-label", t("sponsor.avatar.upload", "Upload avatar"));
-    sponsorProfileKickerNode.textContent = t("sponsor.profile.kicker", "Sponsor profile");
-    sponsorRegistrationLabelNode.textContent = t("sponsor.profile.registeredAt", "Registration date");
-    sponsorEmailLabelNode.textContent = t("sponsor.profile.email", "Email");
-    sponsorHomeLinkNode.textContent = t("sponsor.action.home", "Home");
-    sponsorProjectsLinkNode.textContent = t("sponsor.action.findProject", "Find a project");
-    sponsorActivityKickerNode.textContent = t("sponsor.activity.kicker", "Activity");
-    sponsorActivityTitleNode.textContent = t("sponsor.activity.title", "Recent donations");
-    sponsorGuideKickerNode.textContent = t("sponsor.guide.kicker", "History");
-    sponsorGuideTitleNode.textContent = t("sponsor.guide.title", "What is shown in this dashboard");
-    sponsorProjectsKickerNode.textContent = t("sponsor.projects.kicker", "Support");
-    sponsorProjectsTitleNode.textContent = t("sponsor.projects.title", "Your donations");
-    sponsorGuideListNode.innerHTML = `
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip1", "All projects you supported."))}</li>
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip2", "Donation amount and payment status."))}</li>
-        <li>${escapeSponsorHtml(t("sponsor.guide.tip3", "Quick access to the public project page."))}</li>
-    `;
-}
-
-function escapeSponsorHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
-function resolveSponsorLocale() {
-    return window.AppI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
-}
-
-function t(key, fallback) {
-    return window.AppI18n?.t?.(key) ?? fallback;
-}
-
 async function openAvatarCropper(options) {
     const image = await loadAvatarCropperImage(options.file);
     return new Promise((resolve) => {
         const outputSize = 512;
-        const modal = document.createElement("div");
-        modal.className = "avatar-cropper-modal";
+        const modal = document.createElement("dialog");
+        modal.className = "modal-dialog media-crop-dialog";
+        modal.setAttribute("aria-label", options.title);
         modal.innerHTML = `
             <div class="avatar-cropper-dialog">
                 <div class="avatar-cropper-head">
                     <div>
-                        <p class="panel-kicker">${escapeSponsorHtml(options.kicker || "")}</p>
-                        <h3>${escapeSponsorHtml(options.title || "Adjust avatar")}</h3>
+                        <p class="panel-kicker">${escapeHtml(options.kicker || "")}</p>
+                        <h3>${escapeHtml(options.title || "Adjust avatar")}</h3>
                     </div>
                 </div>
                 <div class="avatar-cropper-body">
@@ -471,16 +338,16 @@ async function openAvatarCropper(options) {
                     </div>
                     <div class="avatar-cropper-controls">
                         <label class="avatar-cropper-zoom">
-                            <span>${escapeSponsorHtml(options.zoomLabel || "Zoom")}</span>
+                            <span>${escapeHtml(options.zoomLabel || "Zoom")}</span>
                             <input type="range" min="1" max="4" step="0.01" value="1">
                         </label>
-                        <p class="avatar-cropper-hint">${escapeSponsorHtml(options.hint || "Drag the image to choose the visible area.")}</p>
+                        <p class="avatar-cropper-hint">${escapeHtml(options.hint || "Drag the image to choose the visible area.")}</p>
                     </div>
                 </div>
                 <div class="avatar-cropper-actions">
-                    <button type="button" class="ghost-btn avatar-cropper-reset">${escapeSponsorHtml(options.resetLabel || "Reset")}</button>
-                    <button type="button" class="ghost-btn avatar-cropper-cancel">${escapeSponsorHtml(options.cancelLabel || "Cancel")}</button>
-                    <button type="button" class="primary-btn avatar-cropper-save">${escapeSponsorHtml(options.saveLabel || "Apply")}</button>
+                    <button type="button" class="ghost-btn avatar-cropper-reset">${escapeHtml(options.resetLabel || "Reset")}</button>
+                    <button type="button" class="ghost-btn avatar-cropper-cancel">${escapeHtml(options.cancelLabel || "Cancel")}</button>
+                    <button type="button" class="primary-btn avatar-cropper-save">${escapeHtml(options.saveLabel || "Apply")}</button>
                 </div>
             </div>
         `;
@@ -526,6 +393,7 @@ async function openAvatarCropper(options) {
         }
 
         function close(result) {
+            if (modal.open) modal.close();
             modal.remove();
             document.body.classList.remove("avatar-cropper-open");
             resolve(result);
@@ -591,7 +459,19 @@ async function openAvatarCropper(options) {
             canvas.toBlob((blob) => close(blob || null), "image/png");
         });
 
+        modal.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            close(null);
+        });
+        modal.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.setTimeout(() => close(null), 0);
+        });
         document.body.appendChild(modal);
+        window.RiseUpUI.openModal(modal);
         document.body.classList.add("avatar-cropper-open");
         resetView();
     });

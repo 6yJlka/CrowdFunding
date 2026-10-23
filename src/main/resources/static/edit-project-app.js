@@ -11,9 +11,9 @@ const editProjectImageInput = document.getElementById("project-image-input");
 const editProjectImageName = document.getElementById("project-image-name");
 const editProjectCoverPreviewImage = document.getElementById("project-cover-preview-image");
 const editProjectCoverPreviewFallback = document.getElementById("project-cover-preview-fallback");
-const editProjectCoverPreviewTitle = document.getElementById("project-cover-preview-title");
-const editProjectCoverPreviewCategory = document.getElementById("project-cover-preview-category");
+const editorUI = window.RiseUpEditor(editForm, editCategorySelect);
 const editSubmitButton = editForm.querySelector(".primary-btn");
+let editorStatus = {message: "", type: ""};
 let editProjectImageObjectUrl = "";
 let editProjectCroppedImageFile = null;
 let hasStoredEditProjectImage = false;
@@ -27,10 +27,12 @@ if (!editAuth?.accessToken || !editProjectId) {
 applyEditDateConstraints();
 wireEditProjectPreview();
 syncEditProjectImageName();
-Promise.all([loadEditCategories(), loadProjectForEdit(editProjectId)])
+loadEditCategories().then(() => loadProjectForEdit(editProjectId))
     .catch((error) => setEditStatus(error.message, "error"));
 document.addEventListener("app:lang-changed", () => {
-    applyEditProjectMode(!editCoverOnlyMode);
+    const previousStatus = {...editorStatus};
+    applyEditProjectMode(!editCoverOnlyMode, false);
+    editorStatus = previousStatus;
     if (!editProjectImageInput.files?.[0] && !editProjectCoverPreviewImage.getAttribute("src")) {
         renderEditProjectCoverFallback();
     }
@@ -43,14 +45,14 @@ editForm.addEventListener("submit", async (event) => {
     if (editCoverOnlyMode) {
         const file = editProjectImageInput.files?.[0];
         if (!file || !editProjectCroppedImageFile) {
-            setEditStatus(editTranslate("edit.coverOnly.requireImage", "Choose a new image to update the cover"), "error");
+            setEditStatus("edit.coverOnly.requireImage", "error");
             return;
         }
 
-        setEditStatus(editTranslate("edit.coverOnly.saving", "Saving cover..."), "info");
+        setEditStatus("edit.coverOnly.saving", "info");
         try {
             await uploadEditProjectImage(editProjectId, editProjectCroppedImageFile);
-            setEditStatus(editTranslate("edit.coverOnly.saved", "Project cover updated"), "success");
+            setEditStatus("edit.coverOnly.saved", "success");
             window.setTimeout(() => {
                 window.location.href = "/author-dashboard.html";
             }, 500);
@@ -61,10 +63,10 @@ editForm.addEventListener("submit", async (event) => {
     }
 
     const payload = collectProjectPayload(editForm);
-    setEditStatus("Saving changes...", "info");
+    setEditStatus("editor.saving", "info");
 
     try {
-        const response = await fetch(`/api/projects/${editProjectId}`, {
+        const response = await window.RiseUpSession.request(`/api/projects/${editProjectId}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -75,14 +77,14 @@ editForm.addEventListener("submit", async (event) => {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || "Could not update project");
+            throw new Error(body.message || body.error || editTranslate("editor.saveError"));
         }
 
         if (editProjectCroppedImageFile) {
             await uploadEditProjectImage(editProjectId, editProjectCroppedImageFile);
         }
 
-        setEditStatus(`Project updated: ${body.title}`, "success");
+        setEditStatus("editor.saved", "success");
         window.setTimeout(() => {
             window.location.href = "/author-dashboard.html";
         }, 500);
@@ -92,33 +94,29 @@ editForm.addEventListener("submit", async (event) => {
 });
 
 function wireEditProjectPreview() {
-    editForm.title.addEventListener("input", renderEditProjectCoverFallback);
-    editCategorySelect.addEventListener("change", renderEditProjectCoverFallback);
     editProjectImageInput.addEventListener("change", handleEditProjectImageChange);
 }
 
 async function loadEditCategories() {
-    const response = await fetch("/api/categories");
+    const response = await window.RiseUpSession.request("/api/categories");
     if (!response.ok) {
-        throw new Error("Could not load categories");
+        throw new Error(editTranslate("catalog.error.categories"));
     }
 
     const categories = await response.json();
-    editCategorySelect.innerHTML = `<option value="">Without category</option>${categories.map((category) => `
-        <option value="${category.id}">${escapeEditHtml(translateEditCategoryTitle(category.title))}</option>
-    `).join("")}`;
+    editorUI.setCategories(categories);
     renderEditProjectCoverFallback();
 }
 
 async function loadProjectForEdit(projectId) {
-    const response = await fetch(`/api/projects/${projectId}`, {
+    const response = await window.RiseUpSession.request(`/api/projects/${projectId}`, {
         headers: {
             "Authorization": `${editAuth.tokenType || "Bearer"} ${editAuth.accessToken}`
         }
     });
 
     if (!response.ok) {
-        throw new Error("Could not load project");
+        throw new Error(editTranslate("editor.loadError"));
     }
 
     const project = await response.json();
@@ -126,7 +124,7 @@ async function loadProjectForEdit(projectId) {
     applyEditProjectMode(canEditContent);
 
     if (canEditContent && project.rejectionReason) {
-        editRejectionNode.innerHTML = `<strong>Revision note:</strong> ${escapeEditHtml(project.rejectionReason)}`;
+        editRejectionNode.innerHTML = `<strong data-i18n-key="editor.moderator">${escapeEditHtml(editTranslate("editor.moderator"))}</strong> ${escapeEditHtml(project.rejectionReason)}`;
         editRejectionNode.classList.remove("hidden");
     } else {
         editRejectionNode.innerHTML = "";
@@ -141,6 +139,7 @@ async function loadProjectForEdit(projectId) {
     editForm.categoryId.value = project.categoryId ?? "";
     editForm.startAt.value = toLocalInputValue(project.startAt);
     editForm.endAt.value = toLocalInputValue(project.endAt);
+    editorUI.setProject(project);
     syncEditEndDateMin();
     renderEditProjectCoverFallback();
     if (project.hasCoverImage) {
@@ -158,7 +157,7 @@ async function uploadEditProjectImage(projectId, file) {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch(`/api/projects/${projectId}/image`, {
+    const response = await window.RiseUpSession.request(`/api/projects/${projectId}/image`, {
         method: "POST",
         headers: {
             "Authorization": `${editAuth.tokenType || "Bearer"} ${editAuth.accessToken}`
@@ -188,7 +187,7 @@ function handleEditProjectImageChange(event) {
         clearEditProjectImagePreview();
         renderEditProjectCoverFallback();
         syncEditProjectImageName();
-        setEditStatus(editTranslate("create.image.tooLarge", "Project image must be 5 MB or smaller"), "error");
+        setEditStatus("create.image.tooLarge", "error");
         return;
     }
 
@@ -198,7 +197,7 @@ function handleEditProjectImageChange(event) {
         clearEditProjectImagePreview();
         renderEditProjectCoverFallback();
         syncEditProjectImageName();
-        setEditStatus(editTranslate("create.image.imageOnly", "Project image must be an image"), "error");
+        setEditStatus("create.image.imageOnly", "error");
         return;
     }
 
@@ -230,7 +229,7 @@ function handleEditProjectImageChange(event) {
         clearEditProjectImagePreview();
         renderEditProjectCoverFallback();
         syncEditProjectImageName();
-        setEditStatus(editTranslate("project.crop.error", "Could not open cover editor"), "error");
+        setEditStatus("project.crop.error", "error");
     });
 }
 
@@ -259,16 +258,7 @@ function clearEditProjectImagePreview() {
     editProjectCoverPreviewFallback.classList.remove("hidden");
 }
 
-function renderEditProjectCoverFallback() {
-    if (editProjectImageInput.files?.[0] || editProjectCoverPreviewImage.getAttribute("src")) {
-        return;
-    }
-    const title = editForm.title.value.trim();
-    const categoryTitle = editCategorySelect.options[editCategorySelect.selectedIndex]?.textContent?.trim() || "Project";
-    editProjectCoverPreviewTitle.textContent = resolveEditProjectCoverInitials(title);
-    editProjectCoverPreviewCategory.textContent = categoryTitle;
-    editProjectCoverPreviewFallback.className = `project-cover-preview ${resolveEditProjectCoverToneClass(title, categoryTitle)}`;
-}
+function renderEditProjectCoverFallback() { editorUI.render(); }
 
 function syncEditProjectImageName(fileName = "") {
     if (fileName) {
@@ -278,30 +268,6 @@ function syncEditProjectImageName(fileName = "") {
     editProjectImageName.textContent = hasStoredEditProjectImage
         ? editTranslate("edit.image.current", "Current image")
         : editTranslate("create.image.none", "No file selected");
-}
-
-function resolveEditProjectCoverInitials(title) {
-    const parts = String(title ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return "PR";
-    }
-
-    return parts.slice(0, 2)
-        .map((part) => Array.from(part)[0] ?? "")
-        .join("")
-        .toUpperCase();
-}
-
-function resolveEditProjectCoverToneClass(title, categoryTitle) {
-    const source = `${categoryTitle ?? ""}:${title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
 }
 
 function collectProjectPayload(form) {
@@ -317,7 +283,7 @@ function collectProjectPayload(form) {
     };
 }
 
-function applyEditProjectMode(canEditContent) {
+function applyEditProjectMode(canEditContent, notify = true) {
     editCoverOnlyMode = !canEditContent;
     editForm.title.disabled = editCoverOnlyMode;
     editForm.shortDescription.disabled = editCoverOnlyMode;
@@ -330,9 +296,12 @@ function applyEditProjectMode(canEditContent) {
     editSubmitButton.textContent = editCoverOnlyMode
         ? editTranslate("edit.coverOnly.save", "Save cover")
         : editTranslate("edit.save", "Save changes");
+    document.getElementById("editor-content-fields").disabled = editCoverOnlyMode;
+    document.getElementById("editor-funding-fields").disabled = editCoverOnlyMode;
+    editorUI.render();
 
     if (editCoverOnlyMode) {
-        setEditStatus(editTranslate("edit.coverOnly.info", "For published projects, only the cover image can be changed here"), "info");
+        setEditStatus("edit.coverOnly.info", "info", notify);
     }
 }
 
@@ -373,8 +342,13 @@ function toLocalInputValue(value) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function setEditStatus(message, type = "") {
-    editStatusNode.textContent = message;
+function setEditStatus(message, type = "", notify = true) {
+    if (window.RiseUpSession.expiring) return;
+    editorStatus = {message, type};
+    editStatusNode.hidden = true;
+    if (notify) window.RiseUpToast.show(message, type);
+    editStatusNode.textContent = window.AppI18n.t(message);
+    editStatusNode.setAttribute("role", type === "error" ? "alert" : "status");
     editStatusNode.className = `auth-status ${type}`.trim();
 }
 
@@ -392,8 +366,9 @@ async function openProjectCoverCropper(options) {
     return new Promise((resolve) => {
         const outputWidth = 1600;
         const outputHeight = 900;
-        const modal = document.createElement("div");
-        modal.className = "avatar-cropper-modal";
+        const modal = document.createElement("dialog");
+        modal.className = "modal-dialog media-crop-dialog";
+        modal.setAttribute("aria-label", options.title);
         modal.innerHTML = `
             <div class="avatar-cropper-dialog project-cover-cropper-dialog">
                 <div class="avatar-cropper-head">
@@ -483,6 +458,7 @@ async function openProjectCoverCropper(options) {
         }
 
         function close(result) {
+            if (modal.open) modal.close();
             modal.remove();
             document.body.classList.remove("avatar-cropper-open");
             resolve(result);
@@ -540,7 +516,9 @@ async function openProjectCoverCropper(options) {
             canvas.toBlob((blob) => close(blob || null), "image/png");
         });
 
+        modal.addEventListener("cancel", (event) => { event.preventDefault(); close(null); });
         document.body.appendChild(modal);
+        window.RiseUpUI.openModal(modal);
         document.body.classList.add("avatar-cropper-open");
         resetView();
     });
@@ -561,25 +539,6 @@ function loadProjectCropperImage(file) {
         image.src = objectUrl;
     });
 }
-function translateEditCategoryTitle(title) {
-    const normalized = String(title ?? "").trim().toLowerCase();
-    const key = EDIT_CATEGORY_TRANSLATION_KEYS[normalized];
-    return key ? editTranslate(key, title) : title;
-}
 function editTranslate(key, fallback) {
     return window.AppI18n?.t?.(key) ?? fallback;
 }
-const EDIT_CATEGORY_TRANSLATION_KEYS = {
-    "??????????": "category.tech",
-    "technology": "category.tech",
-    "technologies": "category.tech",
-    "??????????": "category.art",
-    "art": "category.art",
-    "?????????? ???????": "category.social",
-    "social": "category.social",
-    "social projects": "category.social",
-    "???????????": "category.education",
-    "education": "category.education",
-    "???????????????????": "category.charity",
-    "charity": "category.charity"
-};

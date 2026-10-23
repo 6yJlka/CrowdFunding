@@ -3,6 +3,17 @@ const projectId = projectQuery.get("id");
 const paymentResult = projectQuery.get("payment");
 const projectAuth = readProjectAuth();
 const projectI18n = window.AppI18n;
+const projectUiStatuses = new Map();
+let projectPageErrorKey = "";
+
+// The storefront only pre-fills the amount; authorization and donation submission stay here.
+const suggestedDonationAmount = Number(projectQuery.get("amount"));
+let selectedQuickAmount = [500, 1000, 3000, 10000].includes(suggestedDonationAmount) ? suggestedDonationAmount : 1000;
+let paymentResultDismissed = false;
+if (Number.isFinite(suggestedDonationAmount) && suggestedDonationAmount > 0 && suggestedDonationAmount !== selectedQuickAmount) {
+    selectedQuickAmount = null;
+    document.getElementById("donation-amount").value = formatAmountInput(String(suggestedDonationAmount));
+}
 
 const donationForm = document.getElementById("donation-form");
 const donationStatusNode = document.getElementById("donation-status");
@@ -28,10 +39,18 @@ const projectPageState = {
     currentDonations: [],
     currentUpdates: [],
     currentComments: [],
-    replyToCommentId: null
+    replyToCommentId: null,
+    categories: [],
+    relatedProjects: [],
+    relatedLoaded: false,
+    relatedError: false,
+    donationBusy: false
 };
+wireProjectInteractions();
 document.addEventListener("app:lang-changed", () => {
+    refreshProjectUiStatuses();
     if (!projectPageState.currentProject) {
+        if (projectPageErrorKey) document.getElementById("project-title").textContent = projectT(projectPageErrorKey);
         return;
     }
     renderProjectPage(
@@ -46,10 +65,15 @@ document.addEventListener("app:lang-changed", () => {
 });
 
 if (!projectId) {
+    projectPageErrorKey = "project.error.missingId";
     document.getElementById("project-title").textContent = projectT("project.error.missingId", "Project id is missing");
+    document.getElementById("project-hero").setAttribute("aria-busy", "false");
 } else {
     bootstrapProjectPage().catch(() => {
+        projectPageErrorKey = "project.error.notFound";
         document.getElementById("project-title").textContent = projectT("app.unavailable", "Project unavailable");
+        document.getElementById("project-hero").setAttribute("aria-busy", "false");
+        setPageStatus("project.error.notFound", "error");
     });
 }
 
@@ -70,7 +94,7 @@ commentsNode.addEventListener("click", async (event) => {
     }
 
     if (!projectAuth?.accessToken) {
-        setCommentStatus(projectT("project.comment.loginManage", "Log in to manage comments"), "error");
+        setCommentStatus("project.comment.loginManage", "error");
         return;
     }
 
@@ -84,7 +108,7 @@ commentsNode.addEventListener("click", async (event) => {
         return;
     }
 
-    setCommentStatus(projectT("project.comment.deleting", "Deleting comment..."), "info");
+    setCommentStatus("project.comment.deleting", "info");
 
     try {
         const response = await fetch(`/api/comments/${commentId}`, {
@@ -96,10 +120,10 @@ commentsNode.addEventListener("click", async (event) => {
 
         if (!response.ok) {
             const body = await response.json().catch(() => ({}));
-            throw new Error(body.message || body.error || projectT("project.comment.deleteError", "Could not delete comment"));
+            throw new Error(body.message || body.error || "project.comment.deleteError");
         }
 
-        setCommentStatus(projectT("project.comment.deleted", "Comment deleted"), "success");
+        setCommentStatus("project.comment.deleted", "success");
         await refreshComments();
     } catch (error) {
         setCommentStatus(error.message, "error");
@@ -139,17 +163,18 @@ async function hydrateCurrentUser() {
 }
 
 async function loadProjectPage(id) {
-    const [projectResponse, statsResponse, reviewsResponse, donationsResponse, updatesResponse, commentsResponse] = await Promise.all([
+    const [projectResponse, statsResponse, reviewsResponse, donationsResponse, updatesResponse, commentsResponse, categoriesResponse] = await Promise.all([
         fetch(`/api/projects/${id}`),
         fetch(`/api/projects/${id}/statistics`),
         fetch(`/api/projects/${id}/reviews`),
         fetch(`/api/projects/${id}/donations/public?size=3`),
         fetch(`/api/projects/${id}/updates`),
-        fetch(`/api/projects/${id}/comments`)
+        fetch(`/api/projects/${id}/comments`),
+        fetch("/api/categories").catch(() => null)
     ]);
 
     if (!projectResponse.ok) {
-        throw new Error(projectT("project.error.notFound", "Project not found"));
+        throw new Error("project.error.notFound");
     }
 
     const project = await projectResponse.json();
@@ -165,142 +190,116 @@ async function loadProjectPage(id) {
     projectPageState.currentDonations = donationsPayload.content ?? [];
     projectPageState.currentUpdates = updates;
     projectPageState.currentComments = comments;
+    projectPageState.categories = categoriesResponse?.ok ? await categoriesResponse.json() : [];
 
     renderProjectPage(project, stats, reviews, projectPageState.currentDonations, updates, comments);
+    loadRelatedProjects(project);
 }
 
 function renderProjectPage(project, stats, reviews, donations, updates, comments) {
-    const progress = resolveProjectProgress(project, stats);
-    document.getElementById("project-category").textContent = project.categoryTitle ?? projectT("app.project", "Project");
+    const presentation = window.RiseUpProjects;
+    const percent = resolveProjectProgress(project, stats);
+    const hero = document.getElementById("project-hero");
+    hero.style.setProperty("--category-color", presentation.categoryColor(project, projectPageState.categories));
+    hero.classList.toggle("project-hero-has-image", Boolean(project.hasCoverImage));
+    hero.classList.toggle("project-hero-uncategorized", project.categoryId == null);
+    hero.classList.add("is-loaded");
+    hero.setAttribute("aria-busy", "false");
+    const category = presentation.categoryTitle(project, projectPageState.categories);
+    document.getElementById("project-category").textContent = category;
+    const categoryLink = document.getElementById("project-category-link");
+    categoryLink.textContent = category;
+    categoryLink.hidden = false;
+    categoryLink.href = projectCategoryHref(project);
     document.getElementById("project-title").textContent = project.title;
+    document.title = `${project.title} | RiseUp`;
+    document.getElementById("project-short-description").textContent = project.shortDescription ?? "";
     document.getElementById("project-cover-slot").innerHTML = renderProjectPageCover(project);
+    document.querySelector("#project-cover-slot img")?.addEventListener("error", () => {
+        hero.classList.remove("project-hero-has-image");
+        document.getElementById("project-cover-slot").replaceChildren();
+    }, {once: true});
     document.getElementById("project-description").textContent = project.description || project.shortDescription || "";
-    document.getElementById("project-progress-value").textContent = `${progress}%`;
-    document.getElementById("project-progress-bar").style.width = `${Math.min(progress, 100)}%`;
-    document.getElementById("project-metrics").innerHTML = `
-        <div class="metric-box"><span>${projectT("app.raisedCap", "Raised")}</span><strong>${formatMoney(stats?.totalAmount ?? project.collectedAmount)}</strong></div>
-        <div class="metric-box"><span>${projectT("app.goal", "Goal")}</span><strong>${formatMoney(stats?.goalAmount ?? project.goalAmount)}</strong></div>
-        <div class="metric-box"><span>${projectT("project.donors", "Donors")}</span><strong>${stats?.totalDonors ?? 0}</strong></div>
-        <div class="metric-box"><span>${projectT("app.author", "Author")}</span><strong>${escapeHtml(project.authorDisplayName ?? projectT("app.unknown", "Unknown"))}</strong></div>
-    `;
-
+    document.getElementById("project-raised").textContent = formatMoney(stats?.totalAmount ?? project.collectedAmount);
+    document.getElementById("project-goal").textContent = projectT("project.raisedOf").replace("{goal}", formatMoney(stats?.goalAmount ?? project.goalAmount));
+    document.getElementById("project-progress-value").textContent = `${percent}%`;
+    document.getElementById("project-progress-bar").value = Math.min(percent, 100);
+    document.getElementById("project-donors").textContent = String(stats?.totalDonors ?? 0);
+    document.querySelector("#project-donors").previousElementSibling.textContent = projectI18n.plural("count.sponsor", stats?.totalDonors ?? 0);
+    const end = project.endAt ? new Date(project.endAt).getTime() : NaN;
+    document.getElementById("project-days-metric").hidden = !Number.isFinite(end);
+    const expired = Number.isFinite(end) && end <= Date.now();
+    const daysLabel = document.querySelector("#project-days-metric dt");
+    const days = Math.ceil((end - Date.now()) / 86400000);
+    daysLabel.removeAttribute("data-i18n-key");
+    daysLabel.textContent = expired ? projectT("project.deadlineExpired") : projectI18n.plural("count.daysLeft", Number.isFinite(days) ? days : 0);
+    document.getElementById("project-days").hidden = false;
+    if (Number.isFinite(end)) document.getElementById("project-days").textContent = expired
+        ? new Intl.DateTimeFormat(resolveProjectLocale(), {day: "numeric", month: "long"}).format(new Date(end))
+        : String(days);
+    const badge = document.getElementById("project-status");
+    badge.dataset.status = project.status;
+    badge.textContent = projectT(`project.status.${project.status}`, project.status);
+    const dates = [["project.startDate", project.startAt], ["project.endDate", project.endAt]]
+        .filter(([, value]) => value && Number.isFinite(new Date(value).getTime()))
+        .map(([key, value]) => `<div><dt>${escapeHtml(projectT(key))}</dt><dd>${escapeHtml(new Intl.DateTimeFormat(resolveProjectLocale(), {day: "numeric", month: "long", year: "numeric"}).format(new Date(value)))}</dd></div>`);
+    dates.push(`<div><dt>${escapeHtml(projectT("project.currency"))}</dt><dd>${escapeHtml(project.currency || "RUB")}</dd></div>`);
+    document.getElementById("project-dates").innerHTML = dates.join("");
+    renderProjectAuthor(project);
     renderDonations(donations);
     renderReviews(reviews);
     renderUpdates(updates);
     renderComments(comments);
+    renderRelatedProjects();
+    syncDonationAmount();
+    document.getElementById("project-details").hidden = false;
+    document.getElementById("project-related").hidden = false;
 }
 
 function renderProjectPageCover(project) {
-    const className = "project-modal-cover project-page-cover";
-    if (project?.hasCoverImage && project?.id) {
-        return `<img class="${className} project-cover-image" src="/api/projects/${encodeURIComponent(project.id)}/image" alt="${escapeHtml(project.title ?? "Project")}">`;
-    }
-
-    const category = project.categoryTitle ?? projectT("app.project", "Project");
-    const initials = getProjectPageCoverInitials(project?.title);
-    const tone = getProjectPageCoverTone(project);
-
-    return `
-        <div class="${className} ${tone}">
-            <div class="project-cover-glow"></div>
-            <div class="project-cover-copy">
-                <strong>${escapeHtml(initials)}</strong>
-                <span>${escapeHtml(category)}</span>
-            </div>
-        </div>
-    `;
-}
-
-function getProjectPageCoverInitials(title) {
-    const parts = String(title ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return "PR";
-    }
-
-    return parts.slice(0, 2)
-        .map((part) => Array.from(part)[0] ?? "")
-        .join("")
-        .toUpperCase();
-}
-
-function getProjectPageCoverTone(project) {
-    const source = `${project?.categoryTitle ?? ""}:${project?.title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
+    return project.hasCoverImage ? `<img src="/api/projects/${encodeURIComponent(project.id)}/image" alt="">` : "";
 }
 
 function renderDonations(donations) {
-    const donationsNode = document.getElementById("project-donations");
-    donationsNode.innerHTML = donations.length
-        ? donations.map((donation) => `
-            <article class="review-card donation-card">
-                <div class="review-head">
-                    <strong>${escapeHtml(donation.sponsorDisplayName ?? projectT("project.anonymousSponsor", "Anonymous sponsor"))}</strong>
-                    <span class="donation-amount">${formatMoney(donation.amount)}</span>
-                </div>
-                <p>${escapeHtml(donation.status ?? "SUCCEEDED")} · ${formatDateTime(donation.confirmedAt || donation.createdAt)}</p>
-            </article>
-        `).join("")
-        : `<div class="empty-state">${projectT("project.noPublicDonations", "No public donations yet.")}</div>`;
+    document.getElementById("project-donations").innerHTML = donations.length
+        ? donations.map((donation) => `<article class="project-donation-row"><div><strong>${escapeHtml(donation.sponsorDisplayName || projectT("project.unknownUser"))}</strong><time>${escapeHtml(formatDateTime(donation.confirmedAt || donation.createdAt))}</time></div><b>${escapeHtml(formatMoney(donation.amount))}</b></article>`).join("")
+        : `<div class="empty-state">${escapeHtml(projectT("project.noPublicDonations"))}</div>`;
 }
 
 function renderReviews(reviews) {
-    const reviewsNode = document.getElementById("project-reviews");
     const currentUserId = projectPageState.currentUser?.id;
     const hasOwnReview = Boolean(currentUserId && reviews.some((review) => review.userId === currentUserId));
     const isProjectAuthor = Boolean(currentUserId && currentUserId === projectPageState.currentProject?.authorId);
-
     if (currentUserId) {
         reviewForm.classList.toggle("hidden", hasOwnReview || isProjectAuthor);
-        reviewNoteNode.textContent = isProjectAuthor
-            ? getProjectReviewAuthorBlockedText()
-            : hasOwnReview
-            ? projectT("project.review.already", "You have already posted a review for this project.")
-            : projectT("project.review.rate", "Rate this project and share feedback.");
+        reviewNoteNode.textContent = isProjectAuthor ? getProjectReviewAuthorBlockedText()
+            : projectT(hasOwnReview ? "project.review.already" : "project.review.rate");
     }
-
-    reviewsNode.innerHTML = reviews.length
-        ? reviews.map((review) => `
-            <article class="review-card">
-                <div class="review-head">
-                        <strong>${escapeHtml(review.userDisplayName ?? projectT("app.anonymous", "Anonymous"))}</strong>
-                    <span class="review-rating">${"★".repeat(review.rating || 0)}</span>
-                </div>
-                <p>${escapeHtml(review.reviewText ?? "")}</p>
-            </article>
-        `).join("")
-        : `<div class="empty-state">${projectT("project.review.none", "No reviews yet.")}</div>`;
+    document.getElementById("project-reviews-count").textContent = ` · ${reviews.length} ${projectI18n.plural("count.rating", reviews.length)}`;
+    const summary = document.getElementById("project-review-summary");
+    summary.hidden = !reviews.length;
+    if (reviews.length) {
+        const average = reviews.reduce((sum, item) => sum + Number(item.rating || 0), 0) / reviews.length;
+        summary.textContent = projectT("project.reviewSummary")
+            .replace("{average}", new Intl.NumberFormat(resolveProjectLocale(), {maximumFractionDigits: 1}).format(average))
+            .replace("{count}", `${reviews.length} ${projectI18n.plural("count.rating", reviews.length)}`);
+    }
+    document.getElementById("project-reviews").innerHTML = reviews.length
+        ? reviews.map((review) => `<article class="project-review-card"><div><strong>${escapeHtml(review.userDisplayName || projectT("project.unknownUser"))}</strong><b>${Number(review.rating || 0)} / 5</b></div><p>${escapeHtml(review.reviewText ?? "")}</p></article>`).join("")
+        : `<div class="empty-state">${escapeHtml(projectT("project.review.none"))}</div>`;
 }
 
 function renderUpdates(updates) {
-    const updatesNode = document.getElementById("project-updates");
-    updatesNode.innerHTML = updates.length
-        ? updates.map((update) => `
-            <article class="timeline-card">
-                <div class="timeline-meta">
-                    <strong>${escapeHtml(update.title ?? projectT("project.update.titleDefault", "Update"))}</strong>
-                    <span>${formatDateTime(update.createdAt)}</span>
-                </div>
-                <p class="timeline-author">${escapeHtml(update.authorDisplayName ?? projectT("app.author", "Author"))}</p>
-                <p>${escapeHtml(update.content ?? "")}</p>
-            </article>
-        `).join("")
-        : `<div class="empty-state">${projectT("project.update.none", "No updates published yet.")}</div>`;
+    document.getElementById("project-news-count").textContent = ` · ${updates.length}`;
+    document.getElementById("project-updates").innerHTML = updates.length
+        ? updates.map((update) => `<article class="project-news-card"><time>${escapeHtml(formatDateTime(update.createdAt))}</time><h3>${escapeHtml(update.title ?? projectT("project.update.titleDefault"))}</h3><p>${escapeHtml(update.content ?? "")}</p></article>`).join("")
+        : `<div class="empty-state">${escapeHtml(projectT("project.update.none"))}</div>`;
 }
 
 function renderComments(comments) {
-    if (!comments.length) {
-        commentsNode.innerHTML = `<div class="empty-state">${projectT("project.comment.none", "No comments yet.")}</div>`;
-        return;
-    }
-
-    commentsNode.innerHTML = buildCommentTree(comments).map(renderCommentCard).join("");
+    document.getElementById("project-comments-count").textContent = ` · ${comments.length}`;
+    commentsNode.innerHTML = comments.length ? buildCommentTree(comments).map(renderCommentCard).join("")
+        : `<div class="empty-state">${escapeHtml(projectT("project.comment.none"))}</div>`;
 }
 
 function buildCommentTree(comments) {
@@ -321,33 +320,24 @@ function buildCommentTree(comments) {
 }
 
 function renderCommentCard(comment) {
-    const isReplyTarget = comment.id === projectPageState.replyToCommentId;
-    return `
-            <article class="review-card comment-card${comment.deleted ? " comment-card-deleted" : ""}">
-                <div class="review-head">
-                    <strong>${escapeHtml(comment.userDisplayName ?? projectT("app.anonymous", "Anonymous"))}</strong>
-                    <span>${formatDateTime(comment.createdAt)}</span>
-                </div>
-                <p>${escapeHtml(comment.content ?? "")}</p>
-                <div class="form-actions comment-actions">
-                    ${canReplyToComment(comment) ? `
-                        <button class="ghost-btn small-btn${isReplyTarget ? " comment-replying-card" : ""}" type="button" data-comment-reply="${comment.id}">${projectT("project.comment.reply", "Reply")}</button>
-                    ` : ""}
-                    ${canDeleteComment(comment) ? `
-                        <button class="ghost-btn small-btn" type="button" data-comment-delete="${comment.id}">${projectT("project.comment.delete", "Delete comment")}</button>
-                    ` : ""}
-                </div>
-                ${comment.replies?.length ? `<div class="comment-replies">${comment.replies.map(renderCommentCard).join("")}</div>` : ""}
-            </article>
-        `;
+    const deleted = isDeletedComment(comment);
+    const name = comment.userDisplayName || projectT("project.unknownUser");
+    const isAuthor = comment.userId === projectPageState.currentProject?.authorId;
+    return `<article class="project-comment${deleted ? " project-comment-deleted" : ""}">
+        ${projectAvatar(comment.userId, name)}
+        <div class="project-comment-body"><div class="project-comment-heading"><strong>${escapeHtml(name)}</strong>${isAuthor ? `<span class="goal-badge">${escapeHtml(projectT("app.author"))}</span>` : ""}<time>${escapeHtml(formatDateTime(comment.createdAt))}</time></div>
+            <p>${deleted ? `<em>${escapeHtml(projectT("project.comment.removed"))}</em>` : escapeHtml(comment.content ?? "")}</p>
+            <div class="project-comment-actions">
+                ${canReplyToComment(comment) ? `<button class="ghost-btn" type="button" data-comment-reply="${escapeHtml(comment.id)}">${escapeHtml(projectT("project.comment.reply"))}</button>` : ""}
+                ${canDeleteComment(comment) ? `<button class="ghost-btn" type="button" data-comment-delete="${escapeHtml(comment.id)}">${escapeHtml(projectT("project.comment.delete"))}</button>` : ""}
+            </div>
+        </div>
+        ${comment.replies?.length ? `<div class="comment-replies">${comment.replies.map(renderCommentCard).join("")}</div>` : ""}
+    </article>`;
 }
 
 function initializeRoleAwarePanels() {
-    if (paymentResult === "success") {
-        setPageStatus(projectT("project.payment.success", "Payment succeeded. Project funding was updated."), "success");
-    } else if (paymentResult === "failed") {
-        setPageStatus(projectT("project.payment.failed", "Payment failed. You can try again."), "error");
-    }
+    renderPaymentResult();
 
     donationForm.classList.add("hidden");
     reviewForm.classList.add("hidden");
@@ -366,6 +356,8 @@ function initializeRoleAwarePanels() {
 
     const user = projectPageState.currentUser;
     const project = projectPageState.currentProject;
+    document.getElementById("project-login-link").hidden = Boolean(user) || project?.status !== "ACTIVE";
+    if (project && project.status !== "ACTIVE") donationNoteNode.textContent = projectT("project.donation.notActive");
     if (!user || !project) {
         return;
     }
@@ -385,10 +377,12 @@ function initializeRoleAwarePanels() {
     commentForm.onsubmit = submitCommentForm;
     syncCommentReplyControls();
 
-    if (user.roles.includes("SPONSOR")) {
+    if (user.roles.includes("SPONSOR") && project.status === "ACTIVE") {
         donationForm.classList.remove("hidden");
         donationNoteNode.textContent = projectT("project.donation.sponsorFlow", "You are logged in as sponsor. Donation will open the demo payment page.");
         donationForm.onsubmit = submitDonationForm;
+    } else if (user.roles.includes("SPONSOR")) {
+        donationNoteNode.textContent = projectT("project.donation.notActive");
     } else if (user.roles.includes("AUTHOR")) {
         donationNoteNode.textContent = projectT("project.donation.authorBlocked", "Authors cannot donate from this account. Use a sponsor account.");
     } else if (user.roles.includes("ADMIN")) {
@@ -404,14 +398,17 @@ function initializeRoleAwarePanels() {
 
 async function submitDonationForm(event) {
     event.preventDefault();
+    if (projectPageState.donationBusy || projectPageState.currentProject?.status !== "ACTIVE") return;
 
-    const amountValue = Number(document.getElementById("donation-amount").value);
+    const amountValue = resolveDonationAmount();
     if (!amountValue || amountValue <= 0) {
-        setDonationStatus(projectT("project.donation.invalidAmount", "Enter a valid donation amount"), "error");
+        setDonationStatus("project.donation.invalidAmount", "error");
         return;
     }
 
-    setDonationStatus(projectT("project.donation.creating", "Creating donation..."), "info");
+    setDonationStatus("project.donation.creating", "info");
+    projectPageState.donationBusy = true;
+    syncDonationAmount();
 
     try {
         const response = await fetch("/api/donations", {
@@ -428,14 +425,16 @@ async function submitDonationForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || projectT("project.donation.createError", "Could not create donation"));
+            throw new Error(body.message || body.error || "project.donation.createError");
         }
 
-        setDonationStatus(projectT("project.donation.redirecting", "Redirecting to payment..."), "success");
+        setDonationStatus("project.donation.redirecting", "success");
         window.setTimeout(() => {
             window.location.href = body.paymentUrl;
         }, 500);
     } catch (error) {
+        projectPageState.donationBusy = false;
+        syncDonationAmount();
         setDonationStatus(error.message, "error");
     }
 }
@@ -447,11 +446,11 @@ async function submitCommentForm(event) {
     const content = form.content.value.trim();
     const parentId = projectPageState.replyToCommentId;
     if (!content) {
-        setCommentStatus(projectT("project.comment.empty", "Comment cannot be empty"), "error");
+        setCommentStatus("project.comment.empty", "error");
         return;
     }
 
-    setCommentStatus(projectT("project.comment.posting", "Posting comment..."), "info");
+    setCommentStatus("project.comment.posting", "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/comments`, {
@@ -465,12 +464,12 @@ async function submitCommentForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || projectT("project.comment.postError", "Could not post comment"));
+            throw new Error(body.message || body.error || "project.comment.postError");
         }
 
         form.reset();
         clearActiveCommentReply();
-        setCommentStatus(projectT("project.comment.posted", "Comment posted"), "success");
+        setCommentStatus("project.comment.posted", "success");
         await refreshComments();
     } catch (error) {
         setCommentStatus(error.message, "error");
@@ -487,11 +486,11 @@ async function submitReviewForm(event) {
     };
 
     if (!payload.rating || payload.rating < 1 || payload.rating > 5 || !payload.reviewText) {
-        setReviewStatus(projectT("project.review.invalid", "Provide a rating and review text"), "error");
+        setReviewStatus("project.review.invalid", "error");
         return;
     }
 
-    setReviewStatus(projectT("project.review.posting", "Posting review..."), "info");
+    setReviewStatus("project.review.posting", "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/reviews`, {
@@ -505,12 +504,12 @@ async function submitReviewForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || projectT("project.review.postError", "Could not post review"));
+            throw new Error(body.message || body.error || "project.review.postError");
         }
 
         form.reset();
         form.rating.value = "5";
-        setReviewStatus(projectT("project.review.posted", "Review posted"), "success");
+        setReviewStatus("project.review.posted", "success");
         await refreshReviews();
     } catch (error) {
         setReviewStatus(error.message, "error");
@@ -527,11 +526,11 @@ async function submitUpdateForm(event) {
     };
 
     if (!payload.title || !payload.content) {
-        setUpdateStatus(projectT("project.update.invalid", "Fill in both title and content"), "error");
+        setUpdateStatus("project.update.invalid", "error");
         return;
     }
 
-    setUpdateStatus(projectT("project.update.publishing", "Publishing update..."), "info");
+    setUpdateStatus("project.update.publishing", "info");
 
     try {
         const response = await fetch(`/api/projects/${projectId}/updates`, {
@@ -545,11 +544,11 @@ async function submitUpdateForm(event) {
 
         const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-            throw new Error(body.message || body.error || projectT("project.update.publishError", "Could not publish update"));
+            throw new Error(body.message || body.error || "project.update.publishError");
         }
 
         form.reset();
-        setUpdateStatus(projectT("project.update.published", "Update published"), "success");
+        setUpdateStatus("project.update.published", "success");
         await refreshUpdates();
     } catch (error) {
         setUpdateStatus(error.message, "error");
@@ -596,18 +595,9 @@ function formatMoney(value) {
 }
 
 function resolveProjectProgress(project, stats) {
-    const statsProgress = Number(stats?.progress);
-    if (Number.isFinite(statsProgress) && statsProgress >= 0) {
-        return Math.max(0, Math.round(statsProgress));
-    }
-
-    const raised = Number(stats?.totalAmount ?? project?.collectedAmount ?? 0);
-    const goal = Number(stats?.goalAmount ?? project?.goalAmount ?? 0);
-    if (!Number.isFinite(raised) || !Number.isFinite(goal) || goal <= 0) {
-        return 0;
-    }
-
-    return Math.max(0, Math.round((raised / goal) * 100));
+    const raised = stats?.totalAmount ?? project.collectedAmount;
+    const goal = stats?.goalAmount ?? project.goalAmount;
+    return window.RiseUpProjects.progress({...project, collectedAmount: raised, goalAmount: goal});
 }
 
 function formatDateTime(value) {
@@ -640,79 +630,41 @@ function readProjectAuth() {
 }
 
 function setDonationStatus(message, type = "") {
-    donationStatusNode.textContent = message;
-    donationStatusNode.className = `auth-status ${type}`.trim();
+    setProjectUiStatus(donationStatusNode, message, type);
 }
 
 function setPageStatus(message, type = "") {
-    pageStatusNode.textContent = message;
-    pageStatusNode.className = `auth-status ${type}`.trim();
+    setProjectUiStatus(pageStatusNode, message, type);
 }
 
 function setCommentStatus(message, type = "") {
-    commentStatusNode.textContent = message;
-    commentStatusNode.className = `auth-status ${type}`.trim();
+    setProjectUiStatus(commentStatusNode, message, type);
 }
 
 function setUpdateStatus(message, type = "") {
-    updateStatusNode.textContent = message;
-    updateStatusNode.className = `auth-status ${type}`.trim();
+    setProjectUiStatus(updateStatusNode, message, type);
 }
 
 function setReviewStatus(message, type = "") {
-    reviewStatusNode.textContent = message;
-    reviewStatusNode.className = `auth-status ${type}`.trim();
+    setProjectUiStatus(reviewStatusNode, message, type);
 }
 
 function confirmCommentDelete(t) {
     return new Promise((resolve) => {
-        const modal = document.createElement("div");
-        modal.className = "confirm-modal";
-        modal.setAttribute("role", "dialog");
-        modal.setAttribute("aria-modal", "true");
-        modal.innerHTML = `
-            <section class="confirm-dialog" aria-labelledby="comment-delete-confirm-title">
-                <p class="panel-kicker">${escapeHtml(t("project.comment.deleteTitle", "Delete comment"))}</p>
-                <h3 id="comment-delete-confirm-title">${escapeHtml(t("project.comment.deleteConfirm", "Delete this comment?"))}</h3>
-                <p>${escapeHtml(t("project.comment.deleteDescription", "The comment will be hidden from the discussion."))}</p>
-                <div class="confirm-actions">
-                    <button class="ghost-btn small-btn" type="button" data-confirm-cancel>${escapeHtml(t("common.cancel", "Cancel"))}</button>
-                    <button class="primary-btn small-btn confirm-danger-btn" type="button" data-confirm-accept>${escapeHtml(t("project.comment.delete", "Delete comment"))}</button>
-                </div>
-            </section>
-        `;
-
-        const cleanup = (result) => {
-            document.removeEventListener("keydown", onKeydown);
-            modal.remove();
-            resolve(result);
-        };
-
-        const onKeydown = (event) => {
-            if (event.key === "Escape") {
-                cleanup(false);
-            }
-        };
-
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal || event.target.closest("[data-confirm-cancel]")) {
-                cleanup(false);
-                return;
-            }
-            if (event.target.closest("[data-confirm-accept]")) {
-                cleanup(true);
-            }
-        });
-
-        document.addEventListener("keydown", onKeydown);
-        document.body.appendChild(modal);
-        modal.querySelector("[data-confirm-cancel]")?.focus();
+        const modal = document.createElement("dialog");
+        modal.className = "modal-dialog";
+        modal.setAttribute("aria-labelledby", "comment-delete-confirm-title");
+        modal.innerHTML = `<div class="modal-dialog-header"><h2 id="comment-delete-confirm-title">${escapeHtml(t("project.comment.deleteConfirm"))}</h2></div><p>${escapeHtml(t("project.comment.deleteDescription"))}</p><div class="modal-dialog-actions"><button class="ghost-btn" type="button" data-modal-close autofocus>${escapeHtml(t("common.cancel"))}</button><button class="primary-btn" type="button" data-confirm-accept>${escapeHtml(t("project.comment.delete"))}</button></div>`;
+        modal.addEventListener("close", () => { const accepted = modal.returnValue === "confirm"; modal.remove(); resolve(accepted); }, {once: true});
+        modal.querySelector("[data-confirm-accept]").addEventListener("click", () => modal.close("confirm"));
+        document.body.append(modal);
+        window.RiseUpUI.openModal(modal);
     });
 }
 
 function setActiveCommentReply(comment) {
     if (!projectAuth?.accessToken) {
-        setCommentStatus(projectT("project.comment.login", "Log in to join the discussion."), "error");
+        setCommentStatus("project.comment.login", "error");
         return;
     }
 
@@ -751,12 +703,12 @@ function syncCommentReplyControls(comment = null) {
 }
 
 function canReplyToComment(comment) {
-    return Boolean(projectPageState.currentUser && !comment?.deleted);
+    return Boolean(projectPageState.currentUser && !isDeletedComment(comment));
 }
 
 function canDeleteComment(comment) {
     const user = projectPageState.currentUser;
-    if (!user || comment?.deleted) {
+    if (!user || isDeletedComment(comment)) {
         return false;
     }
 
@@ -771,23 +723,175 @@ function hasCurrentUserReview() {
     );
 }
 
-function projectT(key, fallback) {
+function projectT(key, fallback = key) {
     return projectI18n?.t(key) ?? fallback;
 }
 
 function getProjectReviewAuthorBlockedText() {
-    if (projectI18n?.getLang?.() === "ru") {
-        return "Нельзя оставить отзыв на свой собственный проект.";
-    }
-
-    const translated = projectI18n?.t?.("project.review.authorBlocked");
-    if (translated && translated !== "project.review.authorBlocked") {
-        return translated;
-    }
-
-    return "You cannot review your own project.";
+    return projectT("project.review.authorBlocked");
 }
 
 function resolveProjectLocale() {
     return projectI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
+}
+
+function renderProjectAuthor(project) {
+    const name = project.authorDisplayName || projectT("project.unknownUser");
+    document.getElementById("project-author-card").innerHTML = `${projectAvatar(project.authorId, name)}
+        <div><strong>${escapeHtml(name)}</strong><p>${escapeHtml(projectT("app.author"))}</p></div>
+        <a href="/projects.html?authorId=${encodeURIComponent(project.authorId)}">${escapeHtml(projectT("project.authorProjects"))}</a>`;
+}
+
+function projectAvatar(id, name) {
+    const initials = String(name).trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0] || "").join("").toUpperCase();
+    return `<span class="project-person-avatar" aria-hidden="true" style="--profile-color:${window.RiseUpUI.resolveProfileColor(id)}">${escapeHtml(initials)}</span>`;
+}
+
+function projectCategoryHref(project) {
+    return project.categoryId == null ? "/projects.html?uncategorized=true" : `/projects.html?categoryId=${encodeURIComponent(project.categoryId)}`;
+}
+
+async function loadRelatedProjects(project) {
+    const url = new URL("/api/projects", window.location.origin);
+    if (project.categoryId == null) url.searchParams.set("uncategorized", "true");
+    else url.searchParams.set("categoryId", String(project.categoryId));
+    url.searchParams.set("status", "ACTIVE");
+    url.searchParams.set("size", "4");
+    url.searchParams.set("sort", "createdAt,desc");
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("related");
+        const payload = await response.json();
+        projectPageState.relatedProjects = (payload.content ?? []).filter((item) => item.id !== project.id).slice(0, 3);
+    } catch {
+        projectPageState.relatedError = true;
+    } finally {
+        projectPageState.relatedLoaded = true;
+        renderRelatedProjects();
+    }
+}
+
+function renderRelatedProjects() {
+    const project = projectPageState.currentProject;
+    if (!project) return;
+    document.getElementById("project-related-heading").textContent = project.categoryId == null
+        ? projectT("project.relatedUncategorized") : projectT("project.relatedCategory").replace("{category}", window.RiseUpProjects.categoryTitle(project, projectPageState.categories));
+    document.getElementById("project-related-link").href = projectCategoryHref(project);
+    const grid = document.getElementById("project-related-grid");
+    grid.setAttribute("aria-busy", String(!projectPageState.relatedLoaded));
+    const message = !projectPageState.relatedLoaded ? "app.loading" : projectPageState.relatedError ? "catalog.error.load" : "project.relatedEmpty";
+    grid.innerHTML = projectPageState.relatedProjects.length
+        ? projectPageState.relatedProjects.map((item) => window.RiseUpProjects.renderCard(item, projectPageState.categories)).join("")
+        : `<div class="empty-state" role="${projectPageState.relatedError ? "alert" : "status"}">${escapeHtml(projectT(message))}</div>`;
+}
+
+function isDeletedComment(comment) {
+    return Boolean(comment.deleted || comment.content === "[deleted]");
+}
+
+function formatAmountInput(value) {
+    return value.replace(/\D/g, "").replace(/^0+(?=\d)/, "").replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function resolveDonationAmount() {
+    return selectedQuickAmount ?? Number(document.getElementById("donation-amount").value.replace(/\s/g, ""));
+}
+
+function renderPaymentResult() {
+    const banner = document.getElementById("project-payment-result");
+    banner.hidden = paymentResultDismissed || !["success", "failed"].includes(paymentResult);
+    if (banner.hidden) return;
+    banner.dataset.result = paymentResult;
+    banner.setAttribute("role", paymentResult === "failed" ? "alert" : "status");
+    document.getElementById("payment-result-message").textContent = projectT(`project.payment.${paymentResult}`);
+    document.getElementById("payment-result-icon").innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="${paymentResult === "success" ? "m7 12 3 3 7-7" : "M12 6v7m0 3v2"}"/></svg>`;
+}
+
+function syncDonationAmount() {
+    const amount = resolveDonationAmount();
+    const valid = Number.isFinite(amount) && amount >= 1;
+    const button = document.getElementById("donation-submit");
+    button.textContent = valid ? projectT("home.supportAmount").replace("{amount}", formatMoney(amount)) : projectT("project.action.donate");
+    button.disabled = !valid || projectPageState.donationBusy;
+    document.querySelectorAll("[data-donation-amount]").forEach((quick) => {
+        quick.textContent = formatMoney(Number(quick.dataset.donationAmount));
+        quick.setAttribute("aria-pressed", String(Number(quick.dataset.donationAmount) === selectedQuickAmount));
+    });
+}
+
+function wireProjectInteractions() {
+    document.getElementById("donation-amount").addEventListener("input", (event) => {
+        selectedQuickAmount = null;
+        const input = event.target;
+        const digitsBeforeCaret = input.value.slice(0, input.selectionStart).replace(/\D/g, "").length;
+        input.value = formatAmountInput(input.value);
+        let caret = 0, digits = 0;
+        while (caret < input.value.length && digits < digitsBeforeCaret) {
+            if (/\d/.test(input.value[caret])) digits++;
+            caret++;
+        }
+        input.setSelectionRange(caret, caret);
+        syncDonationAmount();
+    });
+    document.querySelector(".project-quick-amounts").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-donation-amount]");
+        if (!button) return;
+        selectedQuickAmount = Number(button.dataset.donationAmount);
+        document.getElementById("donation-amount").value = "";
+        syncDonationAmount();
+    });
+    document.getElementById("payment-result-close").addEventListener("click", () => {
+        paymentResultDismissed = true;
+        renderPaymentResult();
+    });
+    const ratingButtons = [...document.querySelectorAll("[data-review-rating]")];
+    const syncRating = () => ratingButtons.forEach((button) => {
+        const selected = button.dataset.reviewRating === reviewForm.rating.value;
+        button.setAttribute("aria-checked", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+    });
+    ratingButtons.forEach((button, index) => {
+        button.addEventListener("click", () => { reviewForm.rating.value = button.dataset.reviewRating; syncRating(); });
+        button.addEventListener("keydown", (event) => {
+            const offsets = {ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1};
+            if (!(event.key in offsets) && event.key !== "Home" && event.key !== "End") return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? 4 : (index + offsets[event.key] + 5) % 5;
+            ratingButtons[next].click();
+            ratingButtons[next].focus();
+        });
+    });
+    reviewForm.addEventListener("reset", () => queueMicrotask(syncRating));
+    const syncCounters = () => document.querySelectorAll("[data-character-counter]").forEach((counter) => {
+        const input = document.getElementById(counter.dataset.characterCounter);
+        counter.textContent = `${input.value.length} / ${input.maxLength}`;
+    });
+    document.querySelectorAll(".project-detail-form").forEach((form) => {
+        form.addEventListener("input", syncCounters);
+        form.addEventListener("reset", () => queueMicrotask(syncCounters));
+    });
+    syncCounters();
+    const links = [...document.querySelectorAll(".project-section-nav a")];
+    const mark = (id) => links.forEach((link) => {
+        if (link.hash === `#${id}`) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+    });
+    links.forEach((link) => link.addEventListener("click", () => mark(link.hash.slice(1))));
+    if (window.IntersectionObserver) {
+        const observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+            if (entry.isIntersecting) mark(entry.target.id);
+        }), {rootMargin: "-10% 0px -65% 0px"});
+        document.querySelectorAll(".project-detail-section").forEach((section) => observer.observe(section));
+    }
+}
+
+function setProjectUiStatus(node, message, type) {
+    projectUiStatuses.set(node.id, {message, type});
+    node.textContent = projectT(message, message);
+    node.className = `auth-status ${type}`.trim();
+    node.setAttribute("role", type === "error" ? "alert" : "status");
+}
+
+function refreshProjectUiStatuses() {
+    projectUiStatuses.forEach(({message, type}, id) => setProjectUiStatus(document.getElementById(id), message, type));
 }

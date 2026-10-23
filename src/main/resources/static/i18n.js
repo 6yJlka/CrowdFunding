@@ -430,7 +430,7 @@ const I18N_TRANSLATIONS = {
         "projects.sort.goal": "Самая высокая цель",
         "projects.sort.az": "Название А-Я",
         "projects.prev": "Назад",
-        "projects.next": "Вперед",
+        "projects.next": "Вперёд",
         "projects.search": "Поиск",
         "projects.modal.select": "Выберите кампанию",
         "projects.modal.details": "Здесь появятся детали проекта.",
@@ -534,7 +534,7 @@ const I18N_TRANSLATIONS = {
         "project.comment.deleteConfirm": "Удалить этот комментарий?",
         "project.comment.deleting": "Удаляем комментарий...",
         "project.comment.deleteError": "Не удалось удалить комментарий",
-        "project.comment.deleted": "Комментарий удален",
+        "project.comment.deleted": "Комментарий удалён",
         "project.comment.invite": "Оставьте отзыв или задайте вопрос.",
         "project.comment.empty": "Комментарий не может быть пустым",
         "project.comment.posting": "Публикация комментария...",
@@ -560,7 +560,7 @@ const I18N_TRANSLATIONS = {
         "admin.reject.required": "Нужно указать причину отклонения",
         "admin.action.error": "Не удалось выполнить действие с проектом",
         "admin.action.approved": "Проект одобрен",
-        "admin.action.rejected": "Проект отклонен",
+        "admin.action.rejected": "Проект отклонён",
         "admin.error.loadUsers": "Не удалось загрузить пользователей",
         "admin.users.empty": "Пользователи не найдены.",
         "admin.user": "Пользователь",
@@ -568,7 +568,7 @@ const I18N_TRANSLATIONS = {
         "admin.status": "Статус",
         "admin.user.save": "Сохранить пользователя",
         "admin.user.updateError": "Не удалось обновить пользователя",
-        "admin.user.updated": "Пользователь обновлен",
+        "admin.user.updated": "Пользователь обновлён",
         "admin.error.loadComments": "Не удалось загрузить комментарии",
         "admin.comments.empty": "Комментарии не найдены.",
         "admin.openProject": "Открыть проект",
@@ -638,340 +638,6 @@ const I18N_TRANSLATIONS = {
         "project.rating.2": "2 — Ниже среднего",
         "project.rating.1": "1 - Плохо"
     }
-};
-
-function i18nResolvePath(pathname) {
-    if (pathname === "/") {
-        return "/index.html";
-    }
-    return pathname;
-}
-
-const I18N_PAGE_TRANSLATIONS = {
-    "/index.html": [
-        {selector: "title", type: "text", key: "index.title"},
-        {selector: ".brand p", type: "text", key: "index.tagline"},
-        {selector: ".menu:first-of-type .menu-label", type: "text", key: "index.menu"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(1) span", type: "text", key: "index.menu.dashboard"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(2) span", type: "text", key: "index.menu.projects"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(3) span", type: "text", key: "index.menu.backers"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(4) span", type: "text", key: "index.menu.reviews"},
-        {selector: ".menu:first-of-type .menu-item:nth-of-type(5) span", type: "text", key: "index.menu.analytics"},
-        {selector: "#global-search", type: "placeholder", key: "index.search.global"},
-        {selector: ".hero .eyebrow", type: "text", key: "index.hero.overview"},
-        {selector: ".hero h1", type: "text", key: "index.hero.title"},
-        {selector: "#create-campaign-link", type: "text", key: "index.hero.create"},
-        {selector: ".stat-card:nth-of-type(1) .stat-copy p", type: "text", key: "index.stats.totalRaised"},
-        {selector: ".stat-card:nth-of-type(2) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(2) .stat-copy p", type: "text", key: "index.stats.activeCampaigns"},
-        {selector: ".stat-card:nth-of-type(3) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(3) .stat-copy p", type: "text", key: "index.stats.monthlyBackers"},
-        {selector: ".stat-card:nth-of-type(4) .stat-link", type: "text", key: "index.stats.go"},
-        {selector: ".stat-card:nth-of-type(4) .stat-copy p", type: "text", key: "index.stats.fundedProjects"},
-        {selector: ".partner-pills span:nth-of-type(1)", type: "text", key: "index.stats.publicApi"},
-        {selector: ".partner-pills span:nth-of-type(2)", type: "text", key: "index.stats.liveData"},
-        {selector: ".partner-pills span:nth-of-type(3)", type: "text", key: "index.stats.dashboard"},
-        {selector: "#overview-chart .panel-kicker", type: "text", key: "index.chart.kicker"},
-        {selector: "#overview-chart h3", type: "text", key: "index.chart.title"},
-        {selector: "#leaderboard-search", type: "placeholder", key: "index.search.leaderboard"},
-        {selector: "#leaderboard-search-btn", type: "text", key: "index.search.button"},
-        {selector: ".leaderboard-head h3", type: "text", key: "index.panel.top"},
-        {selector: ".leaderboard-head .filters button[data-filter='all']", type: "text", key: "index.filters.allTime"},
-        {selector: ".leaderboard-head .filters button[data-filter='year']", type: "text", key: "index.filters.thisYear"},
-        {selector: ".leaderboard-head .filters button[data-filter='month']", type: "text", key: "index.filters.thisMonth"},
-        {selector: "#top-campaigns thead th:nth-of-type(1)", type: "text", key: "index.table.pos"},
-        {selector: "#top-campaigns thead th:nth-of-type(2)", type: "text", key: "index.table.campaign"},
-        {selector: "#top-campaigns thead th:nth-of-type(3)", type: "text", key: "index.table.owner"},
-        {selector: "#new-founders .panel-kicker", type: "text", key: "index.panel.community"},
-        {selector: "#new-founders h3", type: "text", key: "index.panel.founders"},
-        {selector: "#new-founders .panel-header a", type: "text", key: "index.panel.seeMore"},
-        {selector: "#active-campaigns .panel-kicker", type: "text", key: "index.panel.discover"},
-        {selector: "#active-campaigns h3", type: "text", key: "index.panel.active"},
-        {selector: "#catalog-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-search-btn", type: "text", key: "index.search.button"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "index.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "index.modal.details"},
-        {selector: ".sidebar-footer p", type: "text", key: "index.footer.version"},
-        {selector: ".sidebar-footer small", type: "text", key: "index.footer.copy"},
-        {selector: ".stat-card:nth-of-type(2) .stat-link", type: "aria", key: "aria.goToCampaigns"},
-        {selector: ".stat-card:nth-of-type(3) .stat-link", type: "aria", key: "aria.goToSponsors"},
-        {selector: ".stat-card:nth-of-type(4) .stat-link", type: "aria", key: "aria.goToFunded"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
-    "/auth.html": [
-        {selector: "title", type: "text", key: "auth.title"},
-        {selector: ".auth-hero .eyebrow", type: "text", key: "auth.eyebrow"},
-        {selector: ".auth-hero h1", type: "text", key: "auth.headline"},
-        {selector: ".auth-hero .modal-copy", type: "text", key: "auth.sub"},
-        {selector: ".auth-hero .ghost-btn", type: "text", key: "auth.back"},
-        {selector: ".auth-tab[data-tab='login']", type: "text", key: "auth.tab.login"},
-        {selector: ".auth-tab[data-tab='register']", type: "text", key: "auth.tab.register"},
-        {selector: "#login-form h2", type: "text", key: "auth.welcome"},
-        {selector: "#register-form h2", type: "text", key: "auth.create"},
-        {selector: "#login-form label:nth-of-type(1) span", type: "text", key: "auth.email"},
-        {selector: "#login-form label:nth-of-type(2) span", type: "text", key: "auth.password"},
-        {selector: "#register-form label:nth-of-type(1) span", type: "text", key: "auth.displayName"},
-        {selector: "#register-form label:nth-of-type(2) span", type: "text", key: "auth.email"},
-        {selector: "#register-form label:nth-of-type(3) span", type: "text", key: "auth.password"},
-        {selector: "#register-form label:nth-of-type(4) span", type: "text", key: "auth.role"},
-        {selector: "#register-form select option[value='AUTHOR']", type: "text", key: "auth.role.author"},
-        {selector: "#register-form select option[value='SPONSOR']", type: "text", key: "auth.role.sponsor"},
-        {selector: "#login-form .auth-submit", type: "text", key: "auth.tab.login"},
-        {selector: "#register-form .auth-submit", type: "text", key: "auth.tab.register"}
-    ],
-    "/projects.html": [
-        {selector: "title", type: "text", key: "index.menu.projects"},
-        {selector: ".catalog-subtitle", type: "text", key: "projects.subtitle.active"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "projects.createCampaign"},
-        {selector: "#catalog-page-search-btn", type: "text", key: "projects.search"},
-        {selector: "#catalog-page-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-category-filter option[value='']", type: "text", key: "projects.allCategories"},
-        {selector: "#catalog-sort-filter option[value='createdAt,desc']", type: "text", key: "projects.sort.newest"},
-        {selector: "#catalog-sort-filter option[value='collectedAmount,desc']", type: "text", key: "projects.sort.funded"},
-        {selector: "#catalog-sort-filter option[value='goalAmount,desc']", type: "text", key: "projects.sort.goal"},
-        {selector: "#catalog-sort-filter option[value='title,asc']", type: "text", key: "projects.sort.az"},
-        {selector: "#catalog-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#catalog-next-btn", type: "text", key: "projects.next"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "projects.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "projects.modal.details"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
-    "/funded-projects.html": [
-        {selector: "title", type: "text", key: "index.menu.projects"},
-        {selector: ".catalog-subtitle", type: "text", key: "projects.subtitle.funded"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "projects.exploreActive"},
-        {selector: "#catalog-page-search-btn", type: "text", key: "projects.search"},
-        {selector: "#catalog-page-search", type: "placeholder", key: "index.search.catalog"},
-        {selector: "#catalog-category-filter option[value='']", type: "text", key: "projects.allCategories"},
-        {selector: "#catalog-sort-filter option[value='createdAt,desc']", type: "text", key: "projects.sort.newest"},
-        {selector: "#catalog-sort-filter option[value='collectedAmount,desc']", type: "text", key: "projects.sort.funded"},
-        {selector: "#catalog-sort-filter option[value='goalAmount,desc']", type: "text", key: "projects.sort.goal"},
-        {selector: "#catalog-sort-filter option[value='title,asc']", type: "text", key: "projects.sort.az"},
-        {selector: "#catalog-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#catalog-next-btn", type: "text", key: "projects.next"},
-        {selector: "#project-modal .modal-body h3", type: "text", key: "projects.modal.select"},
-        {selector: "#project-modal .modal-body p:not(.panel-kicker)", type: "text", key: "projects.modal.details"},
-        {selector: "#modal-close", type: "aria", key: "aria.closeModal"}
-    ],
-    "/sponsors.html": [
-        {selector: "title", type: "text", key: "showcase.sponsors.title"},
-        {selector: ".catalog-hero .panel-kicker", type: "text", key: "showcase.sponsors.kicker"},
-        {selector: ".catalog-hero h1", type: "text", key: "showcase.sponsors.heading"},
-        {selector: ".catalog-subtitle", type: "text", key: "showcase.sponsors.subtitle"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "showcase.sponsors.projects"},
-        {selector: "#sponsors-search", type: "placeholder", key: "showcase.sponsors.search"},
-        {selector: "#sponsors-search-btn", type: "text", key: "projects.search"},
-        {selector: "#sponsors-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#sponsors-next-btn", type: "text", key: "projects.next"}
-    ],
-    "/founders.html": [
-        {selector: "title", type: "text", key: "showcase.founders.title"},
-        {selector: ".catalog-hero .panel-kicker", type: "text", key: "showcase.founders.kicker"},
-        {selector: ".catalog-hero h1", type: "text", key: "showcase.founders.heading"},
-        {selector: ".catalog-subtitle", type: "text", key: "showcase.founders.subtitle"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "showcase.founders.projectsLink"},
-        {selector: "#founders-search", type: "placeholder", key: "showcase.founders.search"},
-        {selector: "#founders-search-btn", type: "text", key: "projects.search"},
-        {selector: "#founders-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#founders-next-btn", type: "text", key: "projects.next"}
-    ],
-    "/reviews.html": [
-        {selector: "title", type: "text", key: "showcase.reviews.title"},
-        {selector: ".catalog-hero .panel-kicker", type: "text", key: "showcase.reviews.kicker"},
-        {selector: ".catalog-hero h1", type: "text", key: "showcase.reviews.heading"},
-        {selector: ".catalog-subtitle", type: "text", key: "showcase.reviews.subtitle"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "showcase.reviews.projects"},
-        {selector: "#reviews-search", type: "placeholder", key: "showcase.reviews.search"},
-        {selector: "#reviews-search-btn", type: "text", key: "projects.search"},
-        {selector: "#reviews-prev-btn", type: "text", key: "projects.prev"},
-        {selector: "#reviews-next-btn", type: "text", key: "projects.next"}
-    ],
-    "/analytics.html": [
-        {selector: "title", type: "text", key: "showcase.analytics.title"},
-        {selector: ".catalog-hero .panel-kicker", type: "text", key: "showcase.analytics.kicker"},
-        {selector: ".catalog-hero h1", type: "text", key: "showcase.analytics.heading"},
-        {selector: ".catalog-subtitle", type: "text", key: "showcase.analytics.subtitle"},
-        {selector: ".catalog-hero-actions .ghost-btn", type: "text", key: "projects.backDashboard"},
-        {selector: ".catalog-hero-actions .primary-btn", type: "text", key: "showcase.analytics.projects"},
-        {selector: ".analytics-stats-grid .stat-card:nth-of-type(1) .stat-copy p", type: "text", key: "index.stats.totalRaised"},
-        {selector: ".analytics-stats-grid .stat-card:nth-of-type(2) .stat-copy p", type: "text", key: "index.stats.activeCampaigns"},
-        {selector: ".analytics-stats-grid .stat-card:nth-of-type(3) .stat-copy p", type: "text", key: "showcase.analytics.backers"},
-        {selector: ".analytics-stats-grid .stat-card:nth-of-type(4) .stat-copy p", type: "text", key: "index.stats.fundedProjects"},
-        {selector: "#overview-chart .panel-kicker", type: "text", key: "index.chart.kicker"},
-        {selector: "#overview-chart h3", type: "text", key: "index.chart.title"},
-        {selector: ".analytics-leaderboard .panel-kicker", type: "text", key: "showcase.analytics.top"},
-        {selector: ".analytics-leaderboard h3", type: "text", key: "index.panel.top"},
-        {selector: ".analytics-leaderboard .filters button[data-filter='all']", type: "text", key: "index.filters.allTime"},
-        {selector: ".analytics-leaderboard .filters button[data-filter='year']", type: "text", key: "index.filters.thisYear"},
-        {selector: ".analytics-leaderboard .filters button[data-filter='month']", type: "text", key: "index.filters.thisMonth"},
-        {selector: ".analytics-leaderboard th:nth-of-type(1)", type: "text", key: "index.table.pos"},
-        {selector: ".analytics-leaderboard th:nth-of-type(2)", type: "text", key: "index.table.campaign"},
-        {selector: ".analytics-leaderboard th:nth-of-type(3)", type: "text", key: "index.table.owner"}
-    ],
-    "/author-dashboard.html": [
-        {selector: "title", type: "text", key: "author.title"}
-    ],
-    "/sponsor-dashboard.html": [
-        {selector: "title", type: "text", key: "sponsor.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "sponsor.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "sponsor.projects"},
-        {selector: ".panel.form-panel .ghost-btn", type: "text", key: "create.backDashboard"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "sponsor.history"},
-        {selector: ".tips-panel h3", type: "text", key: "sponsor.review"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "sponsor.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "sponsor.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "sponsor.tip3"}
-    ],
-    "/create-project.html": [
-        {selector: "title", type: "text", key: "create.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "create.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "create.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "create.backDashboard"},
-        {selector: "#project-form .primary-btn", type: "text", key: "create.save"},
-        {selector: "#project-form .ghost-btn", type: "text", key: "create.changeAccount"},
-        {selector: "#project-image-label", type: "text", key: "create.field.image"},
-        {selector: "#project-image-action", type: "text", key: "create.image.choose"},
-        {selector: "#project-image-hint", type: "text", key: "create.image.hint"},
-        {selector: "#project-title-label", type: "text", key: "create.field.title"},
-        {selector: "#project-short-description-label", type: "text", key: "create.field.short"},
-        {selector: "#project-description-label", type: "text", key: "create.field.description"},
-        {selector: "#project-goal-label", type: "text", key: "create.field.goal"},
-        {selector: "#project-category-label", type: "text", key: "create.field.category"},
-        {selector: "#category-select option[value='']", type: "text", key: "create.field.withoutCategory"},
-        {selector: "#project-start-at-label", type: "text", key: "create.field.startAt"},
-        {selector: "#project-end-at-label", type: "text", key: "create.field.endAt"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "create.checklist"},
-        {selector: ".tips-panel h3", type: "text", key: "create.before"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "create.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "create.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "create.tip3"},
-        {selector: ".tips-list li:nth-of-type(4)", type: "text", key: "create.tip4"}
-    ],
-    "/edit-project.html": [
-        {selector: "title", type: "text", key: "edit.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "create.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "edit.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "edit.backCabinet"},
-        {selector: "#project-form .primary-btn", type: "text", key: "edit.save"},
-        {selector: "#project-form .ghost-btn", type: "text", key: "edit.cancel"},
-        {selector: "#project-image-label", type: "text", key: "create.field.image"},
-        {selector: "#project-image-action", type: "text", key: "create.image.choose"},
-        {selector: "#project-image-hint", type: "text", key: "edit.image.hint"},
-        {selector: "#project-title-label", type: "text", key: "create.field.title"},
-        {selector: "#project-short-description-label", type: "text", key: "create.field.short"},
-        {selector: "#project-description-label", type: "text", key: "create.field.description"},
-        {selector: "#project-goal-label", type: "text", key: "create.field.goal"},
-        {selector: "#project-currency-label", type: "text", key: "create.field.currency"},
-        {selector: "#project-category-label", type: "text", key: "create.field.category"},
-        {selector: "#category-select option[value='']", type: "text", key: "create.field.withoutCategory"},
-        {selector: "#project-start-at-label", type: "text", key: "create.field.startAt"},
-        {selector: "#project-end-at-label", type: "text", key: "create.field.endAt"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "edit.kicker"},
-        {selector: ".tips-panel h3", type: "text", key: "edit.when"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "edit.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "edit.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "edit.tip3"}
-    ],
-    "/admin-dashboard.html": [
-        {selector: "title", type: "text", key: "admin.title"},
-        {selector: ".panel.form-panel > .panel-header .panel-kicker", type: "text", key: "admin.kicker"},
-        {selector: ".panel.form-panel > .panel-header h3", type: "text", key: "admin.queue"},
-        {selector: ".panel.form-panel > .panel-header .ghost-btn", type: "text", key: "index.menu.dashboard"},
-        {selector: ".admin-subsection .panel-kicker", type: "text", key: "admin.users"},
-        {selector: ".admin-subsection h3", type: "text", key: "admin.userManagement"},
-        {selector: "#admin-users-search", type: "placeholder", key: "admin.placeholder.users"},
-        {selector: "#admin-users-status-filter option[value='']", type: "text", key: "admin.filter.allUsers"},
-        {selector: "#admin-users-status-filter option[value='ACTIVE']", type: "text", key: "admin.filter.active"},
-        {selector: "#admin-users-status-filter option[value='BLOCKED']", type: "text", key: "admin.filter.blocked"},
-        {selector: "#admin-users-search-btn", type: "text", key: "admin.search"},
-        {selector: ".admin-comments-panel .panel-kicker", type: "text", key: "admin.comments"},
-        {selector: ".admin-comments-panel h3", type: "text", key: "admin.content"},
-        {selector: "#admin-comments-search", type: "placeholder", key: "admin.placeholder.comments"},
-        {selector: "#admin-comments-search-btn", type: "text", key: "admin.search"},
-        {selector: ".admin-side-column .tips-panel .panel-kicker", type: "text", key: "admin.actions"},
-        {selector: ".admin-side-column .tips-panel h3", type: "text", key: "admin.flow"},
-        {selector: ".admin-side-column > .tips-panel .tips-list li:nth-of-type(1)", type: "text", key: "admin.tip1"},
-        {selector: ".admin-side-column > .tips-panel .tips-list li:nth-of-type(2)", type: "text", key: "admin.tip2"},
-        {selector: ".admin-side-column > .tips-panel .tips-list li:nth-of-type(3)", type: "text", key: "admin.tip3"},
-        {selector: ".admin-side-column > .tips-panel .tips-list li:nth-of-type(4)", type: "text", key: "admin.tip4"},
-        {selector: ".admin-side-column > .tips-panel .tips-list li:nth-of-type(5)", type: "text", key: "admin.tip5"}
-    ],
-    "/admin-project-review.html": [
-        {selector: "title", type: "text", key: "moderation.pageTitle"},
-        {selector: "#moderation-project-category", type: "text", key: "shell.moderation"},
-        {selector: "#moderation-project-title", type: "text", key: "app.loading"},
-        {selector: ".moderation-review-main > .panel-header .project-card-footer-actions .ghost-btn:nth-of-type(1)", type: "text", key: "moderation.back"},
-        {selector: ".moderation-review-main > .panel-header .project-card-footer-actions .ghost-btn:nth-of-type(2)", type: "text", key: "moderation.publicPage"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(1) .panel-kicker", type: "text", key: "moderation.overview"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(1) h3", type: "text", key: "moderation.projectDescription"},
-        {selector: "#moderation-short-description-label", type: "text", key: "moderation.shortDescription"},
-        {selector: "#moderation-full-description-label", type: "text", key: "moderation.fullDescription"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(2) .panel-kicker", type: "text", key: "moderation.timeline"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(2) h3", type: "text", key: "moderation.authorUpdates"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(3) .panel-kicker", type: "text", key: "moderation.discussion"},
-        {selector: ".moderation-review-main .project-section:nth-of-type(3) h3", type: "text", key: "moderation.projectComments"},
-        {selector: ".moderation-review-side .panel-kicker", type: "text", key: "shell.moderation"},
-        {selector: ".moderation-review-side h3", type: "text", key: "moderation.decisionPanel"},
-        {selector: "#moderation-side-note", type: "text", key: "moderation.sideNote"},
-        {selector: "#moderation-status-title", type: "text", key: "admin.status"},
-        {selector: "#moderation-reason-block h4", type: "text", key: "moderation.currentRejectReason"},
-        {selector: "label[for='moderation-reject-reason']", type: "text", key: "moderation.rejectReason"},
-        {selector: "#moderation-reject-reason", type: "placeholder", key: "moderation.rejectPlaceholder"},
-        {selector: "#moderation-approve-btn", type: "text", key: "admin.approve"},
-        {selector: "#moderation-reject-btn", type: "text", key: "admin.reject"}
-    ],
-    "/pay.html": [
-        {selector: "title", type: "text", key: "pay.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "pay.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "pay.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "pay.myDonations"},
-        {selector: "#pay-success-btn", type: "text", key: "pay.success"},
-        {selector: "#pay-fail-btn", type: "text", key: "pay.fail"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "pay.sandbox"},
-        {selector: ".tips-panel h3", type: "text", key: "pay.how"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "pay.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "pay.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "pay.tip3"}
-    ],
-    "/project.html": [
-        {selector: "title", type: "text", key: "project.title"},
-        {selector: ".project-page-main .panel-header .ghost-btn", type: "text", key: "project.back"},
-        {selector: ".project-progress-head span:first-child", type: "text", key: "project.fundingStatus"},
-        {selector: ".project-page-main .project-section .panel-kicker", type: "text", key: "project.updates"},
-        {selector: ".project-page-main .project-section h3", type: "text", key: "project.authorUpdates"},
-        {selector: "#update-form label:nth-of-type(1) span", type: "text", key: "project.field.updateTitle"},
-        {selector: "#update-form input[name='title']", type: "placeholder", key: "project.field.updateTitlePlaceholder"},
-        {selector: "#update-form label:nth-of-type(2) span", type: "text", key: "project.field.updateContent"},
-        {selector: "#update-form textarea[name='content']", type: "placeholder", key: "project.field.updateContentPlaceholder"},
-        {selector: "#update-form button[type='submit']", type: "text", key: "project.action.publishUpdate"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(1)", type: "text", key: "project.support"},
-        {selector: ".project-page-side > h3:nth-of-type(1)", type: "text", key: "project.backThis"},
-        {selector: "#donation-form label span", type: "text", key: "project.field.donationAmount"},
-        {selector: "#donation-submit", type: "text", key: "project.action.donate"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(2)", type: "text", key: "project.backers"},
-        {selector: ".project-page-side > h3:nth-of-type(2)", type: "text", key: "project.latestDonations"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(3)", type: "text", key: "project.reviews"},
-        {selector: ".project-page-side > h3:nth-of-type(3)", type: "text", key: "project.feedback"},
-        {selector: "#review-form label:nth-of-type(1) span", type: "text", key: "project.field.rating"},
-        {selector: "#review-form option[value='5']", type: "text", key: "project.rating.5"},
-        {selector: "#review-form option[value='4']", type: "text", key: "project.rating.4"},
-        {selector: "#review-form option[value='3']", type: "text", key: "project.rating.3"},
-        {selector: "#review-form option[value='2']", type: "text", key: "project.rating.2"},
-        {selector: "#review-form option[value='1']", type: "text", key: "project.rating.1"},
-        {selector: "#review-form label:nth-of-type(2) span", type: "text", key: "project.field.review"},
-        {selector: "#review-form textarea[name='reviewText']", type: "placeholder", key: "project.field.reviewPlaceholder"},
-        {selector: "#review-form button[type='submit']", type: "text", key: "project.action.postReview"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(4)", type: "text", key: "project.comments"},
-        {selector: ".project-page-side > h3:nth-of-type(4)", type: "text", key: "project.discussion"},
-        {selector: "#comment-form label span", type: "text", key: "project.field.comment"},
-        {selector: "#comment-form textarea[name='content']", type: "placeholder", key: "project.field.commentPlaceholder"},
-        {selector: "#comment-form button[type='submit']", type: "text", key: "project.action.postComment"}
-    ]
 };
 
 Object.assign(I18N_TRANSLATIONS.en, {
@@ -1204,11 +870,11 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "project.status.DRAFT": "Черновик",
     "project.status.MODERATION": "На модерации",
     "project.status.ACTIVE": "Идёт сбор",
-    "project.status.REJECTED": "Отклонен",
+    "project.status.REJECTED": "Отклонён",
     "project.status.FUNDED": "Цель достигнута",
     "project.status.CLOSED": "Завершён",
     "project.status.BLOCKED": "Заблокирован",
-    "project.status.DELETED": "Удален",
+    "project.status.DELETED": "Удалён",
     "common.recently": "Недавно",
     "app.noData": "Нет данных",
     "app.noCampaigns": "Кампании не найдены",
@@ -1241,7 +907,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "projects.sort.goal": "Самая высокая цель",
     "projects.sort.az": "Название А-Я",
     "projects.prev": "Назад",
-    "projects.next": "Вперед",
+    "projects.next": "Вперёд",
     "projects.search": "Поиск",
     "projects.modal.select": "Выберите кампанию",
     "projects.modal.details": "Здесь появятся детали проекта.",
@@ -1367,7 +1033,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "author.bio.cancel": "Отмена",
     "author.activity.kicker": "Активность",
     "author.activity.title": "Последние действия",
-    "author.activity.updated": "обновлен",
+    "author.activity.updated": "обновлён",
     "author.activity.created": "создан",
     "author.activity.description": "Проект {verb}, статус: {status}.",
     "author.activity.empty": "Пока нет активности. Создайте первый проект, чтобы кабинет ожил.",
@@ -1403,7 +1069,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "author.status.avatarImageOnly": "Можно выбрать только изображение",
     "author.status.avatarSaving": "Сохраняем аватар...",
     "author.status.avatarSaveError": "Не удалось сохранить аватар",
-    "author.status.avatarSaved": "Аватар сохранен",
+    "author.status.avatarSaved": "Аватар сохранён",
     "author.status.bioRequired": "Заполните описание профиля",
     "author.status.bioSaving": "Сохраняем описание...",
     "author.status.bioSaveError": "Не удалось сохранить описание",
@@ -1446,7 +1112,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "sponsor.status.avatarImageOnly": "Можно выбрать только изображение",
     "sponsor.status.avatarSaving": "Сохраняем аватар...",
     "sponsor.status.avatarSaveError": "Не удалось сохранить аватар",
-    "sponsor.status.avatarSaved": "Аватар сохранен",
+    "sponsor.status.avatarSaved": "Аватар сохранён",
     "donation.status.SUCCEEDED": "Успешно",
     "donation.status.PENDING": "В ожидании",
     "donation.status.FAILED": "Не прошёл",
@@ -1455,6 +1121,8 @@ Object.assign(I18N_TRANSLATIONS.ru, {
 
 Object.assign(I18N_TRANSLATIONS.en, {
     "category.general": "General",
+    "category.uncategorized": "Uncategorized",
+    "category.unknown": "Unknown category",
     "category.tech": "Technology",
     "category.art": "Art",
     "category.social": "Social projects",
@@ -1464,6 +1132,8 @@ Object.assign(I18N_TRANSLATIONS.en, {
 
 Object.assign(I18N_TRANSLATIONS.ru, {
     "category.general": "Общее",
+    "category.uncategorized": "Без категории",
+    "category.unknown": "Неизвестная категория",
     "category.tech": "Технологии",
     "category.art": "Творчество",
     "category.social": "Социальные проекты",
@@ -1481,18 +1151,6 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "index.stats.publicApi": "Цель достигнута",
     "index.stats.liveData": "Сбор закрыт",
     "index.stats.dashboard": "Успешный кейс"
-});
-
-Object.assign(I18N_TRANSLATIONS.en, {
-    "shell.theme.label": "Theme",
-    "shell.theme.light": "Light",
-    "shell.theme.dark": "Dark"
-});
-
-Object.assign(I18N_TRANSLATIONS.ru, {
-    "shell.theme.label": "Тема",
-    "shell.theme.light": "Светлая",
-    "shell.theme.dark": "Темная"
 });
 
 Object.assign(I18N_TRANSLATIONS.en, {
@@ -1605,6 +1263,403 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "project.comment.replyingTo": "\u041e\u0442\u0432\u0435\u0442 \u0434\u043b\u044f {name}"
 });
 
+Object.assign(I18N_TRANSLATIONS.en, {
+    "shell.projects": "Projects",
+    "shell.how": "How it works",
+    "shell.analytics": "Analytics",
+    "shell.launch": "Launch",
+    "shell.myDonations": "My donations",
+    "shell.home": "RiseUp — home",
+    "shell.navigation": "Main navigation",
+    "shell.footerNavigation": "Footer navigation",
+    "shell.language": "Language",
+    "shell.source": "Source code on GitHub",
+    "shell.language.ru": "Русский",
+    "shell.language.en": "English"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "shell.projects": "Проекты",
+    "shell.how": "Как это работает",
+    "shell.analytics": "Аналитика",
+    "shell.launch": "Запустить",
+    "shell.myDonations": "Мои донаты",
+    "shell.home": "RiseUp — главная",
+    "shell.navigation": "Основная навигация",
+    "shell.footerNavigation": "Навигация в подвале",
+    "shell.language": "Язык",
+    "shell.source": "Исходный код на GitHub",
+    "shell.language.ru": "Русский",
+    "shell.language.en": "English"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "home.title": "RiseUp — backing the bold",
+    "home.heading": "Backing",
+    "home.headingOn": "the",
+    "home.headingBold": "bold",
+    "home.intro": "Technology, art, education and good causes — from creators who just need your support.",
+    "home.raised": "raised",
+    "home.active": "raising funds",
+    "home.funded": "reached their goal",
+    "home.featured": "Project of the week",
+    "home.featuredLoading": "Finding the project of the week…",
+    "home.featuredError": "Could not load the project of the week. Please refresh the page.",
+    "home.amountLabel": "Support amount",
+    "home.supportAmount": "Support with {amount}",
+    "home.empty": "No projects are raising funds yet.",
+    "home.statsError": "Could not load platform statistics.",
+    "home.step1.title": "Creators launch",
+    "home.step1.text": "A goal, dates, cover and the story behind the project.",
+    "home.step2.title": "Moderators review",
+    "home.step2.text": "Publication follows review. Authors receive a reason if changes are needed.",
+    "home.step3.title": "People support",
+    "home.step3.text": "Donations, reviews and project updates as they happen.",
+    "home.launchHeading": "Have an idea? Launch a campaign",
+    "home.create": "Create project",
+    "catalog.title": "Project catalog | RiseUp",
+    "catalog.heading": "Project catalog",
+    "catalog.searchLabel": "Find a project by title",
+    "catalog.sortLabel": "Sort projects",
+    "catalog.statusLabel": "Funding status",
+    "catalog.status.active": "Raising funds",
+    "catalog.status.funded": "Funded",
+    "catalog.categoriesLabel": "Categories",
+    "catalog.paginationLabel": "Catalog pages",
+    "catalog.found": "Projects found: {count}",
+    "public.goalReached": "Goal reached",
+    "public.progress": "Funding progress",
+    "public.of": "of"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "home.title": "RiseUp — собираем на смелое",
+    "home.heading": "Собираем",
+    "home.headingOn": "на",
+    "home.headingBold": "смелое",
+    "home.intro": "Технологии, творчество, образование и добрые дела — от авторов, которым не хватает только вашей поддержки.",
+    "home.raised": "собрано",
+    "home.active": "сборов идёт",
+    "home.funded": "дошли до цели",
+    "home.featured": "Проект недели",
+    "home.featuredLoading": "Выбираем проект недели…",
+    "home.featuredError": "Не удалось загрузить проект недели. Обновите страницу.",
+    "home.amountLabel": "Сумма поддержки",
+    "home.supportAmount": "Поддержать на {amount}",
+    "home.empty": "Пока нет проектов, на которые идёт сбор.",
+    "home.statsError": "Не удалось загрузить статистику платформы.",
+    "home.step1.title": "Автор запускает",
+    "home.step1.text": "Цель, сроки, обложка и история проекта.",
+    "home.step2.title": "Модератор проверяет",
+    "home.step2.text": "Публикация после проверки, причина отказа — автору.",
+    "home.step3.title": "Люди поддерживают",
+    "home.step3.text": "Донаты, отзывы и новости в реальном времени.",
+    "home.launchHeading": "Есть идея? Запускай сбор",
+    "home.create": "Создать проект",
+    "catalog.title": "Каталог проектов | RiseUp",
+    "catalog.heading": "Каталог проектов",
+    "catalog.searchLabel": "Найти проект по названию",
+    "catalog.sortLabel": "Сортировка",
+    "catalog.statusLabel": "Статус сбора",
+    "catalog.status.active": "Идёт сбор",
+    "catalog.status.funded": "Профинансированы",
+    "catalog.categoriesLabel": "Категории",
+    "catalog.paginationLabel": "Страницы каталога",
+    "catalog.found": "Найдено проектов: {count}",
+    "public.goalReached": "Цель достигнута",
+    "public.progress": "Прогресс сбора",
+    "public.of": "из"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.breadcrumbs": "Breadcrumbs", "project.sectionNavigation": "Page sections",
+    "project.story": "Story", "project.news": "News", "project.about": "About the project",
+    "project.goalFraction": "of the goal", "project.daysLeft": "days left", "project.customAmount": "Or your own amount",
+    "project.raisedOf": "raised of {goal}", "project.startDate": "Campaign start", "project.endDate": "Campaign end", "project.currency": "Currency",
+    "project.authorProjects": "Author’s projects", "project.unknownUser": "Unknown user",
+    "project.relatedCategory": "More in “{category}”", "project.relatedUncategorized": "More uncategorized projects",
+    "project.relatedEmpty": "No other active projects in this category yet.", "project.allInCategory": "All projects",
+    "project.reviewSummary": "{average} out of 5 · {count} ratings", "project.review.authorBlocked": "You cannot review your own project.",
+    "project.comment.removed": "Comment removed by a moderator", "project.comment.cancelReply": "Cancel reply",
+    "project.donation.notActive": "This project is not accepting donations.",
+    "donation.status.SUCCEEDED": "Paid", "donation.status.PENDING": "Awaiting payment", "donation.status.FAILED": "Failed", "donation.status.CANCELED": "Canceled",
+    "pay.title": "Test payment | RiseUp", "pay.heading": "Confirm your donation", "pay.testNotice": "Test payment — no real money will be charged",
+    "pay.supporting": "Supporting a project", "pay.amountDue": "Amount due", "pay.provider": "Payment provider", "pay.number": "Payment number", "pay.statusLabel": "Status",
+    "pay.chooseResult": "Choose the outcome of this test payment:", "pay.paidAction": "Payment succeeded", "pay.failedAction": "Payment failed",
+    "pay.backToProject": "Back to the project", "pay.sandboxHeading": "How the sandbox works", "pay.fakeProvider": "FAKE (sandbox)", "pay.untitled": "Untitled project",
+    "pay.missingId": "Donation id is missing", "pay.loadError": "Could not load the donation", "pay.loading": "Loading payment…", "pay.incomplete": "Payment information is incomplete",
+    "pay.confirming": "Confirming payment…", "pay.markingFailed": "Recording the failed payment…", "pay.completeError": "Could not complete the payment. Please try again.",
+    "pay.doneSuccess": "Payment succeeded", "pay.doneFailed": "Payment failed",
+    "pay.result.success.title": "Thank you!", "pay.result.success.text": "Your donation has been credited and the project total updated.",
+    "pay.result.failed.title": "Payment failed", "pay.result.failed.text": "The donation was not credited. You can return to the project.",
+    "pay.result.canceled.title": "Payment canceled", "pay.result.canceled.text": "This donation has been canceled. You can return to the project.",
+    "pay.tip2": "Choose a test payment result. A successful payment updates the project total."
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.breadcrumbs": "Хлебные крошки", "project.sectionNavigation": "Разделы страницы",
+    "project.story": "История", "project.news": "Новости", "project.about": "О проекте",
+    "project.goalFraction": "цели", "project.daysLeft": "дней осталось", "project.customAmount": "Или своя сумма",
+    "project.raisedOf": "собрано из {goal}", "project.startDate": "Старт сбора", "project.endDate": "Финиш", "project.currency": "Валюта",
+    "project.authorProjects": "Проекты автора", "project.unknownUser": "Неизвестный пользователь",
+    "project.relatedCategory": "Ещё в категории «{category}»", "project.relatedUncategorized": "Другие проекты без категории",
+    "project.relatedEmpty": "Других активных проектов в этой категории пока нет.", "project.allInCategory": "Все проекты",
+    "project.reviewSummary": "{average} из 5 · {count} оценок", "project.review.authorBlocked": "Нельзя оставить отзыв на свой собственный проект.",
+    "project.comment.removed": "Комментарий удалён модератором", "project.comment.cancelReply": "Отмена ответа",
+    "project.donation.notActive": "Этот проект больше не принимает донаты.",
+    "project.status.ACTIVE": "Активен", "project.status.FUNDED": "Профинансирован", "project.status.REJECTED": "Отклонён", "project.status.CLOSED": "Закрыт",
+    "donation.status.SUCCEEDED": "Оплачено", "donation.status.PENDING": "Ожидает оплаты", "donation.status.FAILED": "Не прошла", "donation.status.CANCELED": "Отменена",
+    "pay.title": "Тестовая оплата | RiseUp", "pay.heading": "Подтверждение доната", "pay.testNotice": "Тестовая оплата — реальные деньги не списываются",
+    "pay.supporting": "Поддержка проекта", "pay.amountDue": "К оплате", "pay.provider": "Платёжный провайдер", "pay.number": "Номер платежа", "pay.statusLabel": "Статус",
+    "pay.chooseResult": "Выберите, чем закончится тестовый платёж:", "pay.paidAction": "Оплата прошла", "pay.failedAction": "Оплата не прошла",
+    "pay.backToProject": "Вернуться к проекту", "pay.sandboxHeading": "Как работает песочница", "pay.fakeProvider": "FAKE (песочница)", "pay.untitled": "Проект без названия",
+    "pay.missingId": "Не указан id доната", "pay.loadError": "Не удалось загрузить донат", "pay.loading": "Загружаем платёж…", "pay.incomplete": "Данные платежа неполные",
+    "pay.confirming": "Подтверждаем оплату…", "pay.markingFailed": "Фиксируем неуспешную оплату…", "pay.completeError": "Не удалось завершить платёж. Попробуйте ещё раз.",
+    "pay.doneSuccess": "Оплата прошла", "pay.doneFailed": "Оплата не прошла",
+    "pay.result.success.title": "Спасибо!", "pay.result.success.text": "Донат зачислен, сумма сбора обновлена.",
+    "pay.result.failed.title": "Платёж не прошёл", "pay.result.failed.text": "Донат не зачислен. Вы можете вернуться к проекту.",
+    "pay.result.canceled.title": "Платёж отменён", "pay.result.canceled.text": "Этот донат отменён. Вы можете вернуться к проекту.",
+    "pay.tip2": "Выберите результат тестовой оплаты. При успешной оплате сумма сбора обновится."
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.payment.success": "Платёж прошёл. Финансирование проекта обновлено.",
+    "project.payment.failed": "Платёж не прошёл. Попробуйте снова.",
+    "project.dismissPaymentResult": "Закрыть сообщение о платеже",
+    "project.sponsorCountLabel": "спонсоров",
+    "project.deadlineExpired": "срок вышел",
+    "project.action.postComment": "Опубликовать комментарий",
+    "project.action.postReview": "Опубликовать отзыв"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.dismissPaymentResult": "Dismiss payment message",
+    "project.sponsorCountLabel": "sponsors",
+    "project.deadlineExpired": "deadline passed",
+    "project.action.postComment": "Publish comment",
+    "project.action.postReview": "Publish review"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "auth.homeLink": "На главную",
+    "auth.headline": "Запустите идею. Соберите команду. Измените мир.",
+    "auth.introduction": "Аккаунт автора — чтобы запускать кампании. Аккаунт спонсора — чтобы поддерживать лучшие проекты.",
+    "auth.accessLabel": "Вход или регистрация",
+    "auth.stat.active": "активных проектов",
+    "auth.stat.raised": "собрано всего",
+    "auth.stat.backers": "спонсоров",
+    "auth.loginHint": "Войдите, чтобы продолжить.",
+    "auth.freeHint": "Это бесплатно.",
+    "auth.noAccount": "Нет аккаунта?",
+    "auth.signUpLink": "Зарегистрироваться",
+    "auth.whoAreYou": "Кто вы?",
+    "auth.authorTitle": "Автор",
+    "auth.authorHint": "Создаю кампании",
+    "auth.sponsorTitle": "Спонсор",
+    "auth.sponsorHint": "Поддерживаю проекты",
+    "auth.emailPlaceholder": "you@example.com",
+    "auth.passwordPlaceholder": "Введите пароль",
+    "auth.newPasswordPlaceholder": "Минимум 6 символов",
+    "auth.passwordHint": "От 6 до 100 символов.",
+    "auth.namePlaceholder": "Ваше имя",
+    "auth.terms": "Регистрируясь, вы соглашаетесь с условиями использования платформы.",
+    "auth.statsUnavailable": "Статистика временно недоступна. Вы можете войти или зарегистрироваться."
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "auth.homeLink": "Back to home",
+    "auth.headline": "Launch an idea. Build a team. Change the world.",
+    "auth.introduction": "An author account to launch campaigns. A sponsor account to support great projects.",
+    "auth.accessLabel": "Sign in or register",
+    "auth.stat.active": "active projects",
+    "auth.stat.raised": "raised in total",
+    "auth.stat.backers": "sponsors",
+    "auth.loginHint": "Sign in to continue.",
+    "auth.freeHint": "It’s free.",
+    "auth.noAccount": "No account yet?",
+    "auth.signUpLink": "Create an account",
+    "auth.whoAreYou": "Who are you?",
+    "auth.authorTitle": "Author",
+    "auth.authorHint": "I create campaigns",
+    "auth.sponsorTitle": "Sponsor",
+    "auth.sponsorHint": "I support projects",
+    "auth.emailPlaceholder": "you@example.com",
+    "auth.passwordPlaceholder": "Enter your password",
+    "auth.newPasswordPlaceholder": "At least 6 characters",
+    "auth.passwordHint": "Between 6 and 100 characters.",
+    "auth.namePlaceholder": "Your name",
+    "auth.terms": "By registering, you agree to the platform’s terms of use.",
+    "auth.statsUnavailable": "Statistics are temporarily unavailable. You can still sign in or register."
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "count.sponsor.one": "спонсор", "count.sponsor.few": "спонсора", "count.sponsor.many": "спонсоров", "count.sponsor.other": "спонсора",
+    "count.rating.one": "оценка", "count.rating.few": "оценки", "count.rating.many": "оценок", "count.rating.other": "оценки",
+    "count.day.one": "день", "count.day.few": "дня", "count.day.many": "дней", "count.day.other": "дня",
+    "count.project.one": "проект", "count.project.few": "проекта", "count.project.many": "проектов", "count.project.other": "проекта",
+    "count.comment.one": "комментарий", "count.comment.few": "комментария", "count.comment.many": "комментариев", "count.comment.other": "комментария",
+    "count.activeProject.one": "активный проект", "count.activeProject.few": "активных проекта", "count.activeProject.many": "активных проектов", "count.activeProject.other": "активного проекта",
+    "count.fundedProject.one": "достиг цели", "count.fundedProject.few": "достигли цели", "count.fundedProject.many": "достигли цели", "count.fundedProject.other": "достигли цели",
+    "count.daysLeft.one": "день остался", "count.daysLeft.few": "дня осталось", "count.daysLeft.many": "дней осталось", "count.daysLeft.other": "дня осталось",
+    "catalog.found.one": "Найден {count} проект", "catalog.found.few": "Найдено {count} проекта", "catalog.found.many": "Найдено {count} проектов", "catalog.found.other": "Найдено {count} проекта",
+    "project.comment.invite": "Задайте вопрос автору или оставьте обратную связь",
+    "project.reviewSummary": "{average} / 5 · {count}"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "count.sponsor.one": "sponsor", "count.sponsor.other": "sponsors",
+    "count.rating.one": "rating", "count.rating.other": "ratings",
+    "count.day.one": "day", "count.day.other": "days",
+    "count.project.one": "project", "count.project.other": "projects",
+    "count.comment.one": "comment", "count.comment.other": "comments",
+    "count.activeProject.one": "active project", "count.activeProject.other": "active projects",
+    "count.fundedProject.one": "reached its goal", "count.fundedProject.other": "reached their goals",
+    "count.daysLeft.one": "day left", "count.daysLeft.other": "days left",
+    "catalog.found.one": "{count} project found", "catalog.found.other": "{count} projects found",
+    "project.comment.invite": "Ask the author a question or leave feedback",
+    "project.reviewSummary": "{average} / 5 · {count}"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "profile.dialogTitle": "Профиль", "profile.edit": "Редактировать профиль", "profile.uploadAvatar": "Загрузить аватар", "profile.avatarHint": "До 5 МБ. Обрежем до квадрата.",
+    "profile.locked": "Имя и email пока нельзя изменить.", "profile.bio": "О себе", "profile.save": "Сохранить", "profile.cancel": "Отмена", "profile.emptyBio": "Расскажите о себе в профиле.",
+    "author.membership": "Автор · на RiseUp с {date}", "author.filterLabel": "Фильтр по статусу", "author.pagination": "Страницы проектов",
+    "author.tab.all": "Все", "author.tab.active": "Активные", "author.tab.draft": "Черновики", "author.tab.rejected": "На доработке", "author.tab.done": "Завершённые",
+    "author.hint.all": "Все ваши проекты: от черновиков до успешных сборов.", "author.hint.active": "Опубликованные проекты, которые сейчас принимают поддержку.",
+    "author.hint.draft": "Черновики можно редактировать. Проекты на модерации ожидают решения администратора.", "author.hint.rejected": "Исправьте замечания модератора и отправьте проект на проверку снова.", "author.hint.done": "Проекты, которые достигли цели сбора.",
+    "author.emptyFilter": "В этой вкладке пока нет проектов.", "author.openNews": "Открыть и написать новость",
+    "author.successful.one": "успешная кампания", "author.successful.few": "успешные кампании", "author.successful.many": "успешных кампаний", "author.successful.other": "успешной кампании",
+    "editor.back": "В кабинет", "editor.createHeading": "Новая кампания", "editor.editHeading": "Редактировать проект",
+    "editor.createIntro": "Проект сохранится как черновик — его видите только вы. Когда всё готово, отправьте его на модерацию.",
+    "editor.editIntro": "Внесите изменения и сохраните проект. Черновики и проекты на доработке можно отправить на модерацию из кабинета.",
+    "editor.about": "О проекте", "editor.titleLabel": "Название", "editor.shortLabel": "Кратко", "editor.descriptionLabel": "Полное описание", "editor.categoryLabel": "Категория",
+    "editor.titlePlaceholder": "Как называется ваш проект", "editor.shortPlaceholder": "Одно-два предложения для карточки в каталоге", "editor.descriptionPlaceholder": "Расскажите, что вы делаете, зачем и на что пойдут деньги",
+    "editor.funding": "Сбор", "editor.goalLabel": "Цель сбора", "editor.goalPlaceholder": "900000", "editor.currencyLabel": "Валюта", "editor.startLabel": "Старт — необязательно", "editor.endLabel": "Финиш — необязательно",
+    "editor.dateHint": "Старт не может быть в прошлом, финиш — строго позже старта.", "editor.dateError": "Финиш должен быть позже старта.",
+    "editor.cover": "Обложка", "editor.upload": "Загрузить изображение", "editor.coverHint": "До 5 МБ. Обрежем до 16 : 9.", "editor.noCoverHint": "Без обложки карточка будет цветом категории.",
+    "editor.saveDraft": "Сохранить черновик", "editor.preview": "Предпросмотр", "editor.previewLabel": "Так карточку увидят в каталоге", "editor.previewTitle": "Название проекта", "editor.previewShort": "Краткое описание появится здесь.",
+    "editor.next": "Дальше", "editor.nextHint": "Черновик можно править сколько угодно. После отправки на модерацию правки закрываются, пока администратор не одобрит или не вернёт проект с комментарием.",
+    "editor.moderator": "Модератор:", "editor.saving": "Сохраняем изменения…", "editor.saved": "Проект обновлён", "editor.saveError": "Не удалось сохранить проект", "editor.loadError": "Не удалось загрузить проект"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "profile.dialogTitle": "Profile", "profile.edit": "Edit profile", "profile.uploadAvatar": "Upload avatar", "profile.avatarHint": "Up to 5 MB. We’ll crop it to a square.",
+    "profile.locked": "Name and email cannot be changed yet.", "profile.bio": "About you", "profile.save": "Save", "profile.cancel": "Cancel", "profile.emptyBio": "Tell us about yourself in your profile.",
+    "author.membership": "Author · on RiseUp since {date}", "author.filterLabel": "Filter by status", "author.pagination": "Project pages",
+    "author.tab.all": "All", "author.tab.active": "Active", "author.tab.draft": "Drafts", "author.tab.rejected": "Needs revision", "author.tab.done": "Completed",
+    "author.hint.all": "All your projects, from drafts to successful campaigns.", "author.hint.active": "Published projects currently accepting support.",
+    "author.hint.draft": "Drafts can be edited. Projects under moderation are waiting for an administrator’s decision.", "author.hint.rejected": "Address the moderator’s feedback and submit your project again.", "author.hint.done": "Projects that have reached their funding goals.",
+    "author.emptyFilter": "No projects in this tab yet.", "author.openNews": "Open and post an update",
+    "author.successful.one": "successful campaign", "author.successful.other": "successful campaigns",
+    "editor.back": "Back to dashboard", "editor.createHeading": "New campaign", "editor.editHeading": "Edit project",
+    "editor.createIntro": "Your project will be saved as a private draft. Submit it for moderation when it’s ready.",
+    "editor.editIntro": "Make changes and save your project. Submit drafts and revised projects for moderation from your dashboard.",
+    "editor.about": "About the project", "editor.titleLabel": "Title", "editor.shortLabel": "In brief", "editor.descriptionLabel": "Full description", "editor.categoryLabel": "Category",
+    "editor.titlePlaceholder": "What is your project called?", "editor.shortPlaceholder": "One or two sentences for the catalog card", "editor.descriptionPlaceholder": "Tell us what you’re making, why it matters and how you’ll use the funds",
+    "editor.funding": "Funding", "editor.goalLabel": "Funding goal", "editor.goalPlaceholder": "900000", "editor.currencyLabel": "Currency", "editor.startLabel": "Start — optional", "editor.endLabel": "End — optional",
+    "editor.dateHint": "The start cannot be in the past. The end must be strictly later than the start.", "editor.dateError": "The end must be later than the start.",
+    "editor.cover": "Cover", "editor.upload": "Upload image", "editor.coverHint": "Up to 5 MB. We’ll crop it to 16 : 9.", "editor.noCoverHint": "Without a cover, the card uses the category color.",
+    "editor.saveDraft": "Save draft", "editor.preview": "Preview", "editor.previewLabel": "How your card will look in the catalog", "editor.previewTitle": "Project title", "editor.previewShort": "Your short description will appear here.",
+    "editor.next": "Next", "editor.nextHint": "You can edit your draft as often as you like. Once submitted for moderation, changes are locked until an administrator approves it or returns it with feedback.",
+    "editor.moderator": "Moderator:", "editor.saving": "Saving changes…", "editor.saved": "Project updated", "editor.saveError": "Could not save project", "editor.loadError": "Could not load project"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "profile.bioPlaceholder": "Пара слов о себе или вашей команде",
+    "author.stats.successRate": "процент успеха",
+    "sponsor.membership": "Спонсор · на RiseUp с {date}",
+    "sponsor.filterLabel": "Фильтр по статусу оплаты",
+    "sponsor.tab.all": "Все", "sponsor.tab.ok": "Оплаченные", "sponsor.tab.pending": "Ожидают оплаты", "sponsor.tab.failed": "Не прошли",
+    "sponsor.metric.amount": "вложено всего",
+    "sponsor.metric.projects.one": "проект поддержан", "sponsor.metric.projects.few": "проекта поддержано", "sponsor.metric.projects.many": "проектов поддержано", "sponsor.metric.projects.other": "проекта поддержано",
+    "sponsor.metric.donations.one": "донат", "sponsor.metric.donations.few": "доната", "sponsor.metric.donations.many": "донатов", "sponsor.metric.donations.other": "доната",
+    "sponsor.metric.paid.one": "успешная оплата", "sponsor.metric.paid.few": "успешные оплаты", "sponsor.metric.paid.many": "успешных оплат", "sponsor.metric.paid.other": "успешной оплаты",
+    "sponsor.finishPayment": "Завершить оплату", "sponsor.toProject": "К проекту", "sponsor.emptyFilter": "Здесь пока пусто.",
+    "sponsor.status.loadError": "Не удалось загрузить кабинет спонсора",
+    "sponsor.status.bioRequired": "Напишите пару слов о себе.", "sponsor.status.bioSaving": "Сохраняем профиль…", "sponsor.status.bioSaved": "Профиль сохранён", "sponsor.status.bioSaveError": "Не удалось сохранить профиль"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "profile.bioPlaceholder": "A few words about you or your team",
+    "author.stats.successRate": "success rate",
+    "sponsor.membership": "Sponsor · on RiseUp since {date}",
+    "sponsor.filterLabel": "Filter by payment status",
+    "sponsor.tab.all": "All", "sponsor.tab.ok": "Paid", "sponsor.tab.pending": "Awaiting payment", "sponsor.tab.failed": "Failed",
+    "sponsor.metric.amount": "invested in total",
+    "sponsor.metric.projects.one": "project supported", "sponsor.metric.projects.other": "projects supported",
+    "sponsor.metric.donations.one": "donation", "sponsor.metric.donations.other": "donations",
+    "sponsor.metric.paid.one": "successful payment", "sponsor.metric.paid.other": "successful payments",
+    "sponsor.finishPayment": "Complete payment", "sponsor.toProject": "View project", "sponsor.emptyFilter": "Nothing here yet.",
+    "sponsor.status.loadError": "Could not load sponsor dashboard",
+    "sponsor.status.bioRequired": "Write a few words about yourself.", "sponsor.status.bioSaving": "Saving profile…", "sponsor.status.bioSaved": "Profile saved", "sponsor.status.bioSaveError": "Could not save profile"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "auth.sessionExpired": "Сессия истекла, войдите снова",
+    "profile.saveError": "Не удалось сохранить профиль",
+    "profile.avatarSaveError": "Не удалось сохранить аватар"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "auth.sessionExpired": "Your session has expired. Please sign in again",
+    "profile.saveError": "Could not save profile",
+    "profile.avatarSaveError": "Could not save avatar"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "admin.title": "Модерация | RiseUp", "moderation.title": "Проверка проекта",
+    "moderation.tab.queue": "Очередь", "moderation.tab.users": "Пользователи", "moderation.tab.comments": "Комментарии", "moderation.tabsLabel": "Разделы модерации",
+    "moderation.pagination": "Страницы результатов", "moderation.queueCount.one": "Ждёт проверки · {count}", "moderation.queueCount.few": "Ждут проверки · {count}", "moderation.queueCount.many": "Ждут проверки · {count}", "moderation.queueCount.other": "Ждут проверки · {count}",
+    "moderation.dates": "Сроки", "moderation.description": "Описание", "moderation.rejectReason": "Причина отклонения",
+    "moderation.reasonPlaceholder": "Что автору нужно исправить перед публикацией", "moderation.reasonError": "Чтобы вернуть проект на доработку, напишите причину — до 500 символов.",
+    "moderation.approve": "Одобрить и опубликовать", "moderation.reject": "Вернуть на доработку", "moderation.fullReview": "Открыть отдельную страницу проверки", "moderation.backToQueue": "Назад к очереди",
+    "moderation.userSearch": "Поиск пользователей", "moderation.userSearchPlaceholder": "Имя или email", "moderation.search": "Найти", "moderation.action": "Действие",
+    "moderation.softDelete": "Удаление мягкое: аккаунт получает статус «Удалён», данные сохраняются.",
+    "moderation.commentSearch": "Поиск комментариев", "moderation.commentSearchPlaceholder": "Проект, автор или текст",
+    "moderation.userStatus.ACTIVE": "Активен", "moderation.userStatus.BLOCKED": "Заблокирован", "moderation.userStatus.DELETED": "Удалён",
+    "analytics.raised": "собрано на платформе", "analytics.growth": "Рост сборов", "analytics.chartCaption": "Накопленная сумма успешных донатов",
+    "analytics.chartSummary": "С {first} по {last}: накопленная сумма выросла с {startAmount} до {endAmount}.", "analytics.noChart": "Данных о сборах пока нет.",
+    "analytics.top": "Топ проектов", "analytics.periodLabel": "Период", "analytics.period.all": "Всё время", "analytics.period.year": "Год", "analytics.period.month": "Месяц",
+    "analytics.note.all": "Суммы и прогресс за всё время.", "analytics.note.year": "Суммы и прогресс по успешным донатам за текущий год.", "analytics.note.month": "Суммы и прогресс по успешным донатам за текущий месяц.",
+    "analytics.newAuthors": "Новые авторы", "analytics.newSponsors": "Новые спонсоры", "analytics.noAuthors": "Новых авторов пока нет.", "analytics.noSponsors": "Новых спонсоров пока нет.", "analytics.supportedOn": "Поддержка: {date}",
+    "analytics.loadError": "Не удалось загрузить аналитику. Попробуйте обновить страницу.",
+    "analytics.funded.one": "проект достиг цели", "analytics.funded.few": "проекта достигли цели", "analytics.funded.many": "проектов достигли цели", "analytics.funded.other": "проекта достигли цели",
+    "analytics.backers.one": "уникальный спонсор", "analytics.backers.few": "уникальных спонсора", "analytics.backers.many": "уникальных спонсоров", "analytics.backers.other": "уникального спонсора",
+    "author.status.avatarSaved": "Аватар сохранён", "sponsor.status.avatarSaved": "Аватар сохранён", "author.status.bioSaved": "Профиль сохранён",
+    "admin.action.rejected": "Проект отклонён", "admin.user.updated": "Пользователь обновлён", "project.comment.deleted": "Комментарий удалён", "create.status.created": "Проект сохранён: {title}"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "admin.title": "Moderation | RiseUp", "moderation.title": "Project review",
+    "moderation.tab.queue": "Queue", "moderation.tab.users": "Users", "moderation.tab.comments": "Comments", "moderation.tabsLabel": "Moderation sections",
+    "moderation.pagination": "Result pages", "moderation.queueCount.one": "Awaiting review · {count}", "moderation.queueCount.other": "Awaiting review · {count}",
+    "moderation.dates": "Dates", "moderation.description": "Description", "moderation.rejectReason": "Rejection reason",
+    "moderation.reasonPlaceholder": "What should the author fix before publication?", "moderation.reasonError": "To return the project for revision, enter a reason of up to 500 characters.",
+    "moderation.approve": "Approve and publish", "moderation.reject": "Return for revision", "moderation.fullReview": "Open the full review page", "moderation.backToQueue": "Back to queue",
+    "moderation.userSearch": "Search users", "moderation.userSearchPlaceholder": "Name or email", "moderation.search": "Search", "moderation.action": "Action",
+    "moderation.softDelete": "Deletion is soft: the account is marked as deleted and its data is retained.",
+    "moderation.commentSearch": "Search comments", "moderation.commentSearchPlaceholder": "Project, author or text",
+    "moderation.userStatus.ACTIVE": "Active", "moderation.userStatus.BLOCKED": "Blocked", "moderation.userStatus.DELETED": "Deleted",
+    "analytics.raised": "raised on the platform", "analytics.growth": "Funding growth", "analytics.chartCaption": "Cumulative successful donations",
+    "analytics.chartSummary": "From {first} to {last}: cumulative funding increased from {startAmount} to {endAmount}.", "analytics.noChart": "No funding data yet.",
+    "analytics.top": "Top projects", "analytics.periodLabel": "Period", "analytics.period.all": "All time", "analytics.period.year": "Year", "analytics.period.month": "Month",
+    "analytics.note.all": "Amounts and progress for all time.", "analytics.note.year": "Amounts and progress from successful donations this year.", "analytics.note.month": "Amounts and progress from successful donations this month.",
+    "analytics.newAuthors": "New authors", "analytics.newSponsors": "New sponsors", "analytics.noAuthors": "No new authors yet.", "analytics.noSponsors": "No new sponsors yet.", "analytics.supportedOn": "Supported on {date}",
+    "analytics.loadError": "Could not load analytics. Please refresh the page.",
+    "analytics.funded.one": "project reached its goal", "analytics.funded.other": "projects reached their goals",
+    "analytics.backers.one": "unique sponsor", "analytics.backers.other": "unique sponsors",
+    "author.status.bioSaved": "Profile saved", "create.status.created": "Project saved: {title}"
+});
+
+const I18N_RU_GENITIVE_MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+function i18nFormatMembershipDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "—";
+    return i18nCurrentLanguage === "ru"
+        ? `${I18N_RU_GENITIVE_MONTHS[date.getMonth()]} ${date.getFullYear()}`
+        : new Intl.DateTimeFormat("en-US", {month: "long", year: "numeric"}).format(date);
+}
+
+function i18nPlural(key, count) {
+    const form = new Intl.PluralRules(i18nCurrentLanguage).select(Number(count));
+    return i18nTranslate(`${key}.${form}`).replaceAll("{count}", new Intl.NumberFormat(i18nCurrentLanguage).format(count));
+}
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {
@@ -1622,53 +1677,17 @@ function i18nTranslate(key) {
         ?? key;
 }
 
-function i18nApplyRule(rule) {
-    const node = document.querySelector(rule.selector);
-    if (!node) {
-        return;
-    }
-    const value = i18nTranslate(rule.key);
-    if (rule.type === "placeholder") {
-        node.setAttribute("placeholder", value);
-        return;
-    }
-    if (rule.type === "aria") {
-        node.setAttribute("aria-label", value);
-        return;
-    }
-    node.textContent = value;
-}
-
 function i18nApplyPageTranslations() {
     document.documentElement.lang = i18nCurrentLanguage;
-    const page = i18nResolvePath(window.location.pathname);
-
-    if (page === "/projects.html") {
-        if (i18nCurrentLanguage === "ru") {
-            document.body.dataset.catalogTitle = "Активные кампании";
-            document.body.dataset.catalogKicker = "Каталог";
-            document.body.dataset.catalogEmpty = "По этому фильтру нет активных кампаний.";
-        } else {
-            document.body.dataset.catalogTitle = "Active campaigns";
-            document.body.dataset.catalogKicker = "Discover";
-            document.body.dataset.catalogEmpty = "No active campaigns found for this filter.";
-        }
-    }
-
-    if (page === "/funded-projects.html") {
-        if (i18nCurrentLanguage === "ru") {
-            document.body.dataset.catalogTitle = "Профинансированные проекты";
-            document.body.dataset.catalogKicker = "Успех";
-            document.body.dataset.catalogEmpty = "Пока нет полностью профинансированных проектов.";
-        } else {
-            document.body.dataset.catalogTitle = "Funded projects";
-            document.body.dataset.catalogKicker = "Success";
-            document.body.dataset.catalogEmpty = "There are no fully funded projects yet.";
-        }
-    }
-
-    const rules = I18N_PAGE_TRANSLATIONS[page] || [];
-    rules.forEach(i18nApplyRule);
+    document.querySelectorAll("[data-i18n-key]").forEach((node) => {
+        node.textContent = i18nTranslate(node.dataset.i18nKey);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+        node.setAttribute("placeholder", i18nTranslate(node.dataset.i18nPlaceholder));
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+        node.setAttribute("aria-label", i18nTranslate(node.dataset.i18nAriaLabel));
+    });
 }
 
 function i18nSetLanguage(lang) {
@@ -1690,6 +1709,12 @@ window.AppI18n = {
     },
     t(key) {
         return i18nTranslate(key);
+    },
+    plural(key, count) {
+        return i18nPlural(key, count);
+    },
+    formatMembershipDate(value) {
+        return i18nFormatMembershipDate(value);
     },
     apply() {
         i18nApplyPageTranslations();
