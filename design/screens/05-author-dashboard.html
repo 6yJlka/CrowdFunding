@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — кабинет автора</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="position: relative; font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="Catalog.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Проекты</a>
+      <a href="Author.dc.html" aria-current="page" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">Мои проекты</a>
+    </nav>
+    <a href="Auth.dc.html" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Выйти</a>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 8px 24px 0">
+    <div style="border-radius: 36px; background: #FF6A3D; color: #0E0E10; padding: clamp(24px, 4vw, 48px); display: flex; flex-direction: column; gap: 36px">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px">
+        <div style="position: relative; flex: 0 0 auto">
+          <div aria-hidden="true" style="width: 132px; height: 132px; border-radius: 50%; background: #0E0E10; color: #FF6A3D; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 42px">ТР</div>
+          <button type="button" aria-label="Загрузить аватар" style="position: absolute; right: 0; bottom: 0; width: 44px; height: 44px; border-radius: 50%; border: 4px solid #FF6A3D; background: #C6F24E; color: #0E0E10; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0">
+            <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path></svg>
+          </button>
+        </div>
+        <div style="flex: 1 1 380px; display: flex; flex-direction: column; gap: 10px; min-width: 0">
+          <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.04em">АВТОР · НА RISEUP С МАРТА 2026</span>
+          <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(34px, 5vw, 60px); line-height: 1; font-weight: 900; text-transform: uppercase">Студия «Туннель»</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 1.5; font-weight: 500; max-width: 620px">{{bio}}</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px">
+          <button type="button" onClick="{{openEdit}}" style="border: 0; font: inherit; font-size: 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 22px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; text-decoration: none; font-weight: 800"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 2.5l3 3L6 13H3v-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path></svg>Редактировать профиль</button>
+          <a href="#create" style="display: inline-flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 24px; border-radius: 999px; background: #C6F24E; color: #0E0E10; border: 2px solid #0E0E10; text-decoration: none; font-weight: 800">
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"></path></svg>
+            Новый проект
+          </a>
+          </div>
+        </div>
+      </div>
+      <dl style="margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 0; border-top: 2px solid #0E0E10">
+        <div style="padding: 18px 16px 0 0"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 700">1,9 млн ₽</dd><dt style="font-weight: 700; font-size: 14px">собрано всего</dt></div>
+        <div style="padding: 18px 16px 0 0"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 700">7</dd><dt style="font-weight: 700; font-size: 14px">проектов</dt></div>
+        <div style="padding: 18px 16px 0 0"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 700">2</dd><dt style="font-weight: 700; font-size: 14px">успешные кампании</dt></div>
+        <div style="padding: 18px 0 0 0"><dd style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 700">29%</dd><dt style="font-weight: 700; font-size: 14px">процент успеха</dt></div>
+      </dl>
+    </div>
+  </section>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 40px 24px 56px; display: flex; flex-direction: column; gap: 20px">
+    <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 900; text-transform: uppercase">Мои проекты</h2>
+      <span role="status" style="color: #C6F24E; font-weight: 700; font-size: 15px">{{notice}}</span>
+    </div>
+    <div role="tablist" aria-label="Фильтр по статусу" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20; width: fit-content; max-width: 100%">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+        <button type="button" role="tab" aria-selected="{{t.on}}" onClick="{{t.pick}}" style="{{t.style}}">{{t.label}}</button>
+      </sc-for>
+    </div>
+    <p style="margin: 0; color: #A0A0A8; font-size: 15px">{{hint}}</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap: 16px; margin-top: 4px">
+      <sc-for list="{{projects}}" as="p" hint-placeholder-count="4">
+        <article style="display: flex; flex-direction: column; border-radius: 30px; overflow: hidden; background: #1C1C20">
+          <a href="Project.dc.html" style="display: block; height: 180px; background: {{p.color}}; position: relative; text-decoration: none">
+            <span style="position: absolute; top: 16px; left: 16px; {{p.badge}}">{{p.statusL}}</span>
+            <span style="position: absolute; left: -9999px">{{p.title}}</span>
+          </a>
+          <div style="padding: 22px 24px 24px; display: flex; flex-direction: column; gap: 14px; flex: 1">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+              <h3 style="margin: 0; font-size: 22px; font-weight: 800; line-height: 1.2"><a href="Project.dc.html" style="color: #F4F4F0; text-decoration: none">{{p.title}}</a></h3>
+              <span style="flex: 0 0 auto; font-size: 13px; color: #A0A0A8">{{p.updated}}</span>
+            </div>
+            <div style="height: 8px; border-radius: 999px; background: #2E2E34"><div style="width: {{p.bar}}%; height: 100%; border-radius: 999px; background: #C6F24E"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 15px; color: #A0A0A8"><span><b style="color: #F4F4F0">{{p.raised}}</b> из {{p.goal}}</span><b style="color: #F4F4F0">{{p.pct}}%</b></div>
+            <sc-if value="{{p.hasNote}}" hint-placeholder-val="{{ false }}">
+              <p style="margin: 0; padding: 12px 16px; border-radius: 16px; background: #2A1A14; color: #FFB79E; font-size: 14px; line-height: 1.5">Модератор: {{p.note}}</p>
+            </sc-if>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 4px">
+              <sc-if value="{{p.canSubmit}}" hint-placeholder-val="{{ false }}">
+                <a href="Edit.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700; font-size: 14px">Редактировать</a>
+                <button type="button" onClick="{{p.submit}}" style="min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 14px; cursor: pointer">На модерацию</button>
+              </sc-if>
+              <sc-if value="{{p.isLive}}" hint-placeholder-val="{{ true }}">
+                <a href="Project.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700; font-size: 14px">Открыть и написать новость</a>
+              </sc-if>
+            </div>
+          </div>
+        </article>
+      </sc-for>
+    </div>
+    <sc-if value="{{hasPages}}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="Страницы проектов" style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px">
+        <button type="button" onClick="{{prev}}" disabled="{{prevDisabled}}" style="{{prevStyle}}">Назад</button>
+        <span style="color: #B4B4BC; font-weight: 700">Страница {{pageNum}} из {{pageTotal}}</span>
+        <button type="button" onClick="{{next}}" disabled="{{nextDisabled}}" style="{{nextStyle}}">Вперёд</button>
+      </nav>
+    </sc-if>
+  </main>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="Bold.dc.html" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+
+  <sc-if value="{{editOpen}}" hint-placeholder-val="{{ false }}">
+    <div style="position: absolute; inset: 0; background: rgba(5,5,7,0.72); display: flex; justify-content: center; align-items: flex-start; padding: 96px 16px; box-sizing: border-box">
+      <section role="dialog" aria-modal="true" aria-labelledby="pe-title" style="width: 100%; max-width: 560px; border-radius: 32px; background: #1C1C20; box-shadow: 0 30px 80px rgba(0,0,0,0.5); overflow: hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 24px 28px 0">
+          <h2 id="pe-title" style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 24px; font-weight: 900; text-transform: uppercase">Профиль</h2>
+          <button type="button" onClick="{{closeEdit}}" aria-label="Закрыть" style="width: 44px; height: 44px; border-radius: 50%; border: 0; background: #0E0E10; color: #F4F4F0; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"></path></svg></button>
+        </div>
+        <form onSubmit="{{saveEdit}}" style="padding: 24px 28px 28px; display: flex; flex-direction: column; gap: 20px">
+          <div style="display: flex; align-items: center; gap: 20px">
+            <span aria-hidden="true" style="flex: 0 0 96px; height: 96px; border-radius: 50%; background: #FF6A3D; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 30px">ТР</span>
+            <div style="display: flex; flex-direction: column; gap: 8px">
+              <label for="pe-avatar" style="display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; padding: 0 18px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; font-weight: 800; font-size: 14px; cursor: pointer"><svg width="14" height="14" viewBox="0 0 22 22" aria-hidden="true"><path d="M11 15V4M6 9l5-5 5 5M4 18h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>Загрузить аватар</label>
+              <input id="pe-avatar" type="file" accept="image/*" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
+              <span style="color: #A0A0A8; font-size: 13px">До 5 МБ. Обрежем до квадрата</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="pe-name" style="font-weight: 700; font-size: 14px">Имя</label>
+            <input id="pe-name" type="text" value="Студия «Туннель»" disabled aria-describedby="pe-locked" style="min-height: 52px; padding: 0 18px; border-radius: 16px; border: 1.5px dashed #3A3A40; background: transparent; color: #A0A0A8; font: inherit; font-size: 16px">
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <label for="pe-email" style="font-weight: 700; font-size: 14px">Email</label>
+            <input id="pe-email" type="email" value="studio@tunnel.ru" disabled aria-describedby="pe-locked" style="min-height: 52px; padding: 0 18px; border-radius: 16px; border: 1.5px dashed #3A3A40; background: transparent; color: #A0A0A8; font: inherit; font-size: 16px">
+            <span id="pe-locked" style="color: #A0A0A8; font-size: 13px">Имя и email пока нельзя изменить.</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <div style="display: flex; justify-content: space-between"><label for="pe-bio" style="font-weight: 700; font-size: 14px">О себе</label><span style="font-size: 13px; color: #A0A0A8; font-weight: 700">{{draftLen}} / 280</span></div>
+            <textarea id="pe-bio" rows="4" maxlength="280" value="{{draft}}" onInput="{{onDraft}}" style="{{draftStyle}}"></textarea>
+            <sc-if value="{{draftError}}" hint-placeholder-val="{{ false }}">
+              <span role="alert" style="color: #FF8A63; font-size: 14px; font-weight: 700">Напишите хотя бы пару слов о себе.</span>
+            </sc-if>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 10px">
+            <button type="submit" style="min-height: 54px; padding: 0 28px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer">Сохранить</button>
+            <button type="button" onClick="{{closeEdit}}" style="min-height: 54px; padding: 0 24px; border-radius: 999px; border: 1.5px solid #3A3A40; background: transparent; color: #F4F4F0; font: inherit; font-weight: 700; font-size: 16px; cursor: pointer">Отмена</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'all', page: 0, submitted: {}, notice: '', editOpen: true, bio: 'Делаем настольные игры про город и метро. Три года тестов в клубах Москвы и Петербурга.', draft: 'Делаем настольные игры про город и метро. Три года тестов в клубах Москвы и Петербурга.', draftError: false }; }
+  renderVals() {
+    const S = {
+      DRAFT: ['Черновик', '#F4F4F0', '#0E0E10'],
+      MODERATION: ['На модерации', '#FFD23F', '#0E0E10'],
+      ACTIVE: ['Активен', '#0E0E10', '#C6F24E'],
+      REJECTED: ['Отклонён', '#0E0E10', '#FF8A63'],
+      FUNDED: ['Профинансирован', '#0E0E10', '#F4F4F0'],
+      CLOSED: ['Закрыт', '#0E0E10', '#B4B4BC']
+    };
+    const badge = (k) => 'display: inline-block; white-space: nowrap; padding: 7px 14px; border-radius: 999px; font-weight: 800; font-size: 13px; background: ' + S[k][1] + '; color: ' + S[k][2];
+    const groupOf = (s) => s === 'ACTIVE' ? 'active' : (s === 'DRAFT' || s === 'MODERATION') ? 'draft' : s === 'REJECTED' ? 'rejected' : 'done';
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    const base = [
+      { id: 1, title: 'Метро 2088', raised: 820000, goal: 900000, status: 'ACTIVE', updated: '12 окт', color: '#C6F24E' },
+      { id: 2, title: 'Карманная версия «Метро»', raised: 420000, goal: 600000, status: 'ACTIVE', updated: '10 окт', color: '#FFD23F' },
+      { id: 3, title: 'Дополнение «Депо»', raised: 0, goal: 500000, status: 'REJECTED', updated: '9 окт', color: '#7C8CFF', note: 'добавьте смету: на что пойдут деньги и в какие сроки.' },
+      { id: 4, title: 'Карточная игра «Сквозняк»', raised: 0, goal: 250000, status: 'DRAFT', updated: '3 окт', color: '#5FD4C4' },
+      { id: 5, title: 'Металлические жетоны станций', raised: 310000, goal: 250000, status: 'FUNDED', updated: '28 сен', color: '#F2B8E0' },
+      { id: 6, title: 'Игра «Пересадка»', raised: 150000, goal: 400000, status: 'ACTIVE', updated: '25 сен', color: '#FF6A3D' },
+      { id: 7, title: 'Пазл «Схема метро»', raised: 210000, goal: 200000, status: 'FUNDED', updated: '1 сен', color: '#B9A3FF' }
+    ].map((p) => ({ ...p, status: this.state.submitted[p.id] ? 'MODERATION' : p.status }));
+    const tabsDef = [
+      ['all', 'Все', 'Все ваши кампании.'],
+      ['active', 'Активные', 'Опубликованы и принимают поддержку.'],
+      ['draft', 'Черновики', 'Видны только вам; черновик можно отправить на модерацию.'],
+      ['rejected', 'На доработке', 'Модератор вернул проект — исправьте по комментарию и отправьте снова.'],
+      ['done', 'Завершённые', 'Цель достигнута, сбор завершён.']
+    ];
+    const cur = this.state.tab;
+    const tabs = tabsDef.map(([k, l]) => {
+      const on = k === cur;
+      const count = k === 'all' ? base.length : base.filter((p) => groupOf(p.status) === k).length;
+      return { label: l, count, on: on ? 'true' : 'false', pick: () => this.setState({ tab: k, page: 0 }),
+        style: 'min-height: 44px; padding: 0 18px; border-radius: 999px; border: 0; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; ' + (on ? 'background: #F4F4F0; color: #0E0E10' : 'background: transparent; color: #F4F4F0') };
+    });
+    const hint = tabsDef.find((t) => t[0] === cur)[2];
+    const PER = 4;
+    const filtered = base.filter((p) => cur === 'all' || groupOf(p.status) === cur);
+    const pageTotal = Math.max(1, Math.ceil(filtered.length / PER));
+    const page = Math.min(this.state.page, pageTotal - 1);
+    const btn = (off) => 'min-height: 48px; padding: 0 22px; border-radius: 999px; font: inherit; ' + (off ? 'border: 1.5px solid #2E2E34; background: transparent; color: #6E6E76; font-weight: 700; cursor: default' : 'border: 0; background: #F4F4F0; color: #0E0E10; font-weight: 800; cursor: pointer');
+    const projects = filtered.slice(page * PER, page * PER + PER).map((p) => {
+      const pct = Math.round(p.raised / p.goal * 100);
+      return {
+        ...p, statusL: S[p.status][0], badge: badge(p.status), pct, bar: Math.min(pct, 100),
+        raised: fmt(p.raised), goal: fmt(p.goal),
+        hasNote: p.status === 'REJECTED' && !!p.note,
+        canSubmit: p.status === 'DRAFT' || p.status === 'REJECTED',
+        isLive: p.status === 'ACTIVE' || p.status === 'FUNDED',
+        submit: () => this.setState({ submitted: { ...this.state.submitted, [p.id]: true }, notice: 'Проект отправлен на модерацию' })
+      };
+    });
+    const d = this.state.draft;
+    return {
+      bio: this.state.bio, editOpen: this.state.editOpen,
+      draft: d, draftLen: d.length, draftError: this.state.draftError,
+      draftStyle: 'padding: 14px 18px; border-radius: 16px; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 15px; line-height: 1.55; resize: vertical; border: 1.5px solid ' + (this.state.draftError ? '#FF6A3D' : '#3A3A40'),
+      openEdit: () => this.setState({ editOpen: true, draft: this.state.bio, draftError: false }),
+      closeEdit: () => this.setState({ editOpen: false }),
+      onDraft: (e) => this.setState({ draft: String(e.target.value || '').slice(0, 280), draftError: false }),
+      saveEdit: (e) => { if (e && e.preventDefault) e.preventDefault(); if (!d.trim()) { this.setState({ draftError: true }); return; } this.setState({ editOpen: false, bio: d.trim(), notice: 'Профиль сохранён' }); },
+      tabs, hint, projects, notice: this.state.notice,
+      hasPages: pageTotal > 1, pageNum: page + 1, pageTotal,
+      prevDisabled: page === 0, nextDisabled: page >= pageTotal - 1,
+      prevStyle: btn(page === 0), nextStyle: btn(page >= pageTotal - 1),
+      prev: () => this.setState({ page: Math.max(0, page - 1) }),
+      next: () => this.setState({ page: Math.min(pageTotal - 1, page + 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>

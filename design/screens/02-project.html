@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — страница проекта</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh">
+
+  <header style="max-width: 1200px; margin: 0 auto; padding: 20px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+    <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      RISEUP
+    </a>
+    <nav aria-label="Основная навигация" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20">
+      <a href="Bold.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">Проекты</a>
+      <a href="#how" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Как это работает</a>
+      <a href="Analytics.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 600; font-size: 15px">Аналитика</a>
+    </nav>
+    <div style="display: flex; gap: 8px">
+      <a href="#login" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">Войти</a>
+      <a href="#create" style="display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: #C6F24E; color: #0E0E10; text-decoration: none; font-weight: 800">Запустить</a>
+    </div>
+  </header>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 8px 24px 0">
+    <div style="position: relative; min-height: 480px; border-radius: 36px; overflow: hidden; background: #FF6A3D; display: flex; align-items: flex-end">
+      <div style="position: relative; padding: clamp(24px, 4vw, 48px); display: flex; flex-direction: column; gap: 16px; max-width: 760px">
+        <nav aria-label="Хлебные крошки" style="font-size: 14px; color: #0E0E10"><a href="Bold.dc.html" style="color: #0E0E10">Проекты</a> / <a href="#cat" style="color: #0E0E10">Творчество</a></nav>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+                    <span style="padding: 6px 12px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; font-weight: 700; font-size: 13px">Творчество · Москва</span>
+        </div>
+        <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(36px, 6vw, 76px); line-height: 0.98; font-weight: 900; text-transform: uppercase; color: #0E0E10">Метро 2088</h1>
+        <p style="margin: 0; font-size: 20px; line-height: 1.5; color: #0E0E10; font-weight: 500">Кооперативная настольная игра на четверых: станции, туннели и решения, которые нельзя отменить.</p>
+      </div>
+    </div>
+  </section>
+
+  <main style="max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start">
+
+    <div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 40px">
+
+      <nav aria-label="Разделы страницы" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; border-radius: 999px; background: #1C1C20; width: fit-content">
+        <a href="#story" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; background: #F4F4F0; color: #0E0E10; text-decoration: none; font-weight: 700; font-size: 15px">История</a>
+        <a href="#news" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 700; font-size: 15px">Новости · 3</a>
+        <a href="#reviews" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 700; font-size: 15px">Отзывы · 24</a>
+        <a href="#comments" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 18px; border-radius: 999px; color: #F4F4F0; text-decoration: none; font-weight: 700; font-size: 15px">Комментарии · 58</a>
+      </nav>
+
+      <section id="story" style="display: flex; flex-direction: column; gap: 16px; font-size: 18px; line-height: 1.7; color: #D6D6DC">
+        <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; color: #F4F4F0; text-transform: uppercase">О проекте</h2>
+        <p style="margin: 0">Мы три года тестировали игру в клубах Москвы и Петербурга: больше 200 партий, четыре редакции правил и одна полностью переписанная механика туннелей.</p>
+        <p style="margin: 0">Осталось напечатать тираж: коробка, 120 карт, поле из шести сегментов и металлические жетоны станций. Деньги пойдут на печать, сертификацию и доставку.</p>
+        <p style="margin: 0">Каждый спонсор от 3 000 ₽ получает коробку первого тиража, а все спонсоры попадают в список благодарностей в правилах.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 24px; padding-top: 16px; border-top: 1px solid #2E2E34; font-size: 15px; color: #A0A0A8">
+          <span>Старт сбора: <b style="color: #F4F4F0">1 сентября 2026</b></span>
+          <span>Финиш: <b style="color: #F4F4F0">29 октября 2026</b></span>
+          <span>Валюта: <b style="color: #F4F4F0">RUB</b></span>
+        </div>
+      </section>
+
+      <section id="news" style="display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">Новости</h2>
+        <article style="padding: 24px; border-radius: 26px; background: #1C1C20; display: flex; flex-direction: column; gap: 8px"><div style="font-size: 13px; color: #A0A0A8">12 октября</div><h3 style="margin: 0; font-size: 20px; font-weight: 800">Собрали 90% цели</h3><p style="margin: 0; color: #B4B4BC; line-height: 1.6">Спасибо всем — до первого тиража осталось совсем немного.</p></article>
+        <article style="padding: 24px; border-radius: 26px; background: #1C1C20; display: flex; flex-direction: column; gap: 8px"><div style="font-size: 13px; color: #A0A0A8">2 октября</div><h3 style="margin: 0; font-size: 20px; font-weight: 800">Финальный макет поля</h3><p style="margin: 0; color: #B4B4BC; line-height: 1.6">Показали типографии все шесть сегментов, печать согласована.</p></article>
+        <a href="#news-all" style="font-weight: 700">Все новости →</a>
+      </section>
+
+      <section id="reviews" style="display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+          <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">Отзывы</h2>
+          <span style="font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700; color: #C6F24E">4,8 <span style="font-family: 'Manrope', sans-serif; font-size: 15px; color: #A0A0A8; font-weight: 600">из 5 · 24 оценки</span></span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 12px">
+          <article style="padding: 22px 24px; border-radius: 26px; background: #1C1C20"><div style="display: flex; justify-content: space-between"><b>Ирина К.</b><span style="color: #C6F24E; font-weight: 800">5 / 5</span></div><p style="margin: 10px 0 0; color: #B4B4BC; line-height: 1.6">Играли на тестовой сессии — напряжённо и очень командно.</p></article>
+          <article style="padding: 22px 24px; border-radius: 26px; background: #1C1C20"><div style="display: flex; justify-content: space-between"><b>Сергей П.</b><span style="color: #C6F24E; font-weight: 800">4 / 5</span></div><p style="margin: 10px 0 0; color: #B4B4BC; line-height: 1.6">Хорошая реиграбельность, правила стоит упростить для новичков.</p></article>
+        </div>
+      </section>
+
+      <section id="comments" style="display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">Комментарии</h2>
+        <form style="display: flex; flex-direction: column; gap: 10px" onSubmit="{{noop}}">
+          <label for="p-comment" style="font-weight: 700">Вопрос автору</label>
+          <textarea id="p-comment" rows="3" placeholder="Например: будет ли английская версия правил?" style="padding: 16px; border-radius: 20px; border: 1.5px solid #3A3A40; background: #1C1C20; color: #F4F4F0; font: inherit; font-size: 16px; resize: vertical"></textarea>
+          <button type="submit" style="width: fit-content; min-height: 48px; padding: 0 22px; border-radius: 999px; border: 0; background: #F4F4F0; color: #0E0E10; font: inherit; font-weight: 800; cursor: pointer">Отправить</button>
+        </form>
+        <article style="display: flex; gap: 14px; padding-top: 8px"><div aria-hidden="true" style="flex: 0 0 44px; height: 44px; border-radius: 50%; background: #7C8CFF; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-weight: 800">АМ</div><div><div><b>Алексей М.</b> <span style="color: #A0A0A8; font-size: 14px">· 2 дня назад</span></div><p style="margin: 6px 0 0; color: #D6D6DC; line-height: 1.6">Доставка в Казань будет? Готов взять две коробки.</p></div></article>
+        <article style="display: flex; gap: 14px; padding-left: 58px"><div aria-hidden="true" style="flex: 0 0 44px; height: 44px; border-radius: 50%; background: #FF6A3D; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-weight: 800">ТР</div><div><div><b>Студия «Туннель»</b> <span style="padding: 2px 8px; border-radius: 999px; background: #C6F24E; color: #0E0E10; font-size: 12px; font-weight: 800">автор</span></div><p style="margin: 6px 0 0; color: #D6D6DC; line-height: 1.6">Да, отправляем по всей России, стоимость посчитаем при оформлении.</p></div></article>
+      </section>
+    </div>
+
+    <aside aria-label="Поддержать проект" style="flex: 1 1 340px; position: sticky; top: 24px; display: flex; flex-direction: column; gap: 16px">
+      <div style="padding: 28px; border-radius: 32px; background: #C6F24E; color: #0E0E10; display: flex; flex-direction: column; gap: 16px">
+        <div><div style="font-family: 'Unbounded', sans-serif; font-size: 34px; font-weight: 700">820 000 ₽</div><div style="font-weight: 600">собрано из 900 000 ₽</div></div>
+        <div style="height: 12px; border-radius: 999px; background: rgba(14,14,16,0.15)"><div style="width: 100%; height: 100%; border-radius: 999px; background: #0E0E10"></div></div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+          <div><div style="font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700">91%</div><div style="font-size: 13px; font-weight: 600">цели</div></div>
+          <div><div style="font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700">642</div><div style="font-size: 13px; font-weight: 600">спонсора</div></div>
+          <div><div style="font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 700">6</div><div style="font-size: 13px; font-weight: 600">дней осталось</div></div>
+        </div>
+        <div role="group" aria-label="Сумма поддержки" style="display: flex; flex-wrap: wrap; gap: 8px">
+          <sc-for list="{{amounts}}" as="m" hint-placeholder-count="4">
+            <button type="button" onClick="{{m.pick}}" aria-pressed="{{m.on}}" style="{{m.style}}">{{m.label}}</button>
+          </sc-for>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <label for="p-custom" style="font-size: 14px; font-weight: 700">Или своя сумма</label>
+          <div style="{{customBox}}">
+            <input id="p-custom" type="text" inputmode="numeric" placeholder="Например, 2 500" value="{{customVal}}" onInput="{{onCustom}}" style="flex: 1; min-width: 0; min-height: 48px; border: 0; outline: none; background: transparent; color: #0E0E10; font: inherit; font-size: 17px; font-weight: 700">
+            <span aria-hidden="true" style="font-weight: 800; font-size: 17px">₽</span>
+          </div>
+        </div>
+        <a href="#pay" style="display: inline-flex; align-items: center; justify-content: center; min-height: 56px; border-radius: 999px; background: #0E0E10; color: #C6F24E; text-decoration: none; font-weight: 800; font-size: 17px">Поддержать на {{amountLabel}}</a>
+      </div>
+
+      <div style="padding: 22px 24px; border-radius: 28px; background: #1C1C20; display: flex; align-items: center; gap: 14px">
+        <div aria-hidden="true" style="width: 52px; height: 52px; border-radius: 50%; background: #FF6A3D; color: #0E0E10; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-weight: 900">ТР</div>
+        <div style="flex: 1"><div style="font-weight: 800">Студия «Туннель»</div><div style="font-size: 14px; color: #A0A0A8">автор · 3 проекта</div></div>
+        <a href="#author" style="font-weight: 700; font-size: 14px">Профиль</a>
+      </div>
+
+      <div style="padding: 24px; border-radius: 28px; background: #1C1C20; display: flex; flex-direction: column; gap: 14px">
+        <h2 style="margin: 0; font-size: 17px; font-weight: 800">Последние донаты</h2>
+        <sc-for list="{{donations}}" as="d" hint-placeholder-count="5">
+          <div style="display: flex; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #2E2E34"><span><b>{{d.who}}</b> <span style="color: #A0A0A8; font-size: 14px">· {{d.when}}</span></span><span style="color: #C6F24E; font-weight: 800">{{d.sum}}</span></div>
+        </sc-for>
+        <a href="#backers" style="font-weight: 700; font-size: 15px">Все 642 спонсора →</a>
+      </div>
+    </aside>
+  </main>
+
+  <section style="max-width: 1200px; margin: 0 auto; padding: 0 24px 64px">
+    <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 20px">
+      <h2 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 900; text-transform: uppercase">Ещё в категории «Творчество»</h2>
+      <a href="Bold.dc.html" style="font-weight: 700">Все проекты →</a>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px">
+      <sc-for list="{{related}}" as="p" hint-placeholder-count="3">
+        <a href="#project" style="display: flex; flex-direction: column; border-radius: 28px; overflow: hidden; background: #1C1C20; color: #F4F4F0; text-decoration: none">
+          <div style="height: 150px; background: {{p.color}}; position: relative; overflow: hidden">
+            <span style="position: absolute; top: 14px; left: 14px; padding: 6px 12px; border-radius: 999px; background: #0E0E10; color: #F4F4F0; font-weight: 700; font-size: 13px">Творчество</span>
+          </div>
+          <div style="padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 12px">
+            <div style="font-size: 19px; font-weight: 800; line-height: 1.2">{{p.title}}</div>
+            <div style="height: 8px; border-radius: 999px; background: #2E2E34"><div style="width: {{p.pct}}%; height: 100%; border-radius: 999px; background: #C6F24E"></div></div>
+            <div style="display: flex; justify-content: space-between; font-size: 14px; color: #A0A0A8"><span><b style="color: #F4F4F0">{{p.raised}}</b> · {{p.pct}}%</span><span>{{p.days}}</span></div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </section>
+
+  <footer style="max-width: 1200px; margin: 0 auto; padding: 28px 24px 36px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; color: #A0A0A8; font-size: 14px; border-top: 1px solid #2E2E34">
+    <span>© RiseUp 2026</span>
+    <nav aria-label="Ссылки в подвале" style="display: flex; flex-wrap: wrap; gap: 20px; font-weight: 600"><a href="Catalog.dc.html" style="color: #D6D6DC">Проекты</a><a href="Bold.dc.html" style="color: #D6D6DC">Как это работает</a><a href="https://github.com/6yJlka/CrowdFunding">Исходный код на GitHub</a></nav>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3000}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { amt: 3000, custom: '' }; }
+  renderVals() {
+    const fmt = (n) => n.toLocaleString('ru-RU') + ' ₽';
+    const customNum = parseInt(this.state.custom, 10) || 0;
+    const useCustom = customNum > 0;
+    const amounts = [500, 1000, 3000, 10000].map((n) => {
+      const on = !useCustom && n === this.state.amt;
+      return { label: fmt(n), on: on ? 'true' : 'false', pick: () => this.setState({ amt: n, custom: '' }),
+        style: 'min-height: 44px; padding: 0 14px; border-radius: 999px; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; border: 2px solid #0E0E10; ' + (on ? 'background: #0E0E10; color: #C6F24E' : 'background: transparent; color: #0E0E10') };
+    });
+    const donations = [
+      { who: 'Мария С.', when: '5 мин назад', sum: '3 000 ₽' },
+      { who: 'Елена Б.', when: '18 мин назад', sum: '1 000 ₽' },
+      { who: 'Олег В.', when: '1 ч назад', sum: '10 000 ₽' },
+      { who: 'Дарья Л.', when: '2 ч назад', sum: '500 ₽' },
+      { who: 'Никита Р.', when: '3 ч назад', sum: '3 000 ₽' }
+    ];
+    const related = [
+      { title: 'Карточная игра «Сквозняк»', ini: 'КС', raised: '140 000 ₽', pct: 56, days: '15 дней', color: '#7C8CFF' },
+      { title: 'Пиксельный рогалик «Подвал»', ini: 'ПП', raised: '820 000 ₽', pct: 82, days: '20 дней', color: '#FFD23F' },
+      { title: 'Детская игра «Совиный лес»', ini: 'СЛ', raised: '64 000 ₽', pct: 32, days: '34 дня', color: '#5FD4C4' }
+    ];
+    const customBox = 'display: flex; align-items: center; gap: 8px; padding: 0 18px; border-radius: 999px; border: 2px solid #0E0E10; ' + (useCustom ? 'background: #F4F4F0' : 'background: rgba(255,255,255,0.35)');
+    const onCustom = (e) => this.setState({ custom: String(e.target.value || '').replace(/\D/g, '').slice(0, 7) });
+    const customVal = useCustom ? customNum.toLocaleString('ru-RU') : '';
+    return { amounts, amountLabel: fmt(useCustom ? customNum : this.state.amt), customBox, onCustom, customVal, donations, related, noop: (e) => e && e.preventDefault && e.preventDefault() };
+  }
+}
+</script>
+</body>
+</html>

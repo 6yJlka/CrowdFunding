@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>RiseUp — вход и регистрация</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#C6F24E}a:hover{color:#E2FF8A}
+</style>
+</helmet>
+<div style="font-family: 'Manrope', system-ui, sans-serif; background: #0E0E10; color: #F4F4F0; min-height: 100vh; padding: 20px 24px 48px; box-sizing: border-box">
+  <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px">
+
+    <header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+      <a href="Bold.dc.html" style="font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 22px; color: #F4F4F0; text-decoration: none; display: flex; align-items: center; gap: 10px">
+        <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="15" fill="#C6F24E"></circle><path d="M8 19l7-8 7 8" fill="none" stroke="#0E0E10" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        RISEUP
+      </a>
+      <a href="Bold.dc.html" style="display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px; border-radius: 999px; border: 1.5px solid #3A3A40; color: #F4F4F0; text-decoration: none; font-weight: 700">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 12L6 8l4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        На главную
+      </a>
+    </header>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: stretch">
+
+      <section style="flex: 1 1 460px; min-height: 640px; border-radius: 36px; background: #C6F24E; color: #0E0E10; padding: clamp(28px, 4vw, 52px); display: flex; flex-direction: column; justify-content: space-between; gap: 40px; box-sizing: border-box">
+        <div style="display: flex; flex-direction: column; gap: 20px">
+          <h1 style="margin: 0; font-family: 'Unbounded', sans-serif; font-size: clamp(36px, 4.6vw, 60px); line-height: 1; font-weight: 900; text-transform: uppercase">Запустите идею. Соберите команду. Измените мир.</h1>
+          <p style="margin: 0; font-size: 18px; line-height: 1.55; font-weight: 500; max-width: 440px">Аккаунт автора — чтобы запускать кампании. Аккаунт спонсора — чтобы поддерживать лучшие проекты.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px">
+          <div style="padding: 16px; border-radius: 22px; background: #0E0E10; color: #F4F4F0"><div style="font-family: 'Unbounded', sans-serif; font-size: 19px; font-weight: 700; white-space: nowrap">128</div><div style="font-size: 13px; color: #B4B4BC">активных проектов</div></div>
+          <div style="padding: 16px; border-radius: 22px; background: #0E0E10; color: #F4F4F0"><div style="font-family: 'Unbounded', sans-serif; font-size: 19px; font-weight: 700; white-space: nowrap">2,9 млн ₽</div><div style="font-size: 13px; color: #B4B4BC">собрано всего</div></div>
+          <div style="padding: 16px; border-radius: 22px; background: #0E0E10; color: #F4F4F0"><div style="font-family: 'Unbounded', sans-serif; font-size: 19px; font-weight: 700; white-space: nowrap">4 300</div><div style="font-size: 13px; color: #B4B4BC">спонсоров</div></div>
+        </div>
+      </section>
+
+      <section style="flex: 1 1 420px; border-radius: 36px; background: #1C1C20; padding: clamp(28px, 4vw, 52px); display: flex; flex-direction: column; justify-content: center; gap: 24px; box-sizing: border-box">
+        <div role="tablist" aria-label="Вход или регистрация" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 6px; border-radius: 999px; background: #0E0E10">
+          <button type="button" role="tab" aria-selected="{{loginOn}}" onClick="{{toLogin}}" style="{{loginTab}}">Вход</button>
+          <button type="button" role="tab" aria-selected="{{regOn}}" onClick="{{toReg}}" style="{{regTab}}">Регистрация</button>
+        </div>
+
+        <sc-if value="{{isLogin}}" hint-placeholder-val="{{ true }}">
+          <form style="display: flex; flex-direction: column; gap: 18px" onSubmit="{{noop}}">
+            <div>
+              <h2 style="margin: 0 0 6px; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">С возвращением</h2>
+              <p style="margin: 0; color: #A0A0A8">Войдите, чтобы продолжить.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><label for="l-email" style="font-weight: 700; font-size: 14px">Email</label><input id="l-email" type="email" placeholder="you@example.com" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><label for="l-pass" style="font-weight: 700; font-size: 14px">Пароль</label><input id="l-pass" type="password" placeholder="••••••••" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px"></div>
+            <button type="submit" style="min-height: 56px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer">Войти</button>
+            <p style="margin: 0; text-align: center; color: #A0A0A8; font-size: 15px">Нет аккаунта? <button type="button" onClick="{{toReg}}" style="border: 0; background: none; padding: 0; color: #C6F24E; font: inherit; font-weight: 700; cursor: pointer; text-decoration: underline">Зарегистрироваться</button></p>
+          </form>
+        </sc-if>
+
+        <sc-if value="{{isReg}}" hint-placeholder-val="{{ false }}">
+          <form style="display: flex; flex-direction: column; gap: 16px" onSubmit="{{noop}}">
+            <div>
+              <h2 style="margin: 0 0 6px; font-family: 'Unbounded', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase">Создать аккаунт</h2>
+              <p style="margin: 0; color: #A0A0A8">Это бесплатно.</p>
+            </div>
+            <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px">
+              <legend style="font-weight: 700; font-size: 14px; margin-bottom: 8px">Кто вы?</legend>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+                <button type="button" aria-pressed="{{authorOn}}" onClick="{{pickAuthor}}" style="{{authorCard}}"><span style="font-weight: 800; font-size: 16px">Автор</span><span style="font-size: 13px; opacity: 0.8">Создаю кампании</span></button>
+                <button type="button" aria-pressed="{{sponsorOn}}" onClick="{{pickSponsor}}" style="{{sponsorCard}}"><span style="font-weight: 800; font-size: 16px">Спонсор</span><span style="font-size: 13px; opacity: 0.8">Поддерживаю проекты</span></button>
+              </div>
+            </fieldset>
+            <div style="display: flex; flex-direction: column; gap: 8px"><label for="r-name" style="font-weight: 700; font-size: 14px">Имя</label><input id="r-name" type="text" maxlength="120" placeholder="Ваше имя" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><label for="r-email" style="font-weight: 700; font-size: 14px">Email</label><input id="r-email" type="email" placeholder="you@example.com" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px"></div>
+            <div style="display: flex; flex-direction: column; gap: 8px"><label for="r-pass" style="font-weight: 700; font-size: 14px">Пароль</label><input id="r-pass" type="password" minlength="6" placeholder="Минимум 6 символов" style="min-height: 54px; padding: 0 20px; border-radius: 18px; border: 1.5px solid #3A3A40; background: #0E0E10; color: #F4F4F0; font: inherit; font-size: 16px"></div>
+            <button type="submit" style="min-height: 56px; border-radius: 999px; border: 0; background: #C6F24E; color: #0E0E10; font: inherit; font-weight: 800; font-size: 17px; cursor: pointer">Создать аккаунт</button>
+            <p style="margin: 0; text-align: center; color: #A0A0A8; font-size: 13px; line-height: 1.5">Регистрируясь, вы соглашаетесь с условиями использования платформы.</p>
+          </form>
+        </sc-if>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { tab: 'login', role: 'AUTHOR' }; }
+  renderVals() {
+    const tabStyle = (on) => 'min-height: 48px; border-radius: 999px; border: 0; font: inherit; font-weight: 800; font-size: 15px; cursor: pointer; ' + (on ? 'background: #F4F4F0; color: #0E0E10' : 'background: transparent; color: #F4F4F0');
+    const roleStyle = (on) => 'display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 16px 18px; border-radius: 20px; font: inherit; text-align: left; cursor: pointer; ' + (on ? 'background: #C6F24E; color: #0E0E10; border: 2px solid #C6F24E' : 'background: #0E0E10; color: #F4F4F0; border: 2px solid #3A3A40');
+    const isLogin = this.state.tab === 'login';
+    const isAuthor = this.state.role === 'AUTHOR';
+    return {
+      isLogin, isReg: !isLogin,
+      loginOn: isLogin ? 'true' : 'false', regOn: isLogin ? 'false' : 'true',
+      loginTab: tabStyle(isLogin), regTab: tabStyle(!isLogin),
+      toLogin: () => this.setState({ tab: 'login' }), toReg: () => this.setState({ tab: 'register' }),
+      authorOn: isAuthor ? 'true' : 'false', sponsorOn: isAuthor ? 'false' : 'true',
+      authorCard: roleStyle(isAuthor), sponsorCard: roleStyle(!isAuthor),
+      pickAuthor: () => this.setState({ role: 'AUTHOR' }), pickSponsor: () => this.setState({ role: 'SPONSOR' }),
+      noop: (e) => e && e.preventDefault && e.preventDefault()
+    };
+  }
+}
+</script>
+</body>
+</html>
