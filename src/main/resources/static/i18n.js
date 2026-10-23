@@ -649,27 +649,7 @@ function i18nResolvePath(pathname) {
 
 const I18N_PAGE_TRANSLATIONS = {
     "/index.html": [],
-    "/auth.html": [
-        {selector: "title", type: "text", key: "auth.title"},
-        {selector: ".auth-hero .eyebrow", type: "text", key: "auth.eyebrow"},
-        {selector: ".auth-hero h1", type: "text", key: "auth.headline"},
-        {selector: ".auth-hero .modal-copy", type: "text", key: "auth.sub"},
-        {selector: ".auth-hero .ghost-btn", type: "text", key: "auth.back"},
-        {selector: ".auth-tab[data-tab='login']", type: "text", key: "auth.tab.login"},
-        {selector: ".auth-tab[data-tab='register']", type: "text", key: "auth.tab.register"},
-        {selector: "#login-form h2", type: "text", key: "auth.welcome"},
-        {selector: "#register-form h2", type: "text", key: "auth.create"},
-        {selector: "#login-form label:nth-of-type(1) span", type: "text", key: "auth.email"},
-        {selector: "#login-form label:nth-of-type(2) span", type: "text", key: "auth.password"},
-        {selector: "#register-form label:nth-of-type(1) span", type: "text", key: "auth.displayName"},
-        {selector: "#register-form label:nth-of-type(2) span", type: "text", key: "auth.email"},
-        {selector: "#register-form label:nth-of-type(3) span", type: "text", key: "auth.password"},
-        {selector: "#register-form label:nth-of-type(4) span", type: "text", key: "auth.role"},
-        {selector: "#register-form select option[value='AUTHOR']", type: "text", key: "auth.role.author"},
-        {selector: "#register-form select option[value='SPONSOR']", type: "text", key: "auth.role.sponsor"},
-        {selector: "#login-form .auth-submit", type: "text", key: "auth.tab.login"},
-        {selector: "#register-form .auth-submit", type: "text", key: "auth.tab.register"}
-    ],
+    "/auth.html": [],
     "/projects.html": [],
     "/funded-projects.html": [],
     "/sponsors.html": [
@@ -1643,6 +1623,57 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "project.deadlineExpired": "deadline passed",
     "project.action.postComment": "Publish comment",
     "project.action.postReview": "Publish review"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "auth.homeLink": "На главную",
+    "auth.headline": "Запустите идею. Соберите команду. Измените мир.",
+    "auth.introduction": "Аккаунт автора — чтобы запускать кампании. Аккаунт спонсора — чтобы поддерживать лучшие проекты.",
+    "auth.accessLabel": "Вход или регистрация",
+    "auth.stat.active": "активных проектов",
+    "auth.stat.raised": "собрано всего",
+    "auth.stat.backers": "спонсоров",
+    "auth.loginHint": "Войдите, чтобы продолжить.",
+    "auth.freeHint": "Это бесплатно.",
+    "auth.noAccount": "Нет аккаунта?",
+    "auth.signUpLink": "Зарегистрироваться",
+    "auth.whoAreYou": "Кто вы?",
+    "auth.authorTitle": "Автор",
+    "auth.authorHint": "Создаю кампании",
+    "auth.sponsorTitle": "Спонсор",
+    "auth.sponsorHint": "Поддерживаю проекты",
+    "auth.emailPlaceholder": "you@example.com",
+    "auth.passwordPlaceholder": "Введите пароль",
+    "auth.newPasswordPlaceholder": "Минимум 6 символов",
+    "auth.passwordHint": "От 6 до 100 символов.",
+    "auth.namePlaceholder": "Ваше имя",
+    "auth.terms": "Регистрируясь, вы соглашаетесь с условиями использования платформы.",
+    "auth.statsUnavailable": "Статистика временно недоступна. Вы можете войти или зарегистрироваться."
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "auth.homeLink": "Back to home",
+    "auth.headline": "Launch an idea. Build a team. Change the world.",
+    "auth.introduction": "An author account to launch campaigns. A sponsor account to support great projects.",
+    "auth.accessLabel": "Sign in or register",
+    "auth.stat.active": "active projects",
+    "auth.stat.raised": "raised in total",
+    "auth.stat.backers": "sponsors",
+    "auth.loginHint": "Sign in to continue.",
+    "auth.freeHint": "It’s free.",
+    "auth.noAccount": "No account yet?",
+    "auth.signUpLink": "Create an account",
+    "auth.whoAreYou": "Who are you?",
+    "auth.authorTitle": "Author",
+    "auth.authorHint": "I create campaigns",
+    "auth.sponsorTitle": "Sponsor",
+    "auth.sponsorHint": "I support projects",
+    "auth.emailPlaceholder": "you@example.com",
+    "auth.passwordPlaceholder": "Enter your password",
+    "auth.newPasswordPlaceholder": "At least 6 characters",
+    "auth.passwordHint": "Between 6 and 100 characters.",
+    "auth.namePlaceholder": "Your name",
+    "auth.terms": "By registering, you agree to the platform’s terms of use.",
+    "auth.statsUnavailable": "Statistics are temporarily unavailable. You can still sign in or register."
 });
 
 function i18nDetectLanguage() {

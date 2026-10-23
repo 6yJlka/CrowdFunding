@@ -4,440 +4,53 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход | RiseUp</title>
+    <title data-i18n-key="auth.title">Вход | RiseUp</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
-    <style>
-        /* ─── Auth page layout ─── */
-        body { overflow-x: hidden; }
-
-        .auth-layout {
-            align-items: stretch;
-            min-height: calc(100vh - 57px); /* subtract shell header */
-            padding: 0;
-            gap: 0;
-        }
-
-        /* ─── Hero (left) ─── */
-        .auth-hero {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 40px 44px 40px;
-            min-height: 100%;
-            position: relative;
-        }
-
-        .auth-hero-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            color: rgba(255,255,255,0.75);
-            font-size: 0.86rem;
-            font-weight: 700;
-            margin-bottom: 40px;
-            transition: color 0.15s;
-            width: fit-content;
-        }
-
-        .auth-hero-back:hover { color: white; }
-
-        .auth-hero-back svg {
-            width: 16px;
-            height: 16px;
-            flex-shrink: 0;
-        }
-
-        .auth-hero h1 {
-            font-size: clamp(2rem, 3.2vw, 2.9rem);
-            margin: 0 0 16px;
-            line-height: 1.1;
-            white-space: pre-line;
-        }
-
-        .auth-hero-sub {
-            display: block;
-            font-size: 0.96rem;
-            color: rgba(255,255,255,0.72);
-            line-height: 1.65;
-            max-width: 400px;
-            margin-bottom: 36px;
-        }
-
-        /* Features */
-        .auth-feature-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .auth-feature-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 13px;
-        }
-
-        .auth-feature-icon {
-            flex-shrink: 0;
-            width: 34px;
-            height: 34px;
-            display: grid;
-            place-items: center;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.18);
-            font-size: 0.95rem;
-        }
-
-        .auth-feature-text strong {
-            display: block;
-            font-size: 0.88rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 2px;
-        }
-
-        .auth-feature-text span {
-            font-size: 0.80rem;
-            color: rgba(255,255,255,0.58);
-            line-height: 1.45;
-        }
-
-        /* Stats */
-        .auth-hero-stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            padding-top: 28px;
-            border-top: 1px solid rgba(255,255,255,0.15);
-            margin-top: auto;
-        }
-
-        .auth-stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .auth-stat-item strong {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: white;
-            letter-spacing: -0.04em;
-        }
-
-        .auth-stat-item span {
-            font-size: 0.76rem;
-            color: rgba(255,255,255,0.58);
-        }
-
-        .auth-stat-loading {
-            display: inline-block;
-            width: 48px;
-            height: 10px;
-            border-radius: 6px;
-            background: rgba(255,255,255,0.2);
-            animation: shimmer 1.4s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { opacity: 0.4; }
-            50%       { opacity: 0.8; }
-        }
-
-        /* ─── Panel (right) ─── */
-        .auth-panel {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 48px 52px;
-            background: #fafbff;
-            border-left: 1px solid var(--line);
-        }
-
-        .auth-panel-header { margin-bottom: 24px; }
-
-        .auth-panel-header h2 {
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.035em;
-            margin: 8px 0 6px;
-            color: var(--text);
-        }
-
-        .auth-panel-header p {
-            font-size: 0.9rem;
-            color: var(--muted);
-            margin: 0;
-        }
-
-        /* Hide duplicated h2 inside forms (i18n sets it) */
-        .auth-form h2 { display: none; }
-
-        .auth-footer-note {
-            margin-top: 18px;
-            text-align: center;
-            font-size: 0.80rem;
-            color: var(--muted-2);
-            line-height: 1.5;
-        }
-
-        .auth-panel {
-            background:
-                linear-gradient(180deg, rgba(139, 127, 255, 0.08), rgba(16, 26, 45, 0.98)),
-                var(--bg-white);
-            border-left-color: rgba(139, 127, 255, 0.14);
-        }
-
-        .auth-panel-header h2 {
-            color: #eef4ff;
-        }
-
-        .auth-panel-header p,
-        .auth-footer-note {
-            color: #9fb1cf;
-        }
-
-        .auth-tabs {
-            background: rgba(9, 17, 31, 0.72);
-            border: 1px solid rgba(139, 127, 255, 0.16);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-        }
-
-        .auth-tab {
-            color: #93a6c6;
-        }
-
-        .auth-tab.active {
-            background: rgba(139, 127, 255, 0.16);
-            color: #f3f7ff;
-            box-shadow: none;
-        }
-
-        .auth-form label span {
-            color: #c7d5ea;
-        }
-
-        .auth-form input,
-        .auth-form select {
-            background: rgba(9, 17, 31, 0.68);
-            border-color: rgba(139, 127, 255, 0.18);
-            color: #eef4ff;
-        }
-
-        .auth-form input::placeholder {
-            color: #7287ab;
-        }
-
-        .auth-form input:-webkit-autofill,
-        .auth-form input:-webkit-autofill:hover,
-        .auth-form input:-webkit-autofill:focus {
-            -webkit-text-fill-color: #eef4ff;
-            -webkit-box-shadow: 0 0 0 1000px rgba(9, 17, 31, 0.92) inset;
-            transition: background-color 9999s ease-in-out 0s;
-        }
-
-        .auth-submit {
-            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.28);
-        }
-
-        .auth-status {
-            color: #c7d5ea;
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .auth-layout { grid-template-columns: 1fr; }
-            .auth-hero {
-                min-height: auto;
-                padding: 32px 28px;
-                border-radius: 0;
-            }
-            .auth-panel {
-                padding: 32px 24px;
-                border-left: none;
-                border-top: 1px solid var(--line);
-            }
-        }
-    </style>
-</head>
-<body>
+    </head>
+<body class="auth-page">
 <div id="site-shell"></div>
-
-<main class="auth-layout">
-
-    <!-- ═══ LEFT: Hero ═══ -->
-    <section class="auth-hero">
-
-        <!-- Back link -->
-        <a class="auth-hero-back" href="/">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M10 12L6 8l4-4"/>
-            </svg>
-            <span data-i18n-key="auth.back">Назад на главную</span>
-        </a>
-
-        <!-- Headline + sub -->
-        <div>
-            <h1 data-i18n-key="auth.headline">Запустите идею.
-Соберите команду.
-Измените мир.</h1>
-            <span class="auth-hero-sub" data-i18n-key="auth.sub">
-                Создайте аккаунт автора, чтобы запускать кампании, или спонсора — чтобы поддерживать лучшие проекты.
-            </span>
-
-            <!-- Features -->
-            <div class="auth-feature-list">
-                <div class="auth-feature-item">
-                    <span class="auth-feature-icon">🚀</span>
-                    <div class="auth-feature-text">
-                        <strong>Запускайте кампании за минуты</strong>
-                        <span>Удобная форма создания проекта — без технических знаний.</span>
-                    </div>
-                </div>
-                <div class="auth-feature-item">
-                    <span class="auth-feature-icon">💰</span>
-                    <div class="auth-feature-text">
-                        <strong>Прозрачный сбор средств</strong>
-                        <span>Все донаты и статусы видны в реальном времени.</span>
-                    </div>
-                </div>
-                <div class="auth-feature-item">
-                    <span class="auth-feature-icon">🌍</span>
-                    <div class="auth-feature-text">
-                        <strong>Сообщество единомышленников</strong>
-                        <span>Тысячи авторов и спонсоров уже находят друг друга.</span>
-                    </div>
-                </div>
-            </div>
+<main class="container auth-access-layout">
+    <section class="auth-showcase" aria-labelledby="auth-headline">
+        <div><h1 id="auth-headline" data-i18n-key="auth.headline"></h1><p data-i18n-key="auth.introduction"></p></div>
+        <div class="auth-live-stats" aria-busy="true" id="auth-live-stats">
+            <div><strong id="auth-stat-campaigns">&mdash;</strong><span data-i18n-key="auth.stat.active"></span></div>
+            <div><strong id="auth-stat-raised">&mdash;</strong><span data-i18n-key="auth.stat.raised"></span></div>
+            <div><strong id="auth-stat-backers">&mdash;</strong><span data-i18n-key="auth.stat.backers"></span></div>
         </div>
-
-        <!-- Live stats from /api/dashboard -->
-        <div class="auth-hero-stats">
-            <div class="auth-stat-item">
-                <strong id="auth-stat-campaigns"><span class="auth-stat-loading"></span></strong>
-                <span>Активных кампаний</span>
-            </div>
-            <div class="auth-stat-item">
-                <strong id="auth-stat-raised"><span class="auth-stat-loading"></span></strong>
-                <span>Собрано всего</span>
-            </div>
-            <div class="auth-stat-item">
-                <strong id="auth-stat-backers"><span class="auth-stat-loading"></span></strong>
-                <span>Спонсоров</span>
-            </div>
-        </div>
+        <p class="auth-stats-note" id="auth-stats-note" role="status" hidden></p>
     </section>
-
-    <!-- ═══ RIGHT: Auth panel ═══ -->
-    <section class="auth-panel">
-
-        <div class="auth-tabs">
-            <button class="auth-tab active" type="button" data-tab="login">Вход</button>
-            <button class="auth-tab"        type="button" data-tab="register">Регистрация</button>
+    <section class="auth-access-panel" data-i18n-aria-label="auth.accessLabel">
+        <div class="auth-access-tabs" role="tablist" data-i18n-aria-label="auth.accessLabel">
+            <button class="auth-tab active" id="login-tab" type="button" role="tab" aria-selected="true" aria-controls="login-form" data-tab="login" data-i18n-key="auth.tab.login"></button>
+            <button class="auth-tab" id="register-tab" type="button" role="tab" aria-selected="false" aria-controls="register-form" tabindex="-1" data-tab="register" data-i18n-key="auth.tab.register"></button>
         </div>
-
-        <!-- Login header -->
-        <div class="auth-panel-header" id="login-header">
-            <h2>С возвращением 👋</h2>
-            <p>Войдите в свой аккаунт, чтобы продолжить.</p>
-        </div>
-
-        <!-- Login form -->
-        <form class="auth-form" id="login-form">
-            <h2>С возвращением</h2>
-            <label>
-                <span>Email</span>
-                <input type="email" name="email" placeholder="you@example.com" required>
-            </label>
-            <label>
-                <span>Пароль</span>
-                <input type="password" name="password" placeholder="••••••••" required>
-            </label>
-            <button class="primary-btn auth-submit" type="submit">Войти</button>
+        <form class="auth-access-form" id="login-form" role="tabpanel" aria-labelledby="login-tab" aria-describedby="auth-status">
+            <div class="auth-access-heading"><h2 data-i18n-key="auth.welcome"></h2><p data-i18n-key="auth.loginHint"></p></div>
+            <div class="field"><label for="login-email" data-i18n-key="auth.email"></label><input id="login-email" type="email" name="email" autocomplete="username" required data-i18n-placeholder="auth.emailPlaceholder"></div>
+            <div class="field"><label for="login-password" data-i18n-key="auth.password"></label><input id="login-password" type="password" name="password" autocomplete="current-password" required data-i18n-placeholder="auth.passwordPlaceholder"></div>
+            <button class="primary-btn btn-lg" type="submit" data-i18n-key="auth.tab.login"></button>
+            <p class="auth-access-switch"><span data-i18n-key="auth.noAccount"></span> <button type="button" class="auth-switch-link" data-auth-switch="register" data-i18n-key="auth.signUpLink"></button></p>
         </form>
-
-        <!-- Register header -->
-        <div class="auth-panel-header hidden" id="register-header">
-            <h2>Создать аккаунт ✨</h2>
-            <p>Присоединяйтесь к платформе — это бесплатно.</p>
-        </div>
-
-        <!-- Register form -->
-        <form class="auth-form hidden" id="register-form">
-            <h2>Создать аккаунт</h2>
-            <label>
-                <span>Имя</span>
-                <input type="text" name="displayName" maxlength="120" placeholder="Ваше имя" required>
-            </label>
-            <label>
-                <span>Email</span>
-                <input type="email" name="email" placeholder="you@example.com" required>
-            </label>
-            <label>
-                <span>Пароль</span>
-                <input type="password" name="password" minlength="6" placeholder="Минимум 6 символов" required>
-            </label>
-            <label>
-                <span>Роль</span>
-                <select name="role" required>
-                    <option value="AUTHOR">Автор — создаю кампании</option>
-                    <option value="SPONSOR">Спонсор — поддерживаю проекты</option>
-                </select>
-            </label>
-            <button class="primary-btn auth-submit" type="submit">Создать аккаунт</button>
+        <form class="auth-access-form hidden" id="register-form" role="tabpanel" aria-labelledby="register-tab" aria-describedby="auth-status" hidden>
+            <div class="auth-access-heading"><h2 data-i18n-key="auth.create"></h2><p data-i18n-key="auth.freeHint"></p></div>
+            <fieldset class="auth-role-fieldset"><legend data-i18n-key="auth.whoAreYou"></legend><div class="auth-role-options" role="radiogroup" data-i18n-aria-label="auth.whoAreYou">
+                <button type="button" role="radio" aria-checked="true" data-auth-role="AUTHOR"><strong data-i18n-key="auth.authorTitle"></strong><span data-i18n-key="auth.authorHint"></span></button>
+                <button type="button" role="radio" aria-checked="false" tabindex="-1" data-auth-role="SPONSOR"><strong data-i18n-key="auth.sponsorTitle"></strong><span data-i18n-key="auth.sponsorHint"></span></button>
+            </div><input type="hidden" name="role" value="AUTHOR"></fieldset>
+            <div class="field"><div class="field-heading"><label for="register-name" data-i18n-key="auth.displayName"></label><output class="field-counter" id="auth-name-counter" for="register-name">0 / 120</output></div><input id="register-name" type="text" name="displayName" autocomplete="name" maxlength="120" required data-i18n-placeholder="auth.namePlaceholder"></div>
+            <div class="field"><label for="register-email" data-i18n-key="auth.email"></label><input id="register-email" type="email" name="email" autocomplete="username" required data-i18n-placeholder="auth.emailPlaceholder"></div>
+            <div class="field"><label for="register-password" data-i18n-key="auth.password"></label><input id="register-password" type="password" name="password" autocomplete="new-password" minlength="6" maxlength="100" required data-i18n-placeholder="auth.newPasswordPlaceholder" aria-describedby="auth-password-hint"><small id="auth-password-hint" data-i18n-key="auth.passwordHint"></small></div>
+            <button class="primary-btn btn-lg" type="submit" data-i18n-key="auth.create"></button>
+            <p class="auth-access-terms" data-i18n-key="auth.terms"></p>
         </form>
-
-        <div class="auth-status" id="auth-status"></div>
-
-        <p class="auth-footer-note">
-            Регистрируясь, вы соглашаетесь с условиями использования платформы.
-        </p>
+        <div class="auth-status" id="auth-status" role="status" aria-live="polite"></div>
     </section>
 </main>
-
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>
 <script src="/auth-app.js"></script>
-<script>
-    // ── Show/hide panel header on tab switch ──
-    const loginHeader    = document.getElementById('login-header');
-    const registerHeader = document.getElementById('register-header');
-
-    document.querySelectorAll('.auth-tab').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tab = btn.dataset.tab;
-            loginHeader.classList.toggle('hidden', tab !== 'login');
-            registerHeader.classList.toggle('hidden', tab !== 'register');
-        });
-    });
-
-    // ── Load live stats from /api/dashboard ──
-    (async function loadAuthStats() {
-        try {
-            const res  = await fetch('/api/dashboard');
-            if (!res.ok) return;
-            const data = await res.json();
-
-            const fmt = (n) => {
-                if (!n && n !== 0) return '—';
-                if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace('.0','') + ' млн ₽';
-                if (n >= 1_000)     return (n / 1_000).toFixed(0) + ' тыс. ₽';
-                return n.toLocaleString('ru') + ' ₽';
-            };
-
-            document.getElementById('auth-stat-campaigns').textContent =
-                (data.activeProjects ?? '—').toLocaleString('ru');
-            document.getElementById('auth-stat-raised').textContent =
-                fmt(data.totalRaised);
-            document.getElementById('auth-stat-backers').textContent =
-                (data.totalBackers ?? '—').toLocaleString('ru');
-        } catch (_) {
-            // silently fall back — stats stay as loading skeleton
-        }
-    })();
-</script>
 </body>
 </html>
