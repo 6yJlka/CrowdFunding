@@ -710,9 +710,7 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: ".analytics-leaderboard th:nth-of-type(2)", type: "text", key: "index.table.campaign"},
         {selector: ".analytics-leaderboard th:nth-of-type(3)", type: "text", key: "index.table.owner"}
     ],
-    "/author-dashboard.html": [
-        {selector: "title", type: "text", key: "author.title"}
-    ],
+    "/author-dashboard.html": [],
     "/sponsor-dashboard.html": [
         {selector: "title", type: "text", key: "sponsor.title"},
         {selector: ".panel.form-panel .panel-kicker", type: "text", key: "sponsor.kicker"},
@@ -724,56 +722,8 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "sponsor.tip2"},
         {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "sponsor.tip3"}
     ],
-    "/create-project.html": [
-        {selector: "title", type: "text", key: "create.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "create.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "create.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "create.backDashboard"},
-        {selector: "#project-form .primary-btn", type: "text", key: "create.save"},
-        {selector: "#project-form .ghost-btn", type: "text", key: "create.changeAccount"},
-        {selector: "#project-image-label", type: "text", key: "create.field.image"},
-        {selector: "#project-image-action", type: "text", key: "create.image.choose"},
-        {selector: "#project-image-hint", type: "text", key: "create.image.hint"},
-        {selector: "#project-title-label", type: "text", key: "create.field.title"},
-        {selector: "#project-short-description-label", type: "text", key: "create.field.short"},
-        {selector: "#project-description-label", type: "text", key: "create.field.description"},
-        {selector: "#project-goal-label", type: "text", key: "create.field.goal"},
-        {selector: "#project-category-label", type: "text", key: "create.field.category"},
-        {selector: "#category-select option[value='']", type: "text", key: "create.field.withoutCategory"},
-        {selector: "#project-start-at-label", type: "text", key: "create.field.startAt"},
-        {selector: "#project-end-at-label", type: "text", key: "create.field.endAt"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "create.checklist"},
-        {selector: ".tips-panel h3", type: "text", key: "create.before"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "create.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "create.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "create.tip3"},
-        {selector: ".tips-list li:nth-of-type(4)", type: "text", key: "create.tip4"}
-    ],
-    "/edit-project.html": [
-        {selector: "title", type: "text", key: "edit.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "create.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "edit.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "edit.backCabinet"},
-        {selector: "#project-form .primary-btn", type: "text", key: "edit.save"},
-        {selector: "#project-form .ghost-btn", type: "text", key: "edit.cancel"},
-        {selector: "#project-image-label", type: "text", key: "create.field.image"},
-        {selector: "#project-image-action", type: "text", key: "create.image.choose"},
-        {selector: "#project-image-hint", type: "text", key: "edit.image.hint"},
-        {selector: "#project-title-label", type: "text", key: "create.field.title"},
-        {selector: "#project-short-description-label", type: "text", key: "create.field.short"},
-        {selector: "#project-description-label", type: "text", key: "create.field.description"},
-        {selector: "#project-goal-label", type: "text", key: "create.field.goal"},
-        {selector: "#project-currency-label", type: "text", key: "create.field.currency"},
-        {selector: "#project-category-label", type: "text", key: "create.field.category"},
-        {selector: "#category-select option[value='']", type: "text", key: "create.field.withoutCategory"},
-        {selector: "#project-start-at-label", type: "text", key: "create.field.startAt"},
-        {selector: "#project-end-at-label", type: "text", key: "create.field.endAt"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "edit.kicker"},
-        {selector: ".tips-panel h3", type: "text", key: "edit.when"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "edit.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "edit.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "edit.tip3"}
-    ],
+    "/create-project.html": [],
+    "/edit-project.html": [],
     "/admin-dashboard.html": [
         {selector: "title", type: "text", key: "admin.title"},
         {selector: ".panel.form-panel > .panel-header .panel-kicker", type: "text", key: "admin.kicker"},
@@ -1701,6 +1651,49 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "catalog.found.one": "{count} project found", "catalog.found.other": "{count} projects found",
     "project.comment.invite": "Ask the author a question or leave feedback",
     "project.reviewSummary": "{average} / 5 · {count}"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "profile.dialogTitle": "Профиль", "profile.edit": "Редактировать профиль", "profile.uploadAvatar": "Загрузить аватар", "profile.avatarHint": "До 5 МБ. Обрежем до квадрата.",
+    "profile.locked": "Имя и email пока нельзя изменить.", "profile.bio": "О себе", "profile.save": "Сохранить", "profile.cancel": "Отмена", "profile.emptyBio": "Расскажите о себе в профиле.",
+    "author.membership": "Автор · на RiseUp с {date}", "author.filterLabel": "Фильтр по статусу", "author.pagination": "Страницы проектов",
+    "author.tab.all": "Все", "author.tab.active": "Активные", "author.tab.draft": "Черновики", "author.tab.rejected": "На доработке", "author.tab.done": "Завершённые",
+    "author.hint.all": "Все ваши проекты: от черновиков до успешных сборов.", "author.hint.active": "Опубликованные проекты, которые сейчас принимают поддержку.",
+    "author.hint.draft": "Черновики можно редактировать. Проекты на модерации ожидают решения администратора.", "author.hint.rejected": "Исправьте замечания модератора и отправьте проект на проверку снова.", "author.hint.done": "Проекты, которые достигли цели сбора.",
+    "author.emptyFilter": "В этой вкладке пока нет проектов.", "author.openNews": "Открыть и написать новость",
+    "author.successful.one": "успешная кампания", "author.successful.few": "успешные кампании", "author.successful.many": "успешных кампаний", "author.successful.other": "успешной кампании",
+    "editor.back": "В кабинет", "editor.createHeading": "Новая кампания", "editor.editHeading": "Редактировать проект",
+    "editor.createIntro": "Проект сохранится как черновик — его видите только вы. Когда всё готово, отправьте его на модерацию.",
+    "editor.editIntro": "Внесите изменения и сохраните проект. Черновики и проекты на доработке можно отправить на модерацию из кабинета.",
+    "editor.about": "О проекте", "editor.titleLabel": "Название", "editor.shortLabel": "Кратко", "editor.descriptionLabel": "Полное описание", "editor.categoryLabel": "Категория",
+    "editor.titlePlaceholder": "Как называется ваш проект", "editor.shortPlaceholder": "Одно-два предложения для карточки в каталоге", "editor.descriptionPlaceholder": "Расскажите, что вы делаете, зачем и на что пойдут деньги",
+    "editor.funding": "Сбор", "editor.goalLabel": "Цель сбора", "editor.goalPlaceholder": "900000", "editor.currencyLabel": "Валюта", "editor.startLabel": "Старт — необязательно", "editor.endLabel": "Финиш — необязательно",
+    "editor.dateHint": "Старт не может быть в прошлом, финиш — строго позже старта.", "editor.dateError": "Финиш должен быть позже старта.",
+    "editor.cover": "Обложка", "editor.upload": "Загрузить изображение", "editor.coverHint": "До 5 МБ. Обрежем до 16 : 9.", "editor.noCoverHint": "Без обложки карточка будет цветом категории.",
+    "editor.saveDraft": "Сохранить черновик", "editor.preview": "Предпросмотр", "editor.previewLabel": "Так карточку увидят в каталоге", "editor.previewTitle": "Название проекта", "editor.previewShort": "Краткое описание появится здесь.",
+    "editor.next": "Дальше", "editor.nextHint": "Черновик можно править сколько угодно. После отправки на модерацию правки закрываются, пока администратор не одобрит или не вернёт проект с комментарием.",
+    "editor.moderator": "Модератор:", "editor.saving": "Сохраняем изменения…", "editor.saved": "Проект обновлён", "editor.saveError": "Не удалось сохранить проект", "editor.loadError": "Не удалось загрузить проект"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "profile.dialogTitle": "Profile", "profile.edit": "Edit profile", "profile.uploadAvatar": "Upload avatar", "profile.avatarHint": "Up to 5 MB. We’ll crop it to a square.",
+    "profile.locked": "Name and email cannot be changed yet.", "profile.bio": "About you", "profile.save": "Save", "profile.cancel": "Cancel", "profile.emptyBio": "Tell us about yourself in your profile.",
+    "author.membership": "Author · on RiseUp since {date}", "author.filterLabel": "Filter by status", "author.pagination": "Project pages",
+    "author.tab.all": "All", "author.tab.active": "Active", "author.tab.draft": "Drafts", "author.tab.rejected": "Needs revision", "author.tab.done": "Completed",
+    "author.hint.all": "All your projects, from drafts to successful campaigns.", "author.hint.active": "Published projects currently accepting support.",
+    "author.hint.draft": "Drafts can be edited. Projects under moderation are waiting for an administrator’s decision.", "author.hint.rejected": "Address the moderator’s feedback and submit your project again.", "author.hint.done": "Projects that have reached their funding goals.",
+    "author.emptyFilter": "No projects in this tab yet.", "author.openNews": "Open and post an update",
+    "author.successful.one": "successful campaign", "author.successful.other": "successful campaigns",
+    "editor.back": "Back to dashboard", "editor.createHeading": "New campaign", "editor.editHeading": "Edit project",
+    "editor.createIntro": "Your project will be saved as a private draft. Submit it for moderation when it’s ready.",
+    "editor.editIntro": "Make changes and save your project. Submit drafts and revised projects for moderation from your dashboard.",
+    "editor.about": "About the project", "editor.titleLabel": "Title", "editor.shortLabel": "In brief", "editor.descriptionLabel": "Full description", "editor.categoryLabel": "Category",
+    "editor.titlePlaceholder": "What is your project called?", "editor.shortPlaceholder": "One or two sentences for the catalog card", "editor.descriptionPlaceholder": "Tell us what you’re making, why it matters and how you’ll use the funds",
+    "editor.funding": "Funding", "editor.goalLabel": "Funding goal", "editor.goalPlaceholder": "900000", "editor.currencyLabel": "Currency", "editor.startLabel": "Start — optional", "editor.endLabel": "End — optional",
+    "editor.dateHint": "The start cannot be in the past. The end must be strictly later than the start.", "editor.dateError": "The end must be later than the start.",
+    "editor.cover": "Cover", "editor.upload": "Upload image", "editor.coverHint": "Up to 5 MB. We’ll crop it to 16 : 9.", "editor.noCoverHint": "Without a cover, the card uses the category color.",
+    "editor.saveDraft": "Save draft", "editor.preview": "Preview", "editor.previewLabel": "How your card will look in the catalog", "editor.previewTitle": "Project title", "editor.previewShort": "Your short description will appear here.",
+    "editor.next": "Next", "editor.nextHint": "You can edit your draft as often as you like. Once submitted for moderation, changes are locked until an administrator approves it or returns it with feedback.",
+    "editor.moderator": "Moderator:", "editor.saving": "Saving changes…", "editor.saved": "Project updated", "editor.saveError": "Could not save project", "editor.loadError": "Could not load project"
 });
 
 function i18nPlural(key, count) {

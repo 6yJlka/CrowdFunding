@@ -2,104 +2,43 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Project | CrowdFunding</title>
+    <title data-i18n-key="edit.title">Проект | RiseUp</title>
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="project-editor-page">
 <div id="site-shell"></div>
-<main class="create-layout">
-    <section class="panel form-panel">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker">Author Flow</p>
-                <h3>Edit campaign</h3>
-            </div>
-            <a class="ghost-btn" href="/author-dashboard.html">Back to cabinet</a>
-        </div>
-
-        <div class="auth-status" id="project-status"></div>
-        <div class="project-rejection-note hidden" id="project-rejection-note"></div>
-
-        <form class="project-form" id="project-form">
-            <section class="project-cover-field">
-                <div class="project-cover-preview-shell">
-                    <div class="project-cover-preview" id="project-cover-preview-fallback">
-                        <div class="project-cover-glow"></div>
-                        <div class="project-cover-copy">
-                            <strong id="project-cover-preview-title">PR</strong>
-                            <span id="project-cover-preview-category">Project</span>
-                        </div>
-                    </div>
-                    <img id="project-cover-preview-image" class="project-cover-preview-image hidden" alt="Project cover preview">
-                </div>
-                <label class="project-cover-upload-group">
-                    <span id="project-image-label">Project image</span>
-                    <input class="hidden" type="file" name="projectImage" id="project-image-input" accept="image/*">
-                    <span class="project-cover-upload-box">
-                        <span class="project-cover-upload-action" id="project-image-action">Choose image</span>
-                        <span class="project-cover-upload-name" id="project-image-name">No file selected</span>
-                    </span>
-                    <small class="field-hint" id="project-image-hint">Optional. Upload a new image to replace the current one.</small>
-                </label>
-            </section>
-            <label>
-                <span id="project-title-label">Title</span>
-                <input type="text" name="title" maxlength="180" required>
-            </label>
-            <label>
-                <span id="project-short-description-label">Short description</span>
-                <textarea name="shortDescription" maxlength="300" rows="3" required></textarea>
-            </label>
-            <label>
-                <span id="project-description-label">Description</span>
-                <textarea name="description" rows="7" required></textarea>
-            </label>
-            <div class="form-row">
-                <label>
-                    <span id="project-goal-label">Goal amount</span>
-                    <input type="number" name="goalAmount" min="0.01" step="0.01" required>
-                </label>
-                <label>
-                    <span id="project-currency-label">Currency</span>
-                    <input type="text" name="currency" value="RUB" minlength="3" maxlength="3" required>
-                </label>
-            </div>
-            <div class="form-row">
-                <label>
-                    <span id="project-category-label">Category</span>
-                    <select name="categoryId" id="category-select">
-                        <option value="">Without category</option>
-                    </select>
-                </label>
-                <label>
-                    <span id="project-start-at-label">Start at</span>
-                    <input type="datetime-local" name="startAt">
-                </label>
-                <label>
-                    <span id="project-end-at-label">End at</span>
-                    <input type="datetime-local" name="endAt">
-                </label>
-            </div>
-            <div class="form-actions">
-                <button class="primary-btn" type="submit">Save changes</button>
-                <a class="ghost-btn" href="/author-dashboard.html">Cancel</a>
-            </div>
+<main class="container campaign-editor">
+    <header class="campaign-editor-heading"><a class="editor-back" href="/author-dashboard.html"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m10 12-4-4 4-4"/></svg><span data-i18n-key="editor.back"></span></a><h1 data-i18n-key="editor.editHeading"></h1><p data-i18n-key="editor.editIntro"></p></header>
+    <div class="auth-status" id="project-status" role="status"></div>
+    <div class="project-revision-note hidden" id="project-rejection-note"></div>
+    <div class="campaign-editor-grid">
+        <form class="campaign-editor-form" id="project-form">
+            <fieldset class="editor-section" id="editor-content-fields"><legend data-i18n-key="editor.about"></legend>
+                <div class="field"><div class="field-heading"><label for="editor-title" data-i18n-key="editor.titleLabel"></label><output class="field-counter" for="editor-title" data-editor-counter="editor-title">0 / 180</output></div><input id="editor-title" type="text" name="title" maxlength="180" required data-i18n-placeholder="editor.titlePlaceholder"></div>
+                <div class="field"><div class="field-heading"><label for="editor-short" data-i18n-key="editor.shortLabel"></label><output class="field-counter" for="editor-short" data-editor-counter="editor-short">0 / 300</output></div><textarea id="editor-short" name="shortDescription" maxlength="300" rows="2" required data-i18n-placeholder="editor.shortPlaceholder"></textarea></div>
+                <div class="field"><label for="editor-description" data-i18n-key="editor.descriptionLabel"></label><textarea id="editor-description" name="description" rows="7" required data-i18n-placeholder="editor.descriptionPlaceholder"></textarea></div>
+                <div class="field"><span id="editor-category-label" data-i18n-key="editor.categoryLabel"></span><div class="editor-category-options" id="editor-categories" role="radiogroup" aria-labelledby="editor-category-label"></div><select name="categoryId" id="category-select" hidden aria-hidden="true" tabindex="-1"><option value=""></option></select></div>
+            </fieldset>
+            <fieldset class="editor-section" id="editor-funding-fields"><legend data-i18n-key="editor.funding"></legend>
+                <div class="editor-fields-row"><div class="field"><label for="editor-goal" data-i18n-key="editor.goalLabel"></label><input id="editor-goal" type="number" name="goalAmount" min="0.01" step="0.01" required data-i18n-placeholder="editor.goalPlaceholder"></div><div class="field"><label for="editor-currency" data-i18n-key="editor.currencyLabel"></label><input id="editor-currency" type="text" name="currency" value="RUB" minlength="3" maxlength="3" required ></div></div>
+                <div class="editor-fields-row"><div class="field"><label for="editor-start" data-i18n-key="editor.startLabel"></label><input id="editor-start" type="datetime-local" name="startAt"></div><div class="field"><label for="editor-end" data-i18n-key="editor.endLabel"></label><input id="editor-end" type="datetime-local" name="endAt"></div></div>
+                <p class="field-hint" data-i18n-key="editor.dateHint"></p>
+            </fieldset>
+            <fieldset class="editor-section"><legend data-i18n-key="editor.cover"></legend>
+                <button class="editor-cover-upload" id="editor-upload-trigger" type="button"><svg width="30" height="30" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M11 15V4M6 9l5-5 5 5M4 18h14"/></svg><strong data-i18n-key="editor.upload"></strong><span data-i18n-key="editor.coverHint"></span></button><input type="file" id="project-image-input" accept="image/*" hidden><p class="editor-image-name" id="project-image-name"></p><p class="field-hint" data-i18n-key="editor.noCoverHint"></p>
+            </fieldset>
+            <div class="editor-actions"><button class="primary-btn btn-lg" type="submit" data-i18n-key="edit.save"></button><a class="secondary-btn btn-lg" href="/author-dashboard.html" data-i18n-key="profile.cancel"></a></div>
         </form>
-    </section>
-    <aside class="panel tips-panel">
-        <p class="panel-kicker">Editing</p>
-        <h3>When editing is allowed</h3>
-        <ul class="tips-list">
-            <li>You can edit projects in `DRAFT` state.</li>
-            <li>You can edit projects returned for revision in `REJECTED` state.</li>
-            <li>After saving, you can resubmit from the author cabinet.</li>
-        </ul>
-    </aside>
+        <aside class="editor-preview" data-i18n-aria-label="editor.preview"><p class="editor-preview-label" data-i18n-key="editor.previewLabel"></p>
+            <article class="editor-preview-card"><div class="editor-preview-media"><div id="project-cover-preview-fallback" class="editor-cover-color"></div><img id="project-cover-preview-image" class="editor-cover-image hidden" alt=""><span class="category-badge" id="project-cover-preview-category"></span></div><div class="editor-preview-body"><h2 id="project-cover-preview-title"></h2><p id="editor-preview-short"></p><progress class="progress" id="editor-preview-progress" value="0" max="100" data-i18n-aria-label="public.progress"></progress><div class="public-project-totals"><span id="editor-preview-totals"></span><b id="editor-preview-percent">0%</b></div></div></article>
+            <div class="editor-next"><h2 data-i18n-key="editor.next"></h2><p data-i18n-key="editor.nextHint"></p></div>
+        </aside>
+    </div>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

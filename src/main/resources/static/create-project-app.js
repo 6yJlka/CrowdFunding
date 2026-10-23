@@ -9,9 +9,9 @@ const projectImageInput = document.getElementById("project-image-input");
 const projectImageName = document.getElementById("project-image-name");
 const projectCoverPreviewImage = document.getElementById("project-cover-preview-image");
 const projectCoverPreviewFallback = document.getElementById("project-cover-preview-fallback");
-const projectCoverPreviewTitle = document.getElementById("project-cover-preview-title");
-const projectCoverPreviewCategory = document.getElementById("project-cover-preview-category");
+const editorUI = window.RiseUpEditor(projectForm, categorySelect);
 const createI18n = window.AppI18n;
+let editorStatus = {message: "", type: ""};
 let createProjectImageObjectUrl = "";
 let createProjectCroppedImageFile = null;
 
@@ -27,6 +27,7 @@ wireCreateProjectPreview();
 syncCreateProjectImageName();
 renderCreateProjectCoverFallback();
 document.addEventListener("app:lang-changed", () => {
+    setStatus(editorStatus.message, editorStatus.type);
     applyCreateDateInputLocale();
     loadCategories().catch((error) => setStatus(error.message, "error"));
     syncCreateProjectImageName(createProjectCroppedImageFile?.name || projectImageInput.files?.[0]?.name);
@@ -49,7 +50,7 @@ projectForm.addEventListener("submit", async (event) => {
         endAt: toOffsetDate(projectForm.endAt.value)
     };
 
-    setStatus(createT("create.status.creating", "Creating project..."), "info");
+    setStatus("create.status.creating", "info");
     try {
         const response = await fetch("/api/projects", {
             method: "POST",
@@ -75,7 +76,7 @@ projectForm.addEventListener("submit", async (event) => {
         }, 500);
     } catch (error) {
         if (String(error.message).includes("403") || String(error.message).includes("401")) {
-            setStatus(createT("create.status.forbidden", "This account cannot create projects. Log in as AUTHOR."), "error");
+            setStatus("create.status.forbidden", "error");
             return;
         }
         setStatus(error.message, "error");
@@ -83,23 +84,17 @@ projectForm.addEventListener("submit", async (event) => {
 });
 
 function wireCreateProjectPreview() {
-    projectForm.title.addEventListener("input", renderCreateProjectCoverFallback);
-    categorySelect.addEventListener("change", renderCreateProjectCoverFallback);
     projectImageInput.addEventListener("change", handleCreateProjectImageChange);
 }
 
 async function loadCategories() {
-    const selectedCategoryId = categorySelect.value;
     const response = await fetch("/api/categories");
     if (!response.ok) {
         throw new Error(createT("catalog.error.categories", "Could not load categories"));
     }
 
     const categories = await response.json();
-    categorySelect.innerHTML = `<option value="">${createT("create.field.withoutCategory", "Without category")}</option>${categories.map((category) => `
-        <option value="${category.id}">${escapeHtml(translateCreateCategoryTitle(category.title))}</option>
-    `).join("")}`;
-    categorySelect.value = selectedCategoryId;
+    editorUI.setCategories(categories);
     renderCreateProjectCoverFallback();
 }
 
@@ -137,7 +132,7 @@ function handleCreateProjectImageChange(event) {
         clearCreateProjectImagePreview();
         renderCreateProjectCoverFallback();
         syncCreateProjectImageName();
-        setStatus(createT("create.image.tooLarge", "Project image must be 5 MB or smaller"), "error");
+        setStatus("create.image.tooLarge", "error");
         return;
     }
 
@@ -147,7 +142,7 @@ function handleCreateProjectImageChange(event) {
         clearCreateProjectImagePreview();
         renderCreateProjectCoverFallback();
         syncCreateProjectImageName();
-        setStatus(createT("create.image.imageOnly", "Project image must be an image"), "error");
+        setStatus("create.image.imageOnly", "error");
         return;
     }
 
@@ -179,7 +174,7 @@ function handleCreateProjectImageChange(event) {
         clearCreateProjectImagePreview();
         renderCreateProjectCoverFallback();
         syncCreateProjectImageName();
-        setStatus(createT("project.crop.error", "Could not open cover editor"), "error");
+        setStatus("project.crop.error", "error");
     });
 }
 
@@ -201,44 +196,10 @@ function clearCreateProjectImagePreview() {
     projectCoverPreviewFallback.classList.remove("hidden");
 }
 
-function renderCreateProjectCoverFallback() {
-    if (projectImageInput.files?.[0]) {
-        return;
-    }
-    const title = projectForm.title.value.trim();
-    const categoryTitle = categorySelect.options[categorySelect.selectedIndex]?.textContent?.trim()
-        || createT("app.project", "Project");
-    projectCoverPreviewTitle.textContent = resolveProjectCoverInitials(title);
-    projectCoverPreviewCategory.textContent = categoryTitle;
-    projectCoverPreviewFallback.className = `project-cover-preview ${resolveProjectCoverToneClass(title, categoryTitle)}`;
-}
+function renderCreateProjectCoverFallback() { editorUI.render(); }
 
 function syncCreateProjectImageName(fileName = "") {
     projectImageName.textContent = fileName || createT("create.image.none", "No file selected");
-}
-
-function resolveProjectCoverInitials(title) {
-    const parts = String(title ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return "PR";
-    }
-
-    return parts.slice(0, 2)
-        .map((part) => Array.from(part)[0] ?? "")
-        .join("")
-        .toUpperCase();
-}
-
-function resolveProjectCoverToneClass(title, categoryTitle) {
-    const source = `${categoryTitle ?? ""}:${title ?? ""}`;
-    const tones = ["cover-violet", "cover-sky", "cover-green", "cover-amber", "cover-coral"];
-    let hash = 0;
-
-    for (const symbol of source) {
-        hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    }
-
-    return tones[hash % tones.length];
 }
 
 function applyCreateDateConstraints() {
@@ -279,7 +240,9 @@ function toLocalDateTimeInputValue(value) {
 }
 
 function setStatus(message, type = "") {
-    statusNode.textContent = message;
+    editorStatus = {message, type};
+    statusNode.textContent = window.AppI18n.t(message);
+    statusNode.setAttribute("role", type === "error" ? "alert" : "status");
     statusNode.className = `auth-status ${type}`.trim();
 }
 
@@ -298,8 +261,9 @@ async function openProjectCoverCropper(options) {
         const outputWidth = 1600;
         const outputHeight = 900;
         const aspectRatio = outputWidth / outputHeight;
-        const modal = document.createElement("div");
-        modal.className = "avatar-cropper-modal";
+        const modal = document.createElement("dialog");
+        modal.className = "modal-dialog media-crop-dialog";
+        modal.setAttribute("aria-label", options.title);
         modal.innerHTML = `
             <div class="avatar-cropper-dialog project-cover-cropper-dialog">
                 <div class="avatar-cropper-head">
@@ -389,6 +353,7 @@ async function openProjectCoverCropper(options) {
         }
 
         function close(result) {
+            if (modal.open) modal.close();
             modal.remove();
             document.body.classList.remove("avatar-cropper-open");
             resolve(result);
@@ -446,7 +411,9 @@ async function openProjectCoverCropper(options) {
             canvas.toBlob((blob) => close(blob || null), "image/png");
         });
 
+        modal.addEventListener("cancel", (event) => { event.preventDefault(); close(null); });
         document.body.appendChild(modal);
+        window.RiseUpUI.openModal(modal);
         document.body.classList.add("avatar-cropper-open");
         modal.querySelector(".project-cover-cropper-stage").style.aspectRatio = `${aspectRatio}`;
         resetView();
@@ -469,11 +436,6 @@ function loadProjectCropperImage(file) {
     });
 }
 
-function translateCreateCategoryTitle(title) {
-    const normalized = String(title ?? "").trim().toLowerCase();
-    const key = CREATE_CATEGORY_TRANSLATION_KEYS[normalized];
-    return key ? createT(key, title) : title;
-}
 function createT(key, fallback) {
     return createI18n?.t(key) ?? fallback;
 }
@@ -481,18 +443,3 @@ function createT(key, fallback) {
 function resolveCreateDateInputLocale() {
     return createI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
 }
-
-const CREATE_CATEGORY_TRANSLATION_KEYS = {
-    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
-    "technology": "category.tech",
-    "technologies": "category.tech",
-    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
-    "art": "category.art",
-    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
-    "social": "category.social",
-    "social projects": "category.social",
-    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
-    "education": "category.education",
-    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
-    "charity": "category.charity"
-};

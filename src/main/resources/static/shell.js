@@ -47,6 +47,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!event.metaKey && !event.ctrlKey && !event.altKey && !["Shift", "Control", "Alt", "Meta"].includes(event.key)) {
             document.documentElement.classList.remove("using-pointer");
         }
+        if (event.key === "Tab") {
+            const dialog = [...document.querySelectorAll("dialog.modal-dialog[open]")].at(-1);
+            if (!dialog) return;
+            const controls = [...dialog.querySelectorAll('a[href],button,input,select,textarea,[tabindex]')]
+                .filter((node) => !node.matches(":disabled") && node.tabIndex >= 0 && node.getClientRects().length);
+            const first = controls[0], last = controls.at(-1);
+            if (!first) { event.preventDefault(); return; }
+            if (!dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+                event.preventDefault();
+                (event.shiftKey ? last : first).focus();
+            }
+        }
     }, true);
     mountShell();
     document.addEventListener("app:lang-changed", () => {
@@ -351,3 +363,69 @@ window.RiseUpProjects = (() => {
 
     return Object.freeze({renderCard, categoryTitle, categoryColor, formatMoney, progress, escapeHtml});
 })();
+
+// Form presentation only: request bodies and media uploads stay in each page controller.
+window.RiseUpEditor = (form, categorySelect) => {
+    let categories = [];
+    let storedProject = {};
+    const t = (key) => window.AppI18n.t(key);
+    const presentation = window.RiseUpProjects;
+    const escape = presentation.escapeHtml;
+    const group = document.getElementById("editor-categories");
+    const render = () => {
+        const categoryId = categorySelect.value ? Number(categorySelect.value) : null;
+        const project = {...storedProject, title: form.title.value.trim(), shortDescription: form.shortDescription.value.trim(), goalAmount: Number(form.goalAmount.value), currency: form.currency.value.trim().toUpperCase() || "RUB", categoryId};
+        const end = form.endAt;
+        const start = form.startAt;
+        end.setCustomValidity(end.value && start.value && end.value <= start.value ? t("editor.dateError") : "");
+        document.querySelectorAll("[data-editor-counter]").forEach((counter) => {
+            const input = document.getElementById(counter.dataset.editorCounter);
+            counter.textContent = `${input.value.length} / ${input.maxLength}`;
+        });
+        document.getElementById("project-cover-preview-title").textContent = project.title || t("editor.previewTitle");
+        document.getElementById("editor-preview-short").textContent = project.shortDescription || t("editor.previewShort");
+        document.getElementById("project-cover-preview-category").textContent = presentation.categoryTitle(project, categories);
+        document.getElementById("project-cover-preview-fallback").style.backgroundColor = presentation.categoryColor(project, categories);
+        const progress = presentation.progress(project);
+        document.getElementById("editor-preview-progress").value = Math.min(progress, 100);
+        document.getElementById("editor-preview-percent").textContent = `${progress}%`;
+        document.getElementById("editor-preview-totals").textContent = `${presentation.formatMoney(project.collectedAmount, project.currency)} ${t("public.of")} ${presentation.formatMoney(project.goalAmount, project.currency)}`;
+        const focusedId = group.contains(document.activeElement) ? document.activeElement.dataset.category : null;
+        const choices = [{id: "", title: t("category.uncategorized")}, ...categories];
+        group.innerHTML = choices.map((category) => {
+            const selected = String(category.id) === categorySelect.value;
+            const title = category.id === "" ? category.title : presentation.categoryTitle({categoryId: category.id}, categories);
+            const color = category.id === "" ? "#3A3A40" : window.RiseUpUI.resolveCategoryColor(category.slug);
+            return `<button type="button" class="editor-category-chip" role="radio" data-category="${escape(category.id)}" aria-checked="${selected}" tabindex="${selected ? 0 : -1}" ${categorySelect.disabled ? "disabled" : ""} style="--category-color:${color}">${escape(title)}</button>`;
+        }).join("");
+        group.querySelectorAll("button").forEach((button, index, buttons) => {
+            button.addEventListener("click", () => {
+                categorySelect.value = button.dataset.category;
+                categorySelect.dispatchEvent(new Event("change", {bubbles: true}));
+                group.querySelectorAll("button")[index]?.focus({preventScroll: true});
+            });
+            button.addEventListener("keydown", (event) => {
+                if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1) + buttons.length) % buttons.length;
+                buttons[next].click();
+            });
+        });
+        if (focusedId !== null) [...group.querySelectorAll("button")].find((button) => button.dataset.category === focusedId)?.focus({preventScroll: true});
+    };
+    document.getElementById("editor-upload-trigger").addEventListener("click", () => document.getElementById("project-image-input").click());
+    form.addEventListener("input", render);
+    form.addEventListener("change", render);
+    document.addEventListener("app:lang-changed", () => { syncCategoryOptions(); render(); });
+    const syncCategoryOptions = () => {
+        const selected = categorySelect.value;
+        categorySelect.innerHTML = `<option value="">${escape(t("category.uncategorized"))}</option>${categories.map((category) => `<option value="${escape(category.id)}">${escape(presentation.categoryTitle({categoryId: category.id}, categories))}</option>`).join("")}`;
+        categorySelect.value = selected;
+    };
+    render();
+    return {
+        render,
+        setCategories(items) { categories = items; syncCategoryOptions(); render(); },
+        setProject(project) { storedProject = project; render(); }
+    };
+};
