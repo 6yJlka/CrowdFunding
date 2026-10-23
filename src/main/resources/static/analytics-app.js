@@ -1,573 +1,114 @@
 const analyticsI18n = window.AppI18n;
-let analyticsTopProjects = {
-    all: [],
-    year: [],
-    month: []
-};
-let analyticsLeaderboardFilter = "all";
+const analyticsT = (key) => analyticsI18n.t(key);
+const escapeAnalyticsHtml = window.RiseUpProjects.escapeHtml;
+const analyticsProjectDetails = new Map();
+let analyticsData = null, analyticsCategories = [], analyticsFailed = false, analyticsLeaderboardFilter = "all";
+const analyticsLocale = () => analyticsI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+const analyticsMoney = (value, currency = "RUB", compact = false) => window.RiseUpProjects.formatMoney(value, currency, compact);
 
-bootstrapAnalyticsPage().catch((error) => console.error(error));
-document.addEventListener("app:lang-changed", () => {
-    bootstrapAnalyticsPage().catch((error) => console.error(error));
+bootstrapAnalyticsPage();
+document.addEventListener("app:lang-changed", renderAnalytics);
+window.addEventListener("resize", () => { if (analyticsData) renderAnalyticsChart(analyticsData.monthlyRaised ?? []); });
+const analyticsPeriodButtons = [...document.querySelectorAll("[data-filter]")];
+analyticsPeriodButtons.forEach((button, index) => {
+    button.addEventListener("click", () => { analyticsLeaderboardFilter = button.dataset.filter; renderAnalyticsTopProjects(); });
+    button.addEventListener("keydown", (event) => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        const next = event.key === "Home" ? 0 : event.key === "End" ? 2 : (index + (event.key === "ArrowRight" ? 1 : -1) + 3) % 3;
+        analyticsPeriodButtons[next].click(); analyticsPeriodButtons[next].focus();
+    });
 });
-
+async function analyticsFetch(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("analytics.loadError");
+    return response.json();
+}
 async function bootstrapAnalyticsPage() {
-    const response = await fetch("/api/dashboard");
-    if (!response.ok) {
-        throw new Error("Dashboard request failed");
+    const [dashboard, categories] = await Promise.allSettled([analyticsFetch("/api/dashboard"), analyticsFetch("/api/categories")]);
+    if (categories.status === "fulfilled") analyticsCategories = categories.value;
+    if (dashboard.status === "fulfilled") analyticsData = dashboard.value;
+    else analyticsFailed = true;
+    renderAnalytics();
+    if (!analyticsData) return;
+    const ids = [...new Set([...(analyticsData.topProjects ?? []), ...(analyticsData.topProjectsYear ?? []), ...(analyticsData.topProjectsMonth ?? [])].map((project) => project.id).filter(Boolean))];
+    await Promise.allSettled(ids.map(async (id) => { analyticsProjectDetails.set(String(id), await analyticsFetch(`/api/projects/${encodeURIComponent(id)}`)); }));
+    renderAnalyticsTopProjects();
+}
+function renderAnalytics() {
+    const data = analyticsData;
+    document.getElementById("analytics-metrics").setAttribute("aria-busy", String(!data && !analyticsFailed));
+    const status = document.getElementById("analytics-status");
+    status.hidden = !analyticsFailed;
+    status.textContent = analyticsFailed ? analyticsT("analytics.loadError") : "";
+    status.setAttribute("role", analyticsFailed ? "alert" : "status");
+    if (data) {
+        document.getElementById("analytics-total-raised").textContent = analyticsMoney(data.totalRaised, "RUB", true);
+        document.getElementById("analytics-active-projects").textContent = data.activeProjects ?? 0;
+        document.getElementById("analytics-funded-projects").textContent = data.fundedProjects ?? 0;
+        document.getElementById("analytics-total-backers").textContent = data.totalBackers ?? 0;
     }
-
-    const data = await response.json();
-    renderAnalytics(data);
+    document.getElementById("analytics-active-label").textContent = analyticsI18n.plural("count.activeProject", data?.activeProjects ?? 0);
+    document.getElementById("analytics-funded-label").textContent = analyticsI18n.plural("analytics.funded", data?.fundedProjects ?? 0);
+    document.getElementById("analytics-backers-label").textContent = analyticsI18n.plural("analytics.backers", data?.totalBackers ?? 0);
+    renderAnalyticsChart(data?.monthlyRaised ?? []);
+    renderAnalyticsTopProjects();
+    renderAnalyticsPeople();
 }
-
-function renderAnalytics(data) {
-    document.getElementById("analytics-total-raised").textContent = formatAnalyticsMoney(data.totalRaised);
-    document.getElementById("analytics-active-projects").textContent = `${data.activeProjects ?? 0}`;
-    document.getElementById("analytics-total-backers").textContent = `${data.totalBackers ?? 0}`;
-    document.getElementById("analytics-funded-projects").textContent = `${data.fundedProjects ?? 0}`;
-    analyticsTopProjects = {
-        all: data.topProjects ?? [],
-        year: data.topProjectsYear ?? [],
-        month: data.topProjectsMonth ?? []
-    };
-    syncAnalyticsLeaderboardFilterButtons();
-    applyAnalyticsLeaderboardView();
-    renderAnalyticsChart(data.monthlyRaised ?? []);
+function renderAnalyticsTopProjects() {
+    analyticsPeriodButtons.forEach((button) => { const on = button.dataset.filter === analyticsLeaderboardFilter; button.setAttribute("aria-selected", String(on)); button.tabIndex = on ? 0 : -1; });
+    const root = document.getElementById("analytics-top-projects");
+    root.setAttribute("aria-labelledby", `analytics-period-${analyticsLeaderboardFilter}`);
+    root.setAttribute("aria-busy", String(!analyticsData && !analyticsFailed));
+    const key = {all: "topProjects", year: "topProjectsYear", month: "topProjectsMonth"}[analyticsLeaderboardFilter];
+    const items = analyticsData?.[key] ?? [];
+    root.innerHTML = items.length ? items.map((row, index) => {
+        const detail = analyticsProjectDetails.get(String(row.id));
+        const title = detail ? window.RiseUpProjects.categoryTitle(detail, analyticsCategories) : row.categoryTitle || analyticsT("category.unknown");
+        const color = detail ? window.RiseUpProjects.categoryColor(detail, analyticsCategories) : "#3A3A40";
+        const raw = Number(row.progressPercent ?? (Number(row.goalAmount) > 0 ? Number(row.collectedAmount || 0) / Number(row.goalAmount) * 100 : 0));
+        const progress = raw < 100 || detail?.status === "ACTIVE" ? Math.min(99, Math.max(0, Math.floor(raw))) : Math.max(0, Math.round(raw));
+        return `<li><a class="analytics-ranking-row" href="/project.html?id=${encodeURIComponent(row.id)}"><span class="analytics-rank">${index + 1}</span><span class="analytics-rank-cover" style="--category-color:${color}" aria-hidden="true">${detail?.hasCoverImage ? `<img src="/api/projects/${encodeURIComponent(row.id)}/image" alt="" loading="lazy">` : ""}</span><span class="analytics-rank-copy"><b>${escapeAnalyticsHtml(row.title)}</b><span>${escapeAnalyticsHtml(row.authorDisplayName || analyticsT("app.unknown"))} · ${escapeAnalyticsHtml(title)}</span></span><span class="analytics-rank-funding"><span><b>${escapeAnalyticsHtml(analyticsMoney(row.collectedAmount, row.currency))}</b><span>${progress}%</span></span><progress class="progress" value="${Math.min(100, progress)}" max="100" aria-label="${escapeAnalyticsHtml(analyticsT("public.progress"))}"></progress></span></a></li>`;
+    }).join("") : `<li class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : !analyticsData ? "app.loading" : "app.noCampaigns"))}</li>`;
+    document.getElementById("analytics-period-note").textContent = analyticsT(`analytics.note.${analyticsLeaderboardFilter}`);
 }
-
-function renderAnalyticsTopProjects(items) {
-    const body = document.getElementById("analytics-top-projects");
-    body.innerHTML = items.length
-        ? items.map((project, index) => `
-            <tr>
-                <td>${index + 1}</td>
-                <td>
-                    <a href="/project.html?id=${project.id}">${escapeAnalyticsHtml(project.title)}</a>
-                    <div class="table-subtitle">${escapeAnalyticsHtml(project.categoryTitle ?? analyticsT("app.general", "General"))} · ${formatAnalyticsCompactMoney(project.collectedAmount)}</div>
-                </td>
-                <td>${escapeAnalyticsHtml(project.authorDisplayName ?? analyticsT("app.unknown", "Unknown"))}</td>
-            </tr>
-        `).join("")
-        : `<tr><td colspan="3">${analyticsT("app.noCampaigns", "No campaigns available")}</td></tr>`;
+function localizeAnalyticsLabel(value) {
+    const raw = String(value ?? "");
+    const match = raw.match(/^(?:(\d{1,2})\s+)?([A-Za-z]+)(?:\s+(\d{4}))?$/);
+    if (!match) return raw;
+    const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+    const month = months.indexOf(match[2].slice(0, 3).toLowerCase());
+    if (month < 0) return raw;
+    const label = new Intl.DateTimeFormat(analyticsLocale(), {month: "short", ...(match[1] ? {day: "numeric"} : {})}).format(new Date(2000, month, Number(match[1] || 1)));
+    return match[3] ? `${label} ${match[3]}` : label;
 }
-
-function getAnalyticsLeaderboardProjects() {
-    return analyticsTopProjects[analyticsLeaderboardFilter] ?? [];
-}
-
-function setAnalyticsLeaderboardFilter(filter) {
-    if (!Object.prototype.hasOwnProperty.call(analyticsTopProjects, filter)) {
-        return;
-    }
-    analyticsLeaderboardFilter = filter;
-    syncAnalyticsLeaderboardFilterButtons();
-    applyAnalyticsLeaderboardView();
-}
-
-function applyAnalyticsLeaderboardView() {
-    renderAnalyticsTopProjects(getAnalyticsLeaderboardProjects());
-}
-
-function syncAnalyticsLeaderboardFilterButtons() {
-    document.querySelectorAll(".analytics-leaderboard .filters button[data-filter]").forEach((button) => {
-        const isActive = button.dataset.filter === analyticsLeaderboardFilter;
-        button.classList.toggle("active-filter", isActive);
-        button.setAttribute("aria-pressed", String(isActive));
-    });
-}
-
 function renderAnalyticsChart(points) {
-    const labelsContainer = document.getElementById("chart-months");
-    const linePath = document.getElementById("chart-line-path");
-    const areaPath = document.getElementById("chart-area-path");
-    const point = document.getElementById("chart-point");
-    const callout = document.getElementById("chart-callout");
-    const rangeBadge = document.getElementById("chart-range-badge");
-
-    if (!points.length) {
-        labelsContainer.innerHTML = `<span>${analyticsT("app.noData", "No data")}</span>`;
-        labelsContainer.style.gridTemplateColumns = "1fr";
-        rangeBadge.textContent = analyticsT("index.chart.emptyRange", "No data yet");
-        updateAnalyticsAxis(0, 0);
-        point.setAttribute("cx", "0");
-        point.setAttribute("cy", "0");
-        linePath.setAttribute("d", "");
-        areaPath.setAttribute("d", "");
-        callout.textContent = formatAnalyticsCompactMoney(0);
-        positionAnalyticsCallout(callout, 400, 128, 800, 320);
-        return;
-    }
-
-    labelsContainer.style.gridTemplateColumns = `repeat(${Math.max(points.length, 1)}, minmax(0, 1fr))`;
-    labelsContainer.innerHTML = buildAnalyticsChartLabels(points);
-    rangeBadge.textContent = formatAnalyticsChartRangeBadge(points[0].label);
-
-    const values = points.map((pointItem) => Number(pointItem.amount ?? 0));
-    const {displayMin, displayMax} = buildAnalyticsChartDisplayRange(values);
-    updateAnalyticsAxis(displayMin, displayMax);
-
-    const width = 800;
-    const leftPadding = 12;
-    const rightPadding = 12;
-    const topY = 18;
-    const bottomY = 294;
-    const drawableHeight = bottomY - topY;
-    const stepX = points.length > 1 ? (width - leftPadding - rightPadding) / (points.length - 1) : 0;
-    const coordinates = values.map((value, index) => {
-        const ratio = displayMax === displayMin ? 0.5 : (value - displayMin) / (displayMax - displayMin);
-        return {
-            x: leftPadding + stepX * index,
-            y: bottomY - Math.max(0, Math.min(1, ratio)) * drawableHeight
-        };
-    });
-
-    const chartShape = points.length === 1
-        ? buildAnalyticsSinglePointChartShape(coordinates[0], leftPadding, rightPadding, width, bottomY)
-        : buildAnalyticsMultiPointChartShape(coordinates, bottomY);
-    linePath.setAttribute("d", chartShape.lineD);
-    areaPath.setAttribute("d", chartShape.areaD);
-
-    point.setAttribute("cx", `${chartShape.point.x}`);
-    point.setAttribute("cy", `${chartShape.point.y}`);
-    callout.textContent = formatAnalyticsCompactMoney(values[values.length - 1]);
-    positionAnalyticsCallout(callout, chartShape.point.x, chartShape.point.y, width, 320);
+    const plot = document.getElementById("analytics-chart-plot");
+    plot.hidden = !points.length;
+    document.getElementById("analytics-chart-empty").hidden = Boolean(points.length);
+    const line = document.getElementById("chart-line-path"), area = document.getElementById("chart-area-path");
+    if (!points.length) { line.setAttribute("d", ""); area.setAttribute("d", ""); return; }
+    const values = points.map((point) => Math.max(0, Number(point.amount) || 0));
+    const rawMax = Math.max(...values, 1), unit = 10 ** Math.floor(Math.log10(rawMax));
+    const max = Math.ceil(rawMax * 1.05 / unit) * unit;
+    const coordinates = values.map((value, index) => ({x: values.length === 1 ? 500 : 8 + index / (values.length - 1) * 984, y: 264 - value / max * 256}));
+    const path = coordinates.map((point, index) => `${index ? "L" : "M"}${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(" ");
+    line.setAttribute("d", path);
+    area.setAttribute("d", `${path} L${coordinates.at(-1).x},264 L${coordinates[0].x},264 Z`);
+    const last = coordinates.at(-1), circle = document.getElementById("analytics-chart-point");
+    circle.setAttribute("cx", last.x); circle.setAttribute("cy", last.y);
+    document.getElementById("analytics-chart-axis").innerHTML = [max, max * 2 / 3, max / 3, 0].map((value) => `<span>${escapeAnalyticsHtml(analyticsMoney(value, "RUB", true))}</span>`).join("");
+    const count = Math.min(points.length, innerWidth < 600 ? 4 : 10);
+    const indices = [...new Set(Array.from({length: count}, (_, index) => count === 1 ? 0 : Math.round(index * (points.length - 1) / (count - 1))))];
+    const labels = document.getElementById("chart-months");
+    labels.replaceChildren(...indices.map((index) => { const node = document.createElement("span"); node.textContent = localizeAnalyticsLabel(points[index].label); return node; }));
+    labels.style.gridTemplateColumns = `repeat(${indices.length}, minmax(0, 1fr))`;
+    document.getElementById("analytics-chart-description").textContent = analyticsT("analytics.chartSummary").replace("{first}", localizeAnalyticsLabel(points[0].label)).replace("{last}", localizeAnalyticsLabel(points.at(-1).label)).replace("{startAmount}", analyticsMoney(values[0])).replace("{endAmount}", analyticsMoney(values.at(-1)));
 }
-
-function updateAnalyticsAxis(minValue, maxValue) {
-    const range = Math.max(maxValue - minValue, 1);
-    document.getElementById("axis-max").textContent = formatAnalyticsCompactMoney(maxValue);
-    document.getElementById("axis-75").textContent = formatAnalyticsCompactMoney(minValue + range * 0.75);
-    document.getElementById("axis-50").textContent = formatAnalyticsCompactMoney(minValue + range * 0.5);
-    document.getElementById("axis-25").textContent = formatAnalyticsCompactMoney(minValue + range * 0.25);
-    document.getElementById("axis-min").textContent = formatAnalyticsCompactMoney(minValue);
-}
-
-function buildAnalyticsChartDisplayRange(values) {
-    const maxValue = Math.max(...values, 0);
-    const minValue = Math.min(...values, 0);
-
-    if (values.length <= 1 || maxValue === minValue) {
-        return {
-            displayMin: 0,
-            displayMax: Math.max(maxValue * 1.15, 1)
-        };
-    }
-
-    const visualPadding = Math.max((maxValue - minValue) * 0.18, maxValue * 0.08, 1);
-    return {
-        displayMin: Math.max(0, minValue - visualPadding),
-        displayMax: maxValue + visualPadding
-    };
-}
-
-function buildAnalyticsMultiPointChartShape(coordinates, bottomY) {
-    const lineD = buildAnalyticsSmoothLinePath(coordinates);
-    return {
-        lineD,
-        areaD: `${lineD} L${coordinates[coordinates.length - 1].x},${bottomY} L${coordinates[0].x},${bottomY} Z`,
-        point: coordinates[coordinates.length - 1]
-    };
-}
-
-function buildAnalyticsSinglePointChartShape(coordinate, leftPadding, rightPadding, width, bottomY) {
-    const drawableWidth = width - leftPadding - rightPadding;
-    const startX = leftPadding + drawableWidth * 0.14;
-    const pointX = leftPadding + drawableWidth * 0.5;
-    const endX = leftPadding + drawableWidth * 0.82;
-    const lineD = `M${startX},${bottomY} L${pointX},${coordinate.y} L${endX},${coordinate.y}`;
-
-    return {
-        lineD,
-        areaD: `${lineD} L${endX},${bottomY} L${startX},${bottomY} Z`,
-        point: {x: pointX, y: coordinate.y}
-    };
-}
-
-function buildAnalyticsSmoothLinePath(coordinates) {
-    if (!coordinates.length) {
-        return "";
-    }
-    if (coordinates.length === 1) {
-        return `M${coordinates[0].x},${coordinates[0].y}`;
-    }
-    let path = `M${coordinates[0].x},${coordinates[0].y}`;
-    for (let index = 0; index < coordinates.length - 1; index += 1) {
-        const current = coordinates[index];
-        const next = coordinates[index + 1];
-        const controlX = (current.x + next.x) / 2;
-        path += ` C${controlX},${current.y} ${controlX},${next.y} ${next.x},${next.y}`;
-    }
-    return path;
-}
-
-function buildAnalyticsChartLabels(points) {
-    const step = Math.max(1, Math.ceil(points.length / 8));
-    return points.map((pointItem, index) => {
-        const shouldShow = index === 0 || index === points.length - 1 || index % step === 0;
-        return `<span>${shouldShow ? escapeAnalyticsHtml(localizeAnalyticsChartAxisLabel(pointItem.label)) : ""}</span>`;
-    }).join("");
-}
-
-function formatAnalyticsChartRangeBadge(label) {
-    const lang = analyticsI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${analyticsT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const months = {
-        Jan: "января",
-        Feb: "февраля",
-        Mar: "марта",
-        Apr: "апреля",
-        May: "мая",
-        Jun: "июня",
-        Jul: "июля",
-        Aug: "августа",
-        Sep: "сентября",
-        Oct: "октября",
-        Nov: "ноября",
-        Dec: "декабря"
-    };
-
-    const [monthToken, yearToken] = String(label ?? "").split(/\s+/, 2);
-    const localizedMonth = months[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${analyticsT("index.chart.since", "С")} ${localizedMonth} ${yearToken}`
-        : `${analyticsT("index.chart.since", "С")} ${localizedMonth}`;
-}
-
-function localizeAnalyticsChartAxisLabel(label) {
-    const value = String(label ?? "").trim();
-    if ((analyticsI18n?.getLang?.() ?? "en") !== "ru") {
-        return value;
-    }
-
-    const [monthToken, yearToken] = value.split(/\s+/, 2);
-    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
-}
-
-function buildAnalyticsRuGenitiveMonthLabel(token) {
-    switch (token) {
-        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
-        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
-        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
-        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
-        case "May": return String.fromCharCode(1084, 1072, 1103);
-        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
-        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
-        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
-        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
-        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
-        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
-        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
-        default: return token ?? "";
-    }
-}
-
-function buildAnalyticsRuSinceText() {
-    return String.fromCharCode(1057);
-}
-
-function formatAnalyticsChartRangeBadge(label) {
-    const lang = analyticsI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${analyticsT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return analyticsT("index.chart.emptyRange", "No data yet");
-    }
-
-    const sinceText = buildAnalyticsRuSinceText();
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = buildAnalyticsRuGenitiveMonthLabel(monthToken);
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = buildAnalyticsRuGenitiveMonthLabel(monthToken);
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
-}
-
-const ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE = {
-    Jan: "\u044f\u043d\u0432\u0430\u0440\u044f",
-    Feb: "\u0444\u0435\u0432\u0440\u0430\u043b\u044f",
-    Mar: "\u043c\u0430\u0440\u0442\u0430",
-    Apr: "\u0430\u043f\u0440\u0435\u043b\u044f",
-    May: "\u043c\u0430\u044f",
-    Jun: "\u0438\u044e\u043d\u044f",
-    Jul: "\u0438\u044e\u043b\u044f",
-    Aug: "\u0430\u0432\u0433\u0443\u0441\u0442\u0430",
-    Sep: "\u0441\u0435\u043d\u0442\u044f\u0431\u0440\u044f",
-    Oct: "\u043e\u043a\u0442\u044f\u0431\u0440\u044f",
-    Nov: "\u043d\u043e\u044f\u0431\u0440\u044f",
-    Dec: "\u0434\u0435\u043a\u0430\u0431\u0440\u044f"
-};
-
-function formatAnalyticsChartRangeBadge(label) {
-    const lang = analyticsI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${analyticsT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const sinceText = analyticsT("index.chart.since", "\u0421");
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return analyticsT("index.chart.emptyRange", "\u0414\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043a\u0430 \u043d\u0435\u0442");
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_SAFE[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
-}
-
-function formatAnalyticsMoney(value) {
-    return new Intl.NumberFormat(resolveAnalyticsLocale(), {
-        style: "currency",
-        currency: "RUB",
-        maximumFractionDigits: 0
-    }).format(Number(value ?? 0));
-}
-
-function formatAnalyticsCompactMoney(value) {
-    return new Intl.NumberFormat(resolveAnalyticsLocale(), {
-        style: "currency",
-        currency: "RUB",
-        notation: "compact",
-        maximumFractionDigits: 1
-    }).format(Number(value ?? 0));
-}
-
-function escapeAnalyticsHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
-function analyticsT(key, fallback) {
-    return analyticsI18n?.t(key) ?? fallback;
-}
-
-document.querySelectorAll(".analytics-leaderboard .filters button[data-filter]").forEach((button) => {
-    button.addEventListener("click", () => {
-        setAnalyticsLeaderboardFilter(button.dataset.filter);
-    });
-});
-
-function resolveAnalyticsLocale() {
-    return analyticsI18n?.getLang?.() === "ru" ? "ru-RU" : "en-US";
-}
-
-function translateAnalyticsCategoryTitle(title, fallbackKey = "app.general", fallbackText = "General") {
-    const normalized = String(title ?? "").trim().toLowerCase();
-    const key = ANALYTICS_CATEGORY_TRANSLATION_KEYS[normalized];
-    return key ? analyticsT(key, title) : (title || analyticsT(fallbackKey, fallbackText));
-}
-
-const ANALYTICS_CATEGORY_TRANSLATION_KEYS = {
-    "general": "category.general",
-    "\u043e\u0431\u0449\u0435\u0435": "category.general",
-    "\u0442\u0435\u0445\u043d\u043e\u043b\u043e\u0433\u0438\u0438": "category.tech",
-    "technology": "category.tech",
-    "technologies": "category.tech",
-    "\u0442\u0432\u043e\u0440\u0447\u0435\u0441\u0442\u0432\u043e": "category.art",
-    "art": "category.art",
-    "\u0441\u043e\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0435 \u043f\u0440\u043e\u0435\u043a\u0442\u044b": "category.social",
-    "social": "category.social",
-    "social projects": "category.social",
-    "\u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u0435": "category.education",
-    "education": "category.education",
-    "\u0431\u043b\u0430\u0433\u043e\u0442\u0432\u043e\u0440\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c": "category.charity",
-    "charity": "category.charity"
-};
-
-function renderAnalyticsTopProjects(items) {
-    const body = document.getElementById("analytics-top-projects");
-    body.innerHTML = items.length
-        ? items.map((project, index) => `
-            <tr>
-                <td>${index + 1}</td>
-                <td>
-                    <a href="/project.html?id=${project.id}">${escapeAnalyticsHtml(project.title)}</a>
-                    <div class="table-subtitle">${escapeAnalyticsHtml(translateAnalyticsCategoryTitle(project.categoryTitle))} · ${formatAnalyticsCompactMoney(project.collectedAmount)}</div>
-                </td>
-                <td>${escapeAnalyticsHtml(project.authorDisplayName ?? analyticsT("app.unknown", "Unknown"))}</td>
-            </tr>
-        `).join("")
-        : `<tr><td colspan="3">${analyticsT("app.noCampaigns", "No campaigns available")}</td></tr>`;
-}
-
-const ANALYTICS_CHART_MONTH_LABELS_RU = {
-    Jan: "Янв",
-    Feb: "Фев",
-    Mar: "Мар",
-    Apr: "Апр",
-    May: "Май",
-    Jun: "Июн",
-    Jul: "Июл",
-    Aug: "Авг",
-    Sep: "Сен",
-    Oct: "Окт",
-    Nov: "Ноя",
-    Dec: "Дек"
-};
-
-function positionAnalyticsCallout(callout, pointX, pointY, svgWidth, svgHeight) {
-    const chartNode = callout.parentElement;
-    const chartWidth = chartNode.clientWidth || svgWidth;
-    const chartHeight = chartNode.clientHeight || svgHeight;
-    const scaledX = (pointX / svgWidth) * chartWidth;
-    const scaledY = (pointY / svgHeight) * chartHeight;
-    const halfWidth = (callout.offsetWidth || 0) / 2;
-    const horizontalPadding = 12;
-    const topPadding = 20;
-    const clampedX = Math.min(Math.max(scaledX, halfWidth + horizontalPadding), chartWidth - halfWidth - horizontalPadding);
-    const clampedY = Math.max(scaledY, topPadding);
-
-    callout.style.left = `${clampedX}px`;
-    callout.style.top = `${clampedY}px`;
-}
-
-const ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD = {
-    Jan: "СЏРЅРІР°СЂСЏ",
-    Feb: "С„РµРІСЂР°Р»СЏ",
-    Mar: "РјР°СЂС‚Р°",
-    Apr: "Р°РїСЂРµР»СЏ",
-    May: "РјР°СЏ",
-    Jun: "РёСЋРЅСЏ",
-    Jul: "РёСЋР»СЏ",
-    Aug: "Р°РІРіСѓСЃС‚Р°",
-    Sep: "СЃРµРЅС‚СЏР±СЂСЏ",
-    Oct: "РѕРєС‚СЏР±СЂСЏ",
-    Nov: "РЅРѕСЏР±СЂСЏ",
-    Dec: "РґРµРєР°Р±СЂСЏ"
-};
-
-function formatAnalyticsChartRangeBadge(label) {
-    const lang = analyticsI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${analyticsT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return analyticsT("index.chart.emptyRange", "No data yet");
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
-        return yearToken
-            ? `${analyticsT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${analyticsT("index.chart.since", "РЎ")} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU_GENITIVE_DASHBOARD[monthToken] ?? monthToken ?? "";
-    return yearToken
-        ? `${analyticsT("index.chart.since", "РЎ")} ${localizedMonth} ${yearToken}`
-        : `${analyticsT("index.chart.since", "РЎ")} ${localizedMonth}`;
-}
-
-function localizeAnalyticsChartAxisLabel(label) {
-    const value = String(label ?? "").trim();
-    if ((analyticsI18n?.getLang?.() ?? "en") !== "ru") {
-        return value;
-    }
-
-    const parts = value.split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return value;
-    }
-
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-        return yearToken ? `${dayToken} ${localizedMonth} ${yearToken}` : `${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = ANALYTICS_CHART_MONTH_LABELS_RU[monthToken] ?? monthToken ?? "";
-    return yearToken ? `${localizedMonth} ${yearToken}` : localizedMonth;
-}
-
-function buildAnalyticsRuGenitiveMonthLabelFinal(token) {
-    switch (token) {
-        case "Jan": return String.fromCharCode(1103, 1085, 1074, 1072, 1088, 1103);
-        case "Feb": return String.fromCharCode(1092, 1077, 1074, 1088, 1072, 1083, 1103);
-        case "Mar": return String.fromCharCode(1084, 1072, 1088, 1090, 1072);
-        case "Apr": return String.fromCharCode(1072, 1087, 1088, 1077, 1083, 1103);
-        case "May": return String.fromCharCode(1084, 1072, 1103);
-        case "Jun": return String.fromCharCode(1080, 1102, 1085, 1103);
-        case "Jul": return String.fromCharCode(1080, 1102, 1083, 1103);
-        case "Aug": return String.fromCharCode(1072, 1074, 1075, 1091, 1089, 1090, 1072);
-        case "Sep": return String.fromCharCode(1089, 1077, 1085, 1090, 1103, 1073, 1088, 1103);
-        case "Oct": return String.fromCharCode(1086, 1082, 1090, 1103, 1073, 1088, 1103);
-        case "Nov": return String.fromCharCode(1085, 1086, 1103, 1073, 1088, 1103);
-        case "Dec": return String.fromCharCode(1076, 1077, 1082, 1072, 1073, 1088, 1103);
-        default: return token ?? "";
-    }
-}
-
-function formatAnalyticsChartRangeBadge(label) {
-    const lang = analyticsI18n?.getLang?.() ?? "en";
-    if (lang !== "ru") {
-        return `${analyticsT("index.chart.since", "Since")} ${label}`;
-    }
-
-    const parts = String(label ?? "").trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) {
-        return "No data yet";
-    }
-
-    const sinceText = String.fromCharCode(1057);
-    if (/^\d+$/.test(parts[0])) {
-        const dayToken = parts[0];
-        const monthToken = parts[1];
-        const yearToken = parts[2];
-        const localizedMonth = buildAnalyticsRuGenitiveMonthLabelFinal(monthToken);
-        return yearToken
-            ? `${sinceText} ${dayToken} ${localizedMonth} ${yearToken}`
-            : `${sinceText} ${dayToken} ${localizedMonth}`;
-    }
-
-    const monthToken = parts[0];
-    const yearToken = parts[1];
-    const localizedMonth = buildAnalyticsRuGenitiveMonthLabelFinal(monthToken);
-    return yearToken
-        ? `${sinceText} ${localizedMonth} ${yearToken}`
-        : `${sinceText} ${localizedMonth}`;
+function renderAnalyticsPeople() {
+    const founders = analyticsData?.recentFounders ?? [], sponsors = analyticsData?.recentSponsors ?? [];
+    const avatar = (id, name, hasAvatar, group) => `<span class="analytics-person-avatar" style="--profile-color:${window.RiseUpUI.resolveProfileColor(id)}" aria-hidden="true">${hasAvatar ? `<img src="/api/showcase/${group}/${encodeURIComponent(id)}/avatar" alt="" loading="lazy">` : ""}<span>${escapeAnalyticsHtml(String(name).trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase())}</span></span>`;
+    document.getElementById("analytics-founders").innerHTML = founders.length ? founders.map((item) => `<article class="analytics-founder">${avatar(item.authorId, item.authorDisplayName || "", item.hasAvatar, "founders")}<div><b>${escapeAnalyticsHtml(item.authorDisplayName || analyticsT("app.unknown"))}</b><span>${escapeAnalyticsHtml(item.projectTitle || item.categoryTitle || "")}</span></div></article>`).join("") : `<div class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : "analytics.noAuthors"))}</div>`;
+    document.getElementById("analytics-sponsors").innerHTML = sponsors.length ? sponsors.map((item) => `<li>${avatar(item.sponsorId, item.sponsorDisplayName || "", item.hasAvatar, "sponsors")}<div><b>${escapeAnalyticsHtml(item.sponsorDisplayName || analyticsT("app.unknown"))}</b><span>${escapeAnalyticsHtml(analyticsT("analytics.supportedOn").replace("{date}", window.RiseUpModeration.date(item.supportedAt)))}</span></div></li>`).join("") : `<li class="empty-state">${escapeAnalyticsHtml(analyticsT(analyticsFailed ? "app.unavailable" : "analytics.noSponsors"))}</li>`;
+    document.querySelectorAll(".analytics-person-avatar img").forEach((image) => image.addEventListener("error", () => image.remove(), {once: true}));
 }

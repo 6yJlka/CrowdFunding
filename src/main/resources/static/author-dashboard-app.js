@@ -36,7 +36,6 @@ document.getElementById("author-next").addEventListener("click", () => { authorP
 document.addEventListener("app:lang-changed", () => {
     if (currentAuthorProfile) renderAuthorProfile();
     renderAuthorProjects();
-    setAuthorStatus(authorStatus.message, authorStatus.type);
 });
 authorDialog.addEventListener("cancel", (event) => { if (profileBusy) event.preventDefault(); });
 
@@ -189,10 +188,13 @@ authorProjectsNode.addEventListener("click", async (event) => {
 function setAuthorStatus(message, type = "") {
     if (window.RiseUpSession.expiring) return;
     authorStatus = {message, type};
+    if (!message.endsWith("loadingProfile")) window.RiseUpToast.show(message, type);
     for (const node of [authorStatusNode, document.getElementById("profile-status")]) {
+        node.hidden = true;
+        node.removeAttribute("role");
         node.textContent = t(message, message);
         node.className = `auth-status ${type}`.trim();
-        node.setAttribute("role", type === "error" ? "alert" : "status");
+
     }
 }
 
@@ -218,13 +220,13 @@ async function handleAvatarChange(event) {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-        setAuthorStatus(t("author.status.avatarTooLarge", "Avatar must be 5 MB or smaller"), "error");
+        setAuthorStatus("author.status.avatarTooLarge", "error");
         event.target.value = "";
         return;
     }
 
     if (!file.type.startsWith("image/")) {
-        setAuthorStatus(t("author.status.avatarImageOnly", "Please choose an image file"), "error");
+        setAuthorStatus("author.status.avatarImageOnly", "error");
         event.target.value = "";
         return;
     }
@@ -247,7 +249,7 @@ async function handleAvatarChange(event) {
     const uploadFile = new File([croppedAvatar], "avatar.png", {type: "image/png"});
 
     setAvatarPreviewUrl(URL.createObjectURL(uploadFile));
-    setAuthorStatus(t("author.status.avatarSaving", "Saving avatar..."), "info");
+    setAuthorStatus("author.status.avatarSaving", "info");
 
     try {
         await window.RiseUpProfile.uploadAvatar(uploadFile);
@@ -263,7 +265,7 @@ async function handleAvatarChange(event) {
     currentProfileHasAvatar = true;
     currentAuthorProfile.hasAvatar = true;
     await loadAuthorAvatar(true);
-    setAuthorStatus(t("author.status.avatarSaved", "Avatar saved"), "success");
+    setAuthorStatus("author.status.avatarSaved", "success");
     event.target.value = "";
 }
 

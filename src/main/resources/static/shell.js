@@ -8,6 +8,7 @@ window.RiseUpSession = (() => {
         if (expiring) return;
         expiring = true;
         localStorage.removeItem(SHELL_AUTH_KEY);
+        window.RiseUpToast?.clear();
         window.location.replace("/auth.html?reason=session-expired");
     }
     return Object.freeze({
@@ -48,6 +49,57 @@ window.RiseUpProfile = Object.freeze({
         return response.ok ? response.blob() : null;
     }
 });
+
+window.RiseUpToast = (() => {
+    const storageKey = "riseup_toast";
+    let current = null, timer = null, node = null;
+    function persist() {
+        try {
+            if (current) sessionStorage.setItem(storageKey, JSON.stringify(current));
+            else sessionStorage.removeItem(storageKey);
+        } catch { /* Notifications still work if session storage is unavailable. */ }
+    }
+    function draw() {
+        if (!current || current.expiresAt <= Date.now()) { clear(); return; }
+        if (!node) {
+            node = document.createElement("div");
+            node.id = "riseup-toast";
+            node.className = "riseup-toast";
+            node.setAttribute("role", "status");
+            node.setAttribute("aria-live", "polite");
+            node.setAttribute("aria-atomic", "true");
+        }
+        const host = [...document.querySelectorAll("dialog[open]")].at(-1) || document.body;
+        host.append(node);
+        node.textContent = window.AppI18n.t(current.message);
+        for (const [key, value] of Object.entries(current.params || {})) node.textContent = node.textContent.replaceAll(`{${key}}`, String(value));
+        node.dataset.type = current.type;
+        node.hidden = false;
+        window.clearTimeout(timer);
+        timer = window.setTimeout(clear, Math.max(0, current.expiresAt - Date.now()));
+    }
+    function clear() {
+        window.clearTimeout(timer);
+        current = null;
+        if (node) node.hidden = true;
+        persist();
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        try { current = JSON.parse(sessionStorage.getItem(storageKey) || "null"); } catch { current = null; }
+        if (current) draw();
+    });
+    document.addEventListener("app:lang-changed", draw);
+    document.addEventListener("close", () => { if (current) draw(); }, true);
+    return Object.freeze({
+        show(message, type = "success", params = {}) {
+            if (!message || window.RiseUpSession.expiring) return;
+            current = {message: String(message), type, params, expiresAt: Date.now() + 3000};
+            persist();
+            draw();
+        },
+        clear
+    });
+})();
 
 const RISEUP_PALETTE = Object.freeze(["#C6F24E", "#FF6A3D", "#FFD23F", "#7C8CFF", "#5FD4C4", "#F2B8E0"]);
 const RISEUP_CATEGORY_FALLBACK_PALETTE = Object.freeze(["#F2B8E0", "#B9A3FF", "#FFB38A", "#9BE7FF"]);
@@ -222,7 +274,7 @@ function buildShellMarkup({loggedIn, profileHref, primaryHref}) {
             </svg><span>RISEUP</span>
         </a>
         ${paymentPage || authPage ? "" : `<nav class="shell-nav" aria-label="${shellT("shell.navigation")}">${navLinks.join("")}</nav>`}
-        <div class="shell-actions">${actions}</div>
+        <div class="shell-actions">${loggedIn && profileHref === "/admin-dashboard.html" && /\/admin-(?:dashboard|project-review)\.html$/.test(window.location.pathname) ? `<span class="status-badge shell-admin-badge" data-status="MODERATION">${shellT("shell.role.admin")}</span>` : ""}${actions}</div>
         <div class="shell-lang" role="group" aria-label="${shellT("shell.language")}">
             ${["ru", "en"].map((lang) => `<button class="shell-lang-btn ${shellActiveLangClass(lang)}" type="button" data-lang-switch="${lang}" lang="${lang}" aria-label="${shellT(`shell.language.${lang}`)}" aria-pressed="${(SHELL_I18N?.getLang() ?? "en") === lang}">${lang.toUpperCase()}</button>`).join("")}
         </div>
@@ -479,3 +531,58 @@ window.RiseUpEditor = (form, categorySelect) => {
         setProject(project) { storedProject = project; render(); }
     };
 };
+
+window.RiseUpModeration = (() => {
+    const t = (key) => window.AppI18n.t(key);
+    const esc = window.RiseUpProjects.escapeHtml;
+    const locale = () => window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
+    function date(value) {
+        return value && Number.isFinite(new Date(value).getTime())
+            ? new Intl.DateTimeFormat(locale(), {day: "numeric", month: "short", year: "numeric"}).format(new Date(value)) : "—";
+    }
+    function markup(project, categories, prefix = "moderation", reason = "") {
+        const category = window.RiseUpProjects.categoryTitle(project, categories);
+        const status = project.status || "MODERATION";
+        const tiles = [["app.author", project.authorDisplayName || t("app.unknown")], ["editor.categoryLabel", category],
+            ["app.goal", window.RiseUpProjects.formatMoney(project.goalAmount, project.currency)], ["moderation.dates", `${date(project.startAt)} — ${date(project.endAt)}`]];
+        return `<article class="moderation-review"><div class="moderation-review-cover" style="--category-color:${window.RiseUpProjects.categoryColor(project, categories)}">${project.hasCoverImage ? `<img src="/api/projects/${encodeURIComponent(project.id)}/image" alt="">` : ""}<span class="status-badge" data-status="${esc(status)}">${esc(t(`project.status.${status}`))}</span></div><div class="moderation-review-body"><div class="moderation-review-intro"><h2 id="${prefix}-project-title">${esc(project.title)}</h2><p>${esc(project.shortDescription)}</p></div><dl class="moderation-review-meta">${tiles.map(([key, value]) => `<div><dt>${esc(t(key))}</dt><dd>${esc(value)}</dd></div>`).join("")}</dl><section class="moderation-review-description"><h3>${esc(t("moderation.description"))}</h3><p>${esc(project.description || "")}</p></section>${project.rejectionReason ? `<p class="project-revision-note">${esc(t("editor.moderator"))} ${esc(project.rejectionReason)}</p>` : ""}<div class="field moderation-reason-field"><div class="field-heading"><label for="${prefix}-reject-reason">${esc(t("moderation.rejectReason"))}</label><output class="field-counter" for="${prefix}-reject-reason" data-reason-counter>${reason.length} / 500</output></div><textarea id="${prefix}-reject-reason" rows="3" maxlength="500" required data-rejection-reason placeholder="${esc(t("moderation.reasonPlaceholder"))}" aria-describedby="${prefix}-reason-error" ${status !== "MODERATION" ? "disabled" : ""}>${esc(reason)}</textarea><p class="field-error" id="${prefix}-reason-error" data-reason-error role="alert" hidden></p></div><div class="moderation-review-actions"><button class="primary-btn" id="${prefix}-approve-btn" type="button" data-moderation-action="approve" ${status !== "MODERATION" ? "disabled" : ""}>${esc(t("moderation.approve"))}</button><button class="danger-outline-btn" id="${prefix}-reject-btn" type="button" data-moderation-action="reject" ${status !== "MODERATION" ? "disabled" : ""}>${esc(t("moderation.reject"))}</button></div></div></article>`;
+    }
+    function wireReason(root, onInput = () => {}) {
+        const input = root.querySelector("[data-rejection-reason]");
+        input.addEventListener("input", () => {
+            root.querySelector("[data-reason-counter]").textContent = `${input.value.length} / 500`;
+            input.removeAttribute("aria-invalid");
+            root.querySelector("[data-reason-error]").hidden = true;
+            onInput(input.value);
+        });
+    }
+    function validateReason(root) {
+        const input = root.querySelector("[data-rejection-reason]");
+        const reason = input.value.trim();
+        if (reason && reason.length <= 500) return reason;
+        input.setAttribute("aria-invalid", "true");
+        const error = root.querySelector("[data-reason-error]");
+        error.textContent = t("moderation.reasonError");
+        error.hidden = false;
+        input.focus();
+        window.RiseUpToast.show("moderation.reasonError", "error");
+        return null;
+    }
+    function busy(root, pending, status = "MODERATION") {
+        root.querySelectorAll("[data-moderation-action], [data-rejection-reason]").forEach((node) => { node.disabled = pending || status !== "MODERATION"; });
+        root.setAttribute("aria-busy", String(pending));
+    }
+    function confirmDelete() {
+        return new Promise((resolve) => {
+            const dialog = document.createElement("dialog");
+            dialog.className = "modal-dialog moderation-confirm";
+            dialog.setAttribute("aria-labelledby", "moderation-delete-title");
+            dialog.innerHTML = `<h2 id="moderation-delete-title">${esc(t("project.comment.deleteConfirm"))}</h2><p>${esc(t("project.comment.deleteDescription"))}</p><div class="modal-dialog-actions"><button class="secondary-btn" type="button" data-modal-close>${esc(t("common.cancel"))}</button><button class="danger-outline-btn" type="button" data-confirm-accept>${esc(t("project.comment.delete"))}</button></div>`;
+            dialog.querySelector("[data-confirm-accept]").addEventListener("click", () => dialog.close("confirm"));
+            dialog.addEventListener("close", () => { resolve(dialog.returnValue === "confirm"); dialog.remove(); }, {once: true});
+            document.body.append(dialog);
+            window.RiseUpUI.openModal(dialog);
+        });
+    }
+    return Object.freeze({markup, wireReason, validateReason, busy, date, confirmDelete});
+})();

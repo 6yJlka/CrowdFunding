@@ -38,7 +38,6 @@ document.getElementById("sponsor-bio-form").addEventListener("submit", saveBio);
 document.addEventListener("app:lang-changed", () => {
     if (currentSponsorProfile) renderSponsorProfile();
     renderSponsorDonations();
-    setSponsorStatus(sponsorStatus.message, sponsorStatus.type);
 });
 sponsorDialog.addEventListener("cancel", (event) => { if (profileBusy) event.preventDefault(); });
 
@@ -189,10 +188,13 @@ function renderSponsorDonation(item) {
 function setSponsorStatus(message, type = "") {
     if (window.RiseUpSession.expiring) return;
     sponsorStatus = {message, type};
+    if (!message.endsWith("loadingProfile")) window.RiseUpToast.show(message, type);
     for (const node of [sponsorStatusNode, document.getElementById("profile-status")]) {
+        node.hidden = true;
+        node.removeAttribute("role");
         node.textContent = t(message, message);
         node.className = `auth-status ${type}`.trim();
-        node.setAttribute("role", type === "error" ? "alert" : "status");
+
     }
 }
 

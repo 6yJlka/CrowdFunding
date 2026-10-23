@@ -2,96 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moderation | CrowdFunding</title>
+    <title data-i18n-key="admin.title">Модерация | RiseUp</title>
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="admin-dashboard-page">
 <div id="site-shell"></div>
-<main class="create-layout admin-layout">
-    <section class="panel form-panel">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker">Admin Area</p>
-                <h3>Moderation queue</h3>
-            </div>
-            <a class="ghost-btn" href="/">Dashboard</a>
-        </div>
-        <div class="auth-status" id="admin-status"></div>
-        <div class="admin-list admin-project-list" id="admin-projects"></div>
-        <div class="catalog-pagination">
-            <button class="ghost-btn" type="button" id="admin-projects-prev-btn">Previous</button>
-            <span class="catalog-pagination-copy" id="admin-projects-pagination-copy">Page 1</span>
-            <button class="ghost-btn" type="button" id="admin-projects-next-btn">Next</button>
-        </div>
-
-        <div class="panel-header admin-subsection">
-            <div>
-                <p class="panel-kicker">Users</p>
-                <h3>User management</h3>
-            </div>
-        </div>
-        <div class="catalog-toolbar admin-toolbar">
-            <label class="compact-search">
-                <input type="search" id="admin-users-search" placeholder="Search by email or name">
-            </label>
-            <label class="admin-filter">
-                <select id="admin-users-status-filter">
-                    <option value="">All users</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="BLOCKED">Blocked</option>
-                </select>
-            </label>
-            <button class="dark-btn" type="button" id="admin-users-search-btn">Search</button>
-        </div>
-        <div class="auth-status" id="admin-users-status"></div>
-        <div class="admin-list admin-users-list" id="admin-users"></div>
-        <div class="catalog-pagination">
-            <button class="ghost-btn" type="button" id="admin-users-prev-btn">Previous</button>
-            <span class="catalog-pagination-copy" id="admin-users-pagination-copy">Page 1</span>
-            <button class="ghost-btn" type="button" id="admin-users-next-btn">Next</button>
-        </div>
-
-    </section>
-    <aside class="admin-side-column">
-        <section class="panel tips-panel">
-            <p class="panel-kicker">Actions</p>
-            <h3>Moderation flow</h3>
-            <ul class="tips-list">
-                <li>Approve moves project to `ACTIVE`.</li>
-                <li>Reject moves project to `REJECTED`.</li>
-                <li>Queue shows projects in `MODERATION` by default.</li>
-                <li>User management lets admin change role and status.</li>
-                <li>Content moderation lets admin review and remove comments.</li>
-            </ul>
-        </section>
-
-        <section class="panel tips-panel admin-comments-panel">
-            <div class="panel-header">
-                <div>
-                    <p class="panel-kicker">Comments</p>
-                    <h3>Content moderation</h3>
-                </div>
-            </div>
-            <div class="catalog-toolbar admin-toolbar admin-toolbar-stack">
-                <label class="compact-search">
-                    <input type="search" id="admin-comments-search" placeholder="Search by project, author or text">
-                </label>
-                <button class="dark-btn" type="button" id="admin-comments-search-btn">Search</button>
-            </div>
-            <div class="auth-status" id="admin-comments-status"></div>
-            <div class="admin-list admin-comments-list" id="admin-comments"></div>
-            <div class="catalog-pagination admin-sidebar-pagination">
-                <button class="ghost-btn" type="button" id="admin-comments-prev-btn">Previous</button>
-                <span class="catalog-pagination-copy" id="admin-comments-pagination-copy">Page 1</span>
-                <button class="ghost-btn" type="button" id="admin-comments-next-btn">Next</button>
-            </div>
-        </section>
-    </aside>
+<main class="container moderation-workspace">
+<header class="moderation-page-heading"><div><h1 data-i18n-key="shell.moderation"></h1></div><div class="workspace-tabs" role="tablist" data-i18n-aria-label="moderation.tabsLabel"><button type="button" role="tab" id="admin-tab-queue" aria-controls="admin-panel-queue" aria-selected="true" tabindex="0" data-admin-tab="queue" data-i18n-key="moderation.tab.queue"></button><button type="button" role="tab" id="admin-tab-users" aria-controls="admin-panel-users" aria-selected="false" tabindex="-1" data-admin-tab="users" data-i18n-key="moderation.tab.users"></button><button type="button" role="tab" id="admin-tab-comments" aria-controls="admin-panel-comments" aria-selected="false" tabindex="-1" data-admin-tab="comments" data-i18n-key="moderation.tab.comments"></button></div></header>
+<section id="admin-panel-queue" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-queue">
+<div class="admin-queue-layout" id="admin-queue-layout"><div class="admin-queue-sidebar"><p class="admin-queue-count" id="admin-queue-count" role="status"></p><div class="admin-queue-list" id="admin-projects" aria-busy="true"></div><nav class="pagination admin-pagination" data-i18n-aria-label="moderation.pagination"><button class="secondary-btn" type="button" id="admin-projects-prev-btn" disabled data-i18n-key="projects.prev"></button><span id="admin-projects-pagination-copy"></span><button class="secondary-btn" type="button" id="admin-projects-next-btn" disabled data-i18n-key="projects.next"></button></nav></div><div id="admin-queue-detail" aria-busy="true"></div></div></section>
+<section id="admin-panel-users" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-users" hidden>
+<div class="admin-search-toolbar"><div class="field"><label class="sr-label" for="admin-users-search" data-i18n-key="moderation.userSearch"></label><input id="admin-users-search" type="search" data-i18n-placeholder="moderation.userSearchPlaceholder"></div><div class="field"><label class="sr-label" for="admin-users-status-filter" data-i18n-key="admin.status"></label><select id="admin-users-status-filter"><option value="" data-i18n-key="admin.filter.allUsers"></option><option value="ACTIVE" data-i18n-key="admin.filter.active"></option><option value="BLOCKED" data-i18n-key="admin.filter.blocked"></option><option value="DELETED" data-i18n-key="admin.status.deleted"></option></select></div><button type="button" class="secondary-btn" id="admin-users-search-btn" data-i18n-key="moderation.search"></button></div>
+<div class="admin-users-table-wrap"><table class="admin-users-table"><thead><tr><th scope="col" data-i18n-key="admin.user"></th><th scope="col" data-i18n-key="admin.role"></th><th scope="col" data-i18n-key="admin.status"></th><th scope="col" data-i18n-key="moderation.action"></th></tr></thead><tbody id="admin-users" aria-busy="true"></tbody></table></div><nav class="pagination admin-pagination" data-i18n-aria-label="moderation.pagination"><button class="secondary-btn" type="button" id="admin-users-prev-btn" disabled data-i18n-key="projects.prev"></button><span id="admin-users-pagination-copy"></span><button class="secondary-btn" type="button" id="admin-users-next-btn" disabled data-i18n-key="projects.next"></button></nav><p class="admin-help" data-i18n-key="moderation.softDelete"></p></section>
+<section id="admin-panel-comments" class="admin-tab-panel" role="tabpanel" aria-labelledby="admin-tab-comments" hidden>
+<div class="admin-search-toolbar"><div class="field"><label class="sr-label" for="admin-comments-search" data-i18n-key="moderation.commentSearch"></label><input type="search" id="admin-comments-search" data-i18n-placeholder="moderation.commentSearchPlaceholder"></div><button type="button" class="secondary-btn" id="admin-comments-search-btn" data-i18n-key="moderation.search"></button></div><div class="admin-comment-list" id="admin-comments" aria-busy="true"></div><nav class="pagination admin-pagination" data-i18n-aria-label="moderation.pagination"><button class="secondary-btn" type="button" id="admin-comments-prev-btn" disabled data-i18n-key="projects.prev"></button><span id="admin-comments-pagination-copy"></span><button class="secondary-btn" type="button" id="admin-comments-next-btn" disabled data-i18n-key="projects.next"></button></nav></section>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

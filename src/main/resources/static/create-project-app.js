@@ -27,7 +27,6 @@ wireCreateProjectPreview();
 syncCreateProjectImageName();
 renderCreateProjectCoverFallback();
 document.addEventListener("app:lang-changed", () => {
-    setStatus(editorStatus.message, editorStatus.type);
     applyCreateDateInputLocale();
     loadCategories().catch((error) => setStatus(error.message, "error"));
     syncCreateProjectImageName(createProjectCroppedImageFile?.name || projectImageInput.files?.[0]?.name);
@@ -70,7 +69,7 @@ projectForm.addEventListener("submit", async (event) => {
             await uploadCreateProjectImage(body.id, createProjectCroppedImageFile);
         }
 
-        setStatus(createT("create.status.created", "Project created: {title}").replace("{title}", body.title ?? ""), "success");
+        setStatus("create.status.created", "success", true, {title: body.title ?? ""});
         window.setTimeout(() => {
             window.location.href = "/author-dashboard.html";
         }, 500);
@@ -239,9 +238,11 @@ function toLocalDateTimeInputValue(value) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function setStatus(message, type = "") {
+function setStatus(message, type = "", notify = true, params = {}) {
     if (window.RiseUpSession.expiring) return;
-    editorStatus = {message, type};
+    editorStatus = {message, type, params};
+    statusNode.hidden = true;
+    if (notify) window.RiseUpToast.show(message, type, params);
     statusNode.textContent = window.AppI18n.t(message);
     statusNode.setAttribute("role", type === "error" ? "alert" : "status");
     statusNode.className = `auth-status ${type}`.trim();

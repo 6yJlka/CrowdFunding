@@ -1,525 +1,213 @@
-const adminAuth = readAdminAuth();
-const adminProjectsNode = document.getElementById("admin-projects");
-const adminStatusNode = document.getElementById("admin-status");
-const adminUsersNode = document.getElementById("admin-users");
-const adminUsersStatusNode = document.getElementById("admin-users-status");
-const adminUsersSearchNode = document.getElementById("admin-users-search");
-const adminUsersStatusFilterNode = document.getElementById("admin-users-status-filter");
-const adminCommentsNode = document.getElementById("admin-comments");
-const adminCommentsStatusNode = document.getElementById("admin-comments-status");
-const adminCommentsSearchNode = document.getElementById("admin-comments-search");
 const adminI18n = window.AppI18n;
+const adminT = (key) => adminI18n.t(key);
+const escapeAdminHtml = window.RiseUpProjects.escapeHtml;
+const moderationState = {page: 0, size: 3, totalPages: 0, totalElements: 0, items: [], loaded: false, busy: false, version: 0};
+const userState = {page: 0, size: 4, totalPages: 0, query: "", status: "", items: [], loaded: false, busy: false, version: 0};
+const commentState = {page: 0, size: 3, totalPages: 0, query: "", items: [], loaded: false, busy: false, version: 0};
+const adminReasons = new Map(), adminUserDrafts = new Map(), adminUsersSaving = new Set();
+let adminCategories = [], selectedAdminProjectId = null, adminActionBusy = false;
+let adminTab = new URLSearchParams(location.search).get("tab") || "queue";
+if (!["queue", "users", "comments"].includes(adminTab)) adminTab = "queue";
 
-const moderationState = {page: 0, size: 3, totalPages: 0};
-const userState = {page: 0, size: 4, totalPages: 0, query: "", status: ""};
-const commentState = {page: 0, size: 3, totalPages: 0, query: ""};
-document.addEventListener("app:lang-changed", () => {
-    loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
-    loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
-    loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
-});
+if (!readShellAuth()?.accessToken) location.href = "/auth.html";
+else {
+    loadModerationQueue(); loadUsers(); loadComments();
+    window.RiseUpSession.request("/api/categories").then((r) => r.ok ? r.json() : []).then((items) => { adminCategories = items; renderModerationQueue(); }).catch(() => {});
+}
+wireAdminTabs();
+wireAdminSearch();
+for (const [prefix, state, load] of [["projects", moderationState, loadModerationQueue], ["users", userState, loadUsers], ["comments", commentState, loadComments]]) {
+    for (const [direction, step] of [["prev", -1], ["next", 1]]) document.getElementById(`admin-${prefix}-${direction}-btn`).addEventListener("click", () => {
+        const page = state.page + step;
+        if (state.busy || page < 0 || page >= state.totalPages) return;
+        state.page = page;
+        load();
+    });
+}
+document.addEventListener("app:lang-changed", () => { renderModerationQueue(); renderUsers(); renderComments(); });
 
-if (!adminAuth?.accessToken) {
-    window.location.href = "/auth.html";
+async function adminRequest(url, options = {}, fallback = "admin.action.error") {
+    const response = await window.RiseUpSession.request(url, options);
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || body.error || fallback);
+    return body;
 }
 
-wireAdminPagination();
-loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
-loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
-loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
-
-async function loadModerationQueue() {
-    const url = new URL("/api/admin/projects", window.location.origin);
-    url.searchParams.set("status", "MODERATION");
-    url.searchParams.set("size", `${moderationState.size}`);
-    url.searchParams.set("page", `${moderationState.page}`);
+async function loadAdminPage(state, endpoint, render, prefix, fallback, extra = {}) {
+    const version = ++state.version;
+    state.busy = true;
+    render();
+    const url = new URL(endpoint, location.origin);
+    url.searchParams.set("size", state.size);
+    url.searchParams.set("page", state.page);
     url.searchParams.append("sort", "createdAt,desc");
-    url.searchParams.append("sort", "id,desc");
-
-    const response = await authAdminFetch(url);
-    if (!response.ok) {
-        throw new Error(adminT("admin.error.loadQueue", "Could not load moderation queue"));
-    }
-
-    const payload = await response.json();
-    moderationState.totalPages = payload.totalPages ?? 0;
-    renderModerationQueue(payload.content ?? []);
-    updatePagination("projects", moderationState);
-}
-
-function renderModerationQueue(projects) {
-    if (!projects.length) {
-        adminProjectsNode.innerHTML = `<div class="empty-state">${adminT("admin.queue.empty", "Moderation queue is empty.")}</div>`;
-        return;
-    }
-
-    adminProjectsNode.innerHTML = projects.map((project) => `
-        <article class="project-card admin-card">
-            <div class="project-card-header">
-                <span class="status-badge">${escapeAdminHtml(formatAdminProjectStatus(project.status ?? "MODERATION"))}</span>
-                <span class="meta-pill">${escapeAdminHtml(project.categoryTitle ?? adminT("app.general", "General"))}</span>
-            </div>
-            <h4>${escapeAdminHtml(project.title)}</h4>
-            <p>${escapeAdminHtml(project.shortDescription ?? "")}</p>
-            <div class="form-actions">
-                <button class="ghost-btn" type="button" data-admin-action="approve" data-project-id="${project.id}">${adminT("admin.approve", "Approve")}</button>
-                <button class="ghost-btn" type="button" data-admin-action="reject" data-project-id="${project.id}">${adminT("admin.reject", "Reject")}</button>
-                <a class="ghost-btn" href="/admin-project-review.html?id=${project.id}">${adminT("admin.open", "Open")}</a>
-            </div>
-        </article>
-    `).join("");
-}
-
-adminProjectsNode.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-admin-action]");
-    if (!button) {
-        return;
-    }
-
-    const action = button.getAttribute("data-admin-action");
-    const projectId = button.getAttribute("data-project-id");
-    let rejectPayload = null;
-
-    if (action === "reject") {
-        const reason = window.prompt(adminT("admin.reject.prompt", "Why are you rejecting this project?"))?.trim();
-        if (!reason) {
-            setAdminStatus(adminT("admin.reject.required", "Reject reason is required"), "error");
-            return;
+    if (prefix !== "users") url.searchParams.append("sort", "id,desc");
+    if (state.query) url.searchParams.set("q", state.query);
+    if (state.status) url.searchParams.set("status", state.status);
+    Object.entries(extra).forEach(([key, value]) => url.searchParams.set(key, value));
+    try {
+        const body = await adminRequest(url, {}, fallback);
+        if (version !== state.version) return;
+        state.totalPages = Number(body.totalPages ?? 0);
+        state.totalElements = Number(body.totalElements ?? 0);
+        if (state.page > 0 && state.page >= state.totalPages) {
+            state.page = Math.max(0, state.totalPages - 1);
+            return await loadAdminPage(state, endpoint, render, prefix, fallback, extra);
         }
-        rejectPayload = JSON.stringify({reason});
+        state.items = body.content ?? [];
+        state.loaded = true;
+        state.failed = false;
+    } catch (error) {
+        if (version !== state.version) return;
+        state.items = [];
+        state.loaded = true;
+        state.failed = true;
+        window.RiseUpToast.show(error.message, "error");
+    } finally {
+        if (version === state.version) { state.busy = false; render(); }
     }
+}
+function loadModerationQueue() { return loadAdminPage(moderationState, "/api/admin/projects", renderModerationQueue, "projects", "admin.error.loadQueue", {status: "MODERATION"}); }
+function loadUsers() { return loadAdminPage(userState, "/api/admin/users", renderUsers, "users", "admin.error.loadUsers"); }
+function loadComments() { return loadAdminPage(commentState, "/api/admin/comments", renderComments, "comments", "admin.error.loadComments"); }
 
-    const response = await window.RiseUpSession.request(
-        action === "approve" ? `/api/admin/projects/${projectId}/approve` : `/api/admin/projects/${projectId}/reject`,
-        {
-            method: "POST",
-            headers: buildAdminHeaders(true),
-            body: rejectPayload
-        }
-    );
-
-    if (!response.ok) {
-        setAdminStatus(adminT("admin.action.error", "Could not process project action"), "error");
-        return;
-    }
-
-    setAdminStatus(action === "approve" ? adminT("admin.action.approved", "Project approved") : adminT("admin.action.rejected", "Project rejected"), "success");
-    await loadModerationQueue();
+function renderModerationQueue() {
+    const state = moderationState;
+    const list = document.getElementById("admin-projects");
+    list.setAttribute("aria-busy", String(state.busy));
+    document.getElementById("admin-queue-count").textContent = state.failed ? adminT("app.unavailable") : adminI18n.plural("moderation.queueCount", state.totalElements);
+    if (!state.items.some((project) => String(project.id) === selectedAdminProjectId)) selectedAdminProjectId = state.items[0] ? String(state.items[0].id) : null;
+    list.innerHTML = state.items.length ? state.items.map((project) => `<button class="admin-queue-item" type="button" data-select-project="${escapeAdminHtml(project.id)}" aria-pressed="${String(project.id) === selectedAdminProjectId}" ${adminActionBusy ? "disabled" : ""}><span class="admin-queue-thumb" style="--category-color:${window.RiseUpProjects.categoryColor(project, adminCategories)}" aria-hidden="true">${project.hasCoverImage ? `<img src="/api/projects/${encodeURIComponent(project.id)}/image" alt="">` : ""}</span><span><b>${escapeAdminHtml(project.title)}</b><span>${escapeAdminHtml(project.authorDisplayName || adminT("app.unknown"))} · ${escapeAdminHtml(window.RiseUpModeration.date(project.createdAt))}</span></span></button>`).join("") : `<div class="empty-state">${escapeAdminHtml(adminT(state.failed ? "app.unavailable" : state.loaded ? "admin.queue.empty" : "app.loading"))}</div>`;
+    const detail = document.getElementById("admin-queue-detail");
+    const focusedReason = detail.contains(document.activeElement) && document.activeElement.matches("[data-rejection-reason]");
+    const selected = state.items.find((project) => String(project.id) === selectedAdminProjectId);
+    detail.hidden = !selected;
+    detail.setAttribute("aria-busy", String(state.busy));
+    document.getElementById("admin-queue-layout").classList.toggle("is-empty", !selected && state.loaded);
+    if (selected) {
+        detail.innerHTML = window.RiseUpModeration.markup(selected, adminCategories, "queue", adminReasons.get(selectedAdminProjectId) || "");
+        window.RiseUpModeration.wireReason(detail, (value) => adminReasons.set(selectedAdminProjectId, value));
+        window.RiseUpModeration.busy(detail, adminActionBusy, selected.status);
+        const open = document.createElement("a");
+        open.className = "moderation-full-link";
+        open.href = `/admin-project-review.html?id=${encodeURIComponent(selected.id)}`;
+        open.textContent = adminT("moderation.fullReview");
+        detail.querySelector(".moderation-review-body").append(open);
+        if (focusedReason) detail.querySelector("[data-rejection-reason]").focus({preventScroll: true});
+    } else detail.replaceChildren();
+    updatePagination("projects", state);
+}
+document.getElementById("admin-projects").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-select-project]");
+    if (!button || adminActionBusy) return;
+    selectedAdminProjectId = button.dataset.selectProject;
+    renderModerationQueue();
+    [...document.querySelectorAll("[data-select-project]")].find((item) => item.dataset.selectProject === selectedAdminProjectId)?.focus({preventScroll: true});
+});
+document.getElementById("admin-queue-detail").addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-moderation-action]");
+    if (!button || adminActionBusy) return;
+    const root = document.getElementById("admin-queue-detail"), id = selectedAdminProjectId, action = button.dataset.moderationAction;
+    const reason = action === "reject" ? window.RiseUpModeration.validateReason(root) : null;
+    if (action === "reject" && reason === null) return;
+    adminActionBusy = true;
+    window.RiseUpModeration.busy(root, true);
+    try {
+        await adminRequest(`/api/admin/projects/${encodeURIComponent(id)}/${action}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: action === "reject" ? JSON.stringify({reason}) : null});
+        adminReasons.delete(id);
+        window.RiseUpToast.show(action === "approve" ? "admin.action.approved" : "admin.action.rejected", "success");
+        await loadModerationQueue();
+    } catch (error) { window.RiseUpToast.show(error.message, "error"); }
+    finally { adminActionBusy = false; renderModerationQueue(); }
 });
 
-async function loadUsers() {
-    const url = new URL("/api/admin/users", window.location.origin);
-    url.searchParams.set("size", `${userState.size}`);
-    url.searchParams.set("page", `${userState.page}`);
-    url.searchParams.set("sort", "createdAt,desc");
-    if (userState.query) {
-        url.searchParams.set("q", userState.query);
-    }
-    if (userState.status) {
-        url.searchParams.set("status", userState.status);
-    }
-
-    const response = await authAdminFetch(url);
-    if (!response.ok) {
-        throw new Error(adminT("admin.error.loadUsers", "Could not load users"));
-    }
-
-    const payload = await response.json();
-    userState.totalPages = payload.totalPages ?? 0;
-    renderUsers(payload.content ?? []);
+function renderUsers() {
+    const root = document.getElementById("admin-users");
+    root.setAttribute("aria-busy", String(userState.busy));
+    root.innerHTML = userState.items.length ? userState.items.map((user) => {
+        const draft = adminUserDrafts.get(String(user.id)) || user;
+        const id = escapeAdminHtml(user.id), name = user.displayName || user.email || adminT("admin.user");
+        return `<tr><td><div class="admin-user-identity"><span class="admin-user-avatar" style="--profile-color:${window.RiseUpUI.resolveProfileColor(user.id)}" aria-hidden="true">${escapeAdminHtml(initials(name))}</span><span><b>${escapeAdminHtml(name)}</b><span>${escapeAdminHtml(user.email)}</span></span></div></td><td><label class="admin-user-field"><span class="sr-label">${escapeAdminHtml(adminT("admin.role"))}</span><select data-user-role="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => `<option value="${role}" ${draft.role === role ? "selected" : ""}>${escapeAdminHtml(adminT(`shell.role.${role.toLowerCase()}`))}</option>`).join("")}</select></label></td><td><label class="admin-user-field"><span class="sr-label">${escapeAdminHtml(adminT("admin.status"))}</span><select data-user-status="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${["ACTIVE", "BLOCKED", "DELETED"].map((status) => `<option value="${status}" ${draft.status === status ? "selected" : ""}>${escapeAdminHtml(adminT(`moderation.userStatus.${status}`))}</option>`).join("")}</select></label></td><td><button class="secondary-btn" type="button" data-user-save="${id}" ${adminUsersSaving.has(String(user.id)) ? "disabled" : ""}>${escapeAdminHtml(adminT("profile.save"))}</button></td></tr>`;
+    }).join("") : `<tr><td colspan="4"><div class="empty-state">${escapeAdminHtml(adminT(userState.failed ? "app.unavailable" : userState.loaded ? "admin.users.empty" : "app.loading"))}</div></td></tr>`;
     updatePagination("users", userState);
 }
-
-function renderUsers(users) {
-    if (!users.length) {
-        adminUsersNode.innerHTML = `<div class="empty-state">${adminT("admin.users.empty", "No users available.")}</div>`;
-        return;
-    }
-
-    adminUsersNode.innerHTML = users.map((user) => `
-        <article class="project-card admin-card admin-user-card">
-            <div class="project-card-header">
-                <span class="status-badge">${escapeAdminHtml(user.status ?? "ACTIVE")}</span>
-                <span class="meta-pill">${escapeAdminHtml(user.role ?? "USER")}</span>
-            </div>
-            <h4>${escapeAdminHtml(user.displayName ?? user.email ?? adminT("admin.user", "User"))}</h4>
-            <p>${escapeAdminHtml(user.email ?? "")}</p>
-            <div class="admin-user-controls">
-                <label>
-                    <span>${adminT("admin.role", "Role")}</span>
-                    <select data-user-role="${user.id}">
-                        ${["AUTHOR", "SPONSOR", "ADMIN"].map((role) => {
-                            const label = {
-                                AUTHOR: window.AppI18n.t("shell.role.author"),
-                                SPONSOR: window.AppI18n.t("shell.role.sponsor"),
-                                ADMIN: window.AppI18n.t("shell.role.admin")
-                            }[role] ?? role;
-                            return `<option value="${role}" ${role === user.role ? "selected" : ""}>${escapeAdminHtml(label)}</option>`;
-                        }).join("")}
-                    </select>
-                </label>
-                <label>
-                    <span>${adminT("admin.status", "Status")}</span>
-                    <select data-user-status="${user.id}">
-                        ${["ACTIVE", "BLOCKED", "DELETED"].map((status) => {
-                            const label = {
-                                ACTIVE: window.AppI18n.t("admin.filter.active"),
-                                BLOCKED: window.AppI18n.t("admin.filter.blocked"),
-                                DELETED: window.AppI18n.t("admin.status.deleted")
-                            }[status] ?? status;
-                            return `<option value="${status}" ${status === user.status ? "selected" : ""}>${escapeAdminHtml(label)}</option>`;
-                        }).join("")}
-                    </select>
-                </label>
-            </div>
-            <div class="form-actions">
-                <button class="ghost-btn" type="button" data-user-save="${user.id}">${adminT("admin.user.save", "Save user")}</button>
-            </div>
-        </article>
-    `).join("");
+document.getElementById("admin-users").addEventListener("change", (event) => {
+    const id = event.target.dataset.userRole || event.target.dataset.userStatus;
+    if (id) adminUserDrafts.set(id, readUserDraft(id));
+});
+function readUserDraft(id) {
+    return {role: document.querySelector(`[data-user-role="${CSS.escape(id)}"]`).value, status: document.querySelector(`[data-user-status="${CSS.escape(id)}"]`).value};
 }
-
-adminUsersNode.addEventListener("click", async (event) => {
+document.getElementById("admin-users").addEventListener("click", async (event) => {
     const button = event.target.closest("[data-user-save]");
-    if (!button) {
-        return;
-    }
-
-    const userId = button.getAttribute("data-user-save");
-    const role = adminUsersNode.querySelector(`[data-user-role="${userId}"]`)?.value;
-    const status = adminUsersNode.querySelector(`[data-user-status="${userId}"]`)?.value;
-
-    const response = await window.RiseUpSession.request(`/api/admin/users/${userId}`, {
-        method: "PUT",
-        headers: buildAdminHeaders(true),
-        body: JSON.stringify({role, status})
-    });
-
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) {
-        setAdminUsersStatus(body.message || body.error || adminT("admin.user.updateError", "Could not update user"), "error");
-        return;
-    }
-
-    setAdminUsersStatus(adminT("admin.user.updated", "User updated"), "success");
-    await loadUsers();
+    if (!button || adminUsersSaving.has(button.dataset.userSave)) return;
+    const id = button.dataset.userSave, body = readUserDraft(id);
+    adminUsersSaving.add(id); adminUserDrafts.set(id, body); renderUsers();
+    try {
+        await adminRequest(`/api/admin/users/${encodeURIComponent(id)}`, {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(body)}, "admin.user.updateError");
+        adminUserDrafts.delete(id);
+        window.RiseUpToast.show("admin.user.updated", "success");
+        await loadUsers();
+    } catch (error) { window.RiseUpToast.show(error.message, "error"); }
+    finally { adminUsersSaving.delete(id); renderUsers(); }
 });
 
-async function loadComments() {
-    const url = new URL("/api/admin/comments", window.location.origin);
-    url.searchParams.set("size", `${commentState.size}`);
-    url.searchParams.set("page", `${commentState.page}`);
-    url.searchParams.append("sort", "createdAt,desc");
-    url.searchParams.append("sort", "id,desc");
-    if (commentState.query) {
-        url.searchParams.set("q", commentState.query);
-    }
-
-    const response = await authAdminFetch(url);
-    if (!response.ok) {
-        throw new Error(adminT("admin.error.loadComments", "Could not load comments"));
-    }
-
-    const payload = await response.json();
-    commentState.totalPages = payload.totalPages ?? 0;
-    renderComments(payload.content ?? []);
+function renderComments() {
+    const root = document.getElementById("admin-comments");
+    root.setAttribute("aria-busy", String(commentState.busy));
+    root.innerHTML = commentState.items.length ? commentState.items.map((comment) => {
+        const deleted = comment.deleted || comment.content === "[deleted]";
+        return `<article class="moderated-comment"><div><p class="moderated-comment-meta"><b>${escapeAdminHtml(comment.userDisplayName || adminT("app.anonymous"))}</b> · <a href="/project.html?id=${encodeURIComponent(comment.projectId)}">${escapeAdminHtml(comment.projectTitle || adminT("app.project"))}</a> · <time>${escapeAdminHtml(window.RiseUpModeration.date(comment.createdAt))}</time></p><p class="moderated-comment-text ${deleted ? "is-deleted" : ""}">${escapeAdminHtml(deleted ? adminT("project.comment.removed") : comment.content)}</p></div>${deleted ? "" : `<button class="danger-outline-btn" type="button" data-comment-remove="${escapeAdminHtml(comment.id)}">${escapeAdminHtml(adminT("project.comment.delete"))}</button>`}</article>`;
+    }).join("") : `<div class="empty-state">${escapeAdminHtml(adminT(commentState.failed ? "app.unavailable" : commentState.loaded ? "admin.comments.empty" : "app.loading"))}</div>`;
     updatePagination("comments", commentState);
 }
-
-function renderComments(comments) {
-    if (!comments.length) {
-        adminCommentsNode.innerHTML = `<div class="empty-state">${adminT("admin.comments.empty", "No comments found.")}</div>`;
-        return;
-    }
-
-    adminCommentsNode.innerHTML = comments.map((comment) => `
-        <article class="project-card admin-card admin-comment-card">
-            <div class="project-card-header">
-                <span class="status-badge">${escapeAdminHtml(window.AppI18n.t("admin.comment.visible"))}</span>
-                <span class="meta-pill">${escapeAdminHtml(comment.projectTitle ?? adminT("app.project", "Project"))}</span>
-            </div>
-            <h4>${escapeAdminHtml(comment.userDisplayName ?? adminT("app.anonymous", "Anonymous"))}</h4>
-            <p>${escapeAdminHtml(compactComment(comment.content))}</p>
-            <div class="project-meta">
-                <span>${formatAdminDateTime(comment.createdAt)}</span>
-                <a class="ghost-btn small-btn" href="/project.html?id=${comment.projectId}">${adminT("admin.openProject", "Open project")}</a>
-            </div>
-            <div class="form-actions">
-                <button class="ghost-btn" type="button" data-comment-remove="${comment.id}">${adminT("project.comment.delete", "Delete comment")}</button>
-            </div>
-        </article>
-    `).join("");
-}
-
-adminCommentsNode.addEventListener("click", async (event) => {
+document.getElementById("admin-comments").addEventListener("click", async (event) => {
     const button = event.target.closest("[data-comment-remove]");
-    if (!button) {
-        return;
-    }
-
-    const commentId = button.getAttribute("data-comment-remove");
-    if (!commentId) {
-        return;
-    }
-
-    const confirmed = await confirmCommentDelete(adminT);
-    if (!confirmed) {
-        return;
-    }
-
-    const response = await window.RiseUpSession.request(`/api/comments/${commentId}`, {
-        method: "DELETE",
-        headers: buildAdminHeaders(false)
-    });
-
-    if (!response.ok) {
-        const body = await response.json().catch(() => ({}));
-        setAdminCommentsStatus(body.message || body.error || adminT("admin.comment.deleteError", "Could not delete comment"), "error");
-        return;
-    }
-
-    setAdminCommentsStatus(adminT("project.comment.deleted", "Comment deleted"), "success");
-    await loadComments();
+    if (!button || !await window.RiseUpModeration.confirmDelete()) return;
+    button.disabled = true;
+    try {
+        await adminRequest(`/api/comments/${encodeURIComponent(button.dataset.commentRemove)}`, {method: "DELETE"}, "admin.comment.deleteError");
+        window.RiseUpToast.show("project.comment.deleted", "success");
+        await loadComments();
+    } catch (error) { button.disabled = false; window.RiseUpToast.show(error.message, "error"); }
 });
-
-document.getElementById("admin-users-search-btn").addEventListener("click", () => {
-    applyUserFilters();
-});
-
-document.getElementById("admin-comments-search-btn").addEventListener("click", () => {
-    applyCommentFilters();
-});
-
-const runUserFiltersDebounced = debounce(applyUserFilters, 250);
-const runCommentFiltersDebounced = debounce(applyCommentFilters, 250);
-
-adminUsersSearchNode.addEventListener("input", () => {
-    runUserFiltersDebounced();
-});
-
-adminCommentsSearchNode.addEventListener("input", () => {
-    runCommentFiltersDebounced();
-});
-
-adminUsersSearchNode.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        applyUserFilters();
-    }
-});
-
-adminCommentsSearchNode.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-        applyCommentFilters();
-    }
-});
-
-adminUsersStatusFilterNode.addEventListener("change", () => {
-    applyUserFilters();
-});
-
-function wireAdminPagination() {
-    document.getElementById("admin-projects-prev-btn").addEventListener("click", () => {
-        if (moderationState.page <= 0) {
-            return;
-        }
-        moderationState.page -= 1;
-        loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
-    });
-
-    document.getElementById("admin-projects-next-btn").addEventListener("click", () => {
-        if (moderationState.page >= Math.max(moderationState.totalPages - 1, 0)) {
-            return;
-        }
-        moderationState.page += 1;
-        loadModerationQueue().catch((error) => setAdminStatus(error.message, "error"));
-    });
-
-    document.getElementById("admin-users-prev-btn").addEventListener("click", () => {
-        if (userState.page <= 0) {
-            return;
-        }
-        userState.page -= 1;
-        loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
-    });
-
-    document.getElementById("admin-users-next-btn").addEventListener("click", () => {
-        if (userState.page >= Math.max(userState.totalPages - 1, 0)) {
-            return;
-        }
-        userState.page += 1;
-        loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
-    });
-
-    document.getElementById("admin-comments-prev-btn").addEventListener("click", () => {
-        if (commentState.page <= 0) {
-            return;
-        }
-        commentState.page -= 1;
-        loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
-    });
-
-    document.getElementById("admin-comments-next-btn").addEventListener("click", () => {
-        if (commentState.page >= Math.max(commentState.totalPages - 1, 0)) {
-            return;
-        }
-        commentState.page += 1;
-        loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
-    });
-}
 
 function updatePagination(prefix, state) {
-    const currentPage = state.page + 1;
-    const totalPages = Math.max(state.totalPages, 1);
-    document.getElementById(`admin-${prefix}-pagination-copy`).textContent = adminT("catalog.pageOf", "Page {page} of {total}")
-        .replace("{page}", `${currentPage}`)
-        .replace("{total}", `${totalPages}`);
-    document.getElementById(`admin-${prefix}-prev-btn`).textContent = window.AppI18n.t("projects.prev");
-    document.getElementById(`admin-${prefix}-next-btn`).textContent = window.AppI18n.t("projects.next");
-    document.getElementById(`admin-${prefix}-prev-btn`).disabled = state.page <= 0;
-    document.getElementById(`admin-${prefix}-next-btn`).disabled = state.page >= Math.max(state.totalPages - 1, 0);
+    document.getElementById(`admin-${prefix}-pagination-copy`).textContent = adminT("catalog.pageOf").replace("{page}", state.page + 1).replace("{total}", Math.max(1, state.totalPages));
+    document.getElementById(`admin-${prefix}-prev-btn`).disabled = state.busy || state.page <= 0;
+    document.getElementById(`admin-${prefix}-next-btn`).disabled = state.busy || state.page >= Math.max(0, state.totalPages - 1);
 }
-
-function applyUserFilters() {
-    userState.query = adminUsersSearchNode.value.trim();
-    userState.status = adminUsersStatusFilterNode.value;
-    userState.page = 0;
-    loadUsers().catch((error) => setAdminUsersStatus(error.message, "error"));
-}
-
-function applyCommentFilters() {
-    commentState.query = adminCommentsSearchNode.value.trim();
-    commentState.page = 0;
-    loadComments().catch((error) => setAdminCommentsStatus(error.message, "error"));
-}
-
-function authAdminFetch(url) {
-    return window.RiseUpSession.request(url, {
-        headers: buildAdminHeaders(false)
-    });
-}
-
-function buildAdminHeaders(includeJson) {
-    return {
-        "Authorization": `${adminAuth.tokenType || "Bearer"} ${adminAuth.accessToken}`,
-        ...(includeJson ? {"Content-Type": "application/json"} : {})
-    };
-}
-
-function readAdminAuth() {
-    try {
-        return JSON.parse(localStorage.getItem("crowdfunding_auth") || "null");
-    } catch {
-        return null;
-    }
-}
-
-function setAdminStatus(message, type = "") {
-    if (window.RiseUpSession.expiring) return;
-    adminStatusNode.textContent = message;
-    adminStatusNode.className = `auth-status ${type}`.trim();
-}
-
-function setAdminUsersStatus(message, type = "") {
-    if (window.RiseUpSession.expiring) return;
-    adminUsersStatusNode.textContent = message;
-    adminUsersStatusNode.className = `auth-status ${type}`.trim();
-}
-
-function setAdminCommentsStatus(message, type = "") {
-    if (window.RiseUpSession.expiring) return;
-    adminCommentsStatusNode.textContent = message;
-    adminCommentsStatusNode.className = `auth-status ${type}`.trim();
-}
-
-function confirmCommentDelete(t) {
-    return new Promise((resolve) => {
-        const modal = document.createElement("div");
-        modal.className = "confirm-modal";
-        modal.setAttribute("role", "dialog");
-        modal.setAttribute("aria-modal", "true");
-        modal.innerHTML = `
-            <section class="confirm-dialog" aria-labelledby="comment-delete-confirm-title">
-                <p class="panel-kicker">${escapeAdminHtml(t("project.comment.deleteTitle", "Delete comment"))}</p>
-                <h3 id="comment-delete-confirm-title">${escapeAdminHtml(t("project.comment.deleteConfirm", "Delete this comment?"))}</h3>
-                <p>${escapeAdminHtml(t("project.comment.deleteDescription", "The comment will be hidden from the discussion."))}</p>
-                <div class="confirm-actions">
-                    <button class="ghost-btn small-btn" type="button" data-confirm-cancel>${escapeAdminHtml(t("common.cancel", "Cancel"))}</button>
-                    <button class="primary-btn small-btn confirm-danger-btn" type="button" data-confirm-accept>${escapeAdminHtml(t("project.comment.delete", "Delete comment"))}</button>
-                </div>
-            </section>
-        `;
-
-        const cleanup = (result) => {
-            document.removeEventListener("keydown", onKeydown);
-            modal.remove();
-            resolve(result);
-        };
-
-        const onKeydown = (event) => {
-            if (event.key === "Escape") {
-                cleanup(false);
-            }
-        };
-
-        modal.addEventListener("click", (event) => {
-            if (event.target === modal || event.target.closest("[data-confirm-cancel]")) {
-                cleanup(false);
-                return;
-            }
-            if (event.target.closest("[data-confirm-accept]")) {
-                cleanup(true);
-            }
+function wireAdminTabs() {
+    const buttons = [...document.querySelectorAll("[data-admin-tab]")];
+    const select = (key) => {
+        adminTab = key;
+        buttons.forEach((button) => {
+            const on = button.dataset.adminTab === key;
+            button.setAttribute("aria-selected", String(on)); button.tabIndex = on ? 0 : -1;
+            document.getElementById(`admin-panel-${button.dataset.adminTab}`).hidden = !on;
         });
-
-        document.addEventListener("keydown", onKeydown);
-        document.body.appendChild(modal);
-        modal.querySelector("[data-confirm-cancel]")?.focus();
-    });
-}
-
-function formatAdminDateTime(value) {
-    if (!value) {
-        return adminT("common.recently", "Recently");
-    }
-
-    const locale = window.AppI18n.getLang() === "ru" ? "ru-RU" : "en-US";
-    return new Intl.DateTimeFormat(locale, {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-    }).format(new Date(value));
-}
-
-function compactComment(value) {
-    const text = String(value ?? "").trim();
-    if (text.length <= 160) {
-        return text || adminT("admin.comment.empty", "Empty comment");
-    }
-    return `${text.slice(0, 157)}...`;
-}
-
-function escapeAdminHtml(value) {
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
-
-function debounce(callback, delayMs) {
-    let timeoutId;
-    return (...args) => {
-        window.clearTimeout(timeoutId);
-        timeoutId = window.setTimeout(() => callback(...args), delayMs);
+        const url = new URL(location.href); url.searchParams.set("tab", key); history.replaceState(null, "", url);
     };
+    buttons.forEach((button, index) => {
+        button.addEventListener("click", () => select(button.dataset.adminTab));
+        button.addEventListener("keydown", (event) => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? 0 : event.key === "End" ? 2 : (index + (event.key === "ArrowRight" ? 1 : -1) + 3) % 3;
+            buttons[next].click(); buttons[next].focus();
+        });
+    });
+    select(adminTab);
 }
-
-function adminT(key, fallback) {
-    return adminI18n?.t(key) ?? fallback;
+function wireAdminSearch() {
+    for (const [prefix, state, load] of [["users", userState, loadUsers], ["comments", commentState, loadComments]]) {
+        let timer;
+        const input = document.getElementById(`admin-${prefix}-search`);
+        const apply = () => { clearTimeout(timer); state.query = input.value.trim(); state.page = 0; if (prefix === "users") state.status = document.getElementById("admin-users-status-filter").value; load(); };
+        input.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(apply, 250); });
+        input.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); apply(); } });
+        document.getElementById(`admin-${prefix}-search-btn`).addEventListener("click", apply);
+        if (prefix === "users") document.getElementById("admin-users-status-filter").addEventListener("change", apply);
+    }
 }
-
-function formatAdminProjectStatus(status) {
-    return adminT(`project.status.${status}`, status || "UNKNOWN");
-}
+function initials(value) { return String(value || "").trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase(); }

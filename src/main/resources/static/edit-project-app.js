@@ -31,8 +31,8 @@ loadEditCategories().then(() => loadProjectForEdit(editProjectId))
     .catch((error) => setEditStatus(error.message, "error"));
 document.addEventListener("app:lang-changed", () => {
     const previousStatus = {...editorStatus};
-    applyEditProjectMode(!editCoverOnlyMode);
-    setEditStatus(previousStatus.message, previousStatus.type);
+    applyEditProjectMode(!editCoverOnlyMode, false);
+    editorStatus = previousStatus;
     if (!editProjectImageInput.files?.[0] && !editProjectCoverPreviewImage.getAttribute("src")) {
         renderEditProjectCoverFallback();
     }
@@ -283,7 +283,7 @@ function collectProjectPayload(form) {
     };
 }
 
-function applyEditProjectMode(canEditContent) {
+function applyEditProjectMode(canEditContent, notify = true) {
     editCoverOnlyMode = !canEditContent;
     editForm.title.disabled = editCoverOnlyMode;
     editForm.shortDescription.disabled = editCoverOnlyMode;
@@ -301,7 +301,7 @@ function applyEditProjectMode(canEditContent) {
     editorUI.render();
 
     if (editCoverOnlyMode) {
-        setEditStatus("edit.coverOnly.info", "info");
+        setEditStatus("edit.coverOnly.info", "info", notify);
     }
 }
 
@@ -342,9 +342,11 @@ function toLocalInputValue(value) {
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function setEditStatus(message, type = "") {
+function setEditStatus(message, type = "", notify = true) {
     if (window.RiseUpSession.expiring) return;
     editorStatus = {message, type};
+    editStatusNode.hidden = true;
+    if (notify) window.RiseUpToast.show(message, type);
     editStatusNode.textContent = window.AppI18n.t(message);
     editStatusNode.setAttribute("role", type === "error" ? "alert" : "status");
     editStatusNode.className = `auth-status ${type}`.trim();
