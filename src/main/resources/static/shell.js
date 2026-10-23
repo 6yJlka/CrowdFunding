@@ -362,10 +362,7 @@ function buildShellMarkup({loggedIn, profileHref, primaryHref}) {
     const authPage = window.location.pathname === "/auth.html";
     const cabinet = /\/(?:author-dashboard|sponsor-dashboard|admin-dashboard|admin-project-review|create-project|edit-project)\.html$/.test(window.location.pathname);
     const navLinks = [shellLink("/projects.html", shellT("shell.projects"))];
-    if (!cabinet) {
-        if (!["/", "/index.html"].includes(window.location.pathname)) navLinks.push(shellLink("/index.html#how", shellT("shell.how")));
-        navLinks.push(shellLink("/analytics.html", shellT("shell.analytics")));
-    }
+    if (!cabinet) navLinks.push(shellLink("/analytics.html", shellT("shell.analytics")));
     if (loggedIn) navLinks.push(shellLink(profileHref, resolveProfileLabel(profileHref)));
     const actions = authPage ? `<a class="secondary-btn" href="/"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m10 12-4-4 4-4"/></svg>${shellT("auth.homeLink")}</a>` : paymentPage ? `<a class="ghost-btn" href="/sponsor-dashboard.html">${shellT("shell.myDonations")}</a>` : loggedIn
         ? `${primaryHref === "/create-project.html" && !cabinet ? `<a class="primary-btn" href="${primaryHref}">${shellT("shell.launch")}</a>` : ""}
@@ -397,7 +394,6 @@ function mountShellFooter() {
     }
     footer.innerHTML = `<span>© RiseUp 2026</span><nav aria-label="${shellT("shell.footerNavigation")}">
         <a href="/projects.html">${shellT("shell.projects")}</a>
-        <a href="/index.html#how">${shellT("shell.how")}</a>
         <a href="https://github.com/6yJlka/CrowdFunding">${shellT("shell.source")}</a>
     </nav>`;
 }
