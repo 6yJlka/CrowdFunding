@@ -3340,6 +3340,7 @@ progress.progress::-moz-progress-bar { background: var(--lime); border-radius: v
 .home-metric-highlight dt { color: var(--bg); font-weight: 600; }
 .home-projects { padding-top: 24px; padding-bottom: 56px; }
 .home-featured { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 16px; border-radius: var(--radius-xl); overflow: hidden; background: var(--lime); color: var(--bg); }
+.home-featured .home-featured-placeholder { grid-column: 1 / -1; margin: 0; padding: 44px; color: var(--bg); }
 .home-featured-cover { display: block; min-height: 320px; background: var(--category-color, var(--lime)); }
 .home-featured-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .home-featured-body { display: flex; flex-direction: column; justify-content: space-between; gap: 24px; min-width: 0; padding: clamp(24px, 4vw, 44px); }

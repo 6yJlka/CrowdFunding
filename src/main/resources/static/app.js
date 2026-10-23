@@ -4,6 +4,7 @@ let currentDashboardData = null;
 let currentCatalogProjects = [];
 let homeCategories = [];
 let homeFeaturedProject = null;
+let homeFeaturedState = "loading";
 let homeSelectedAmount = 1000;
 let homeDashboardError = false;
 let homeCatalogError = false;
@@ -38,20 +39,49 @@ async function loadHomepage() {
     homeLoaded = true;
     renderHomepage();
 
-    // Dashboard rows do not contain status or description. Inspect their existing detail endpoint
-    // in ranking order, skipping funded/unavailable entries rather than advertising a closed collection.
-    for (const row of currentDashboardData?.topProjectsMonth ?? []) {
-        try {
-            const project = currentCatalogProjects.find((item) => item.id === row.id) ?? await homeFetch(`/api/projects/${encodeURIComponent(row.id)}`);
-            if (project.status === "ACTIVE") {
-                homeFeaturedProject = project;
-                renderFeaturedProject();
-                break;
+    try {
+        homeFeaturedProject = await selectHomeFeaturedProject();
+        homeFeaturedState = homeFeaturedProject ? "ready" : "empty";
+    } catch {
+        homeFeaturedState = "error";
+    }
+    renderFeaturedProject();
+}
+
+async function selectHomeFeaturedProject() {
+    const details = new Map(currentCatalogProjects.map((project) => [project.id, project]));
+    // Summary rows omit status. Resolve each ID only once, preserving the ranking in each list.
+    for (const ranking of [currentDashboardData?.topProjectsMonth, currentDashboardData?.topProjects]) {
+        for (const row of ranking ?? []) {
+            if (!row.id) continue;
+            try {
+                if (!details.has(row.id)) details.set(row.id, await homeFetch(`/api/projects/${encodeURIComponent(row.id)}`));
+                const project = details.get(row.id);
+                if (project.status === "ACTIVE") return project;
+            } catch {
+                // An unavailable ranked project must not block the remaining candidates.
             }
-        } catch {
-            // A removed or inaccessible candidate must not prevent the rest of the storefront loading.
         }
     }
+
+    // Progress is derived from two amounts, not a sortable API field. Inspect every ACTIVE page
+    // so an older, more fully funded project outside the six-card storefront can still win.
+    let best = null;
+    let bestRatio = -1;
+    let page = 0;
+    let totalPages = 1;
+    while (page < totalPages) {
+        const payload = await homeFetch(`/api/projects?status=ACTIVE&size=100&page=${page}&sort=createdAt,desc`);
+        for (const project of payload.content ?? []) {
+            if (project.status !== "ACTIVE") continue;
+            const goal = Number(project.goalAmount);
+            const ratio = goal > 0 ? Number(project.collectedAmount ?? 0) / goal : 0;
+            if (ratio > bestRatio) { best = project; bestRatio = ratio; }
+        }
+        totalPages = Math.max(Number(payload.totalPages ?? 1), 1);
+        page += 1;
+    }
+    return best;
 }
 
 function renderHomepage() {
@@ -84,7 +114,13 @@ function renderHomepage() {
 
 function renderFeaturedProject() {
     const host = document.getElementById("featured-project");
-    host.hidden = !homeFeaturedProject;
+    host.hidden = homeFeaturedState === "empty";
+    host.setAttribute("aria-busy", String(homeFeaturedState === "loading"));
+    if (homeFeaturedState === "loading" || homeFeaturedState === "error") {
+        const key = homeFeaturedState === "loading" ? "home.featuredLoading" : "home.featuredError";
+        host.innerHTML = `<p class="home-featured-placeholder" role="${homeFeaturedState === "error" ? "alert" : "status"}">${homePresentation.escapeHtml(appI18n.t(key))}</p>`;
+        return;
+    }
     if (!homeFeaturedProject) return;
     const project = homeFeaturedProject;
     const escape = homePresentation.escapeHtml;
