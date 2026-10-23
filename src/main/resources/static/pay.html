@@ -2,41 +2,31 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Demo Payment | CrowdFunding</title>
+    <title data-i18n-key="pay.title">Тестовая оплата | RiseUp</title>
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="payment-layout">
 <div id="site-shell"></div>
-<main class="create-layout">
-    <section class="panel form-panel">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker">Demo Payment</p>
-                <h3>Confirm your donation</h3>
+<main class="container payment-page">
+    <section class="payment-card" data-i18n-aria-label="pay.heading" aria-label="Подтверждение доната">
+        <div class="payment-notice"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 5v5M9 12.5v.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span data-i18n-key="pay.testNotice">Тестовая оплата — реальные деньги не списываются</span></div>
+        <div class="payment-card-body">
+            <div><p class="payment-kicker" data-i18n-key="pay.supporting">Поддержка проекта</p><h1 id="pay-project-title" data-i18n-key="pay.heading">Подтверждение доната</h1></div>
+            <div class="payment-summary hidden" id="pay-summary">
+                <div class="payment-amount"><span data-i18n-key="pay.amountDue">К оплате</span><strong id="pay-amount">—</strong></div>
+                <dl class="payment-details"><div><dt data-i18n-key="pay.provider">Платёжный провайдер</dt><dd id="pay-provider"></dd></div><div><dt data-i18n-key="pay.number">Номер платежа</dt><dd id="pay-number"></dd></div><div><dt data-i18n-key="pay.statusLabel">Статус</dt><dd><span class="status-badge" id="pay-donation-status"></span></dd></div></dl>
             </div>
-            <a class="ghost-btn" href="/sponsor-dashboard.html">My donations</a>
-        </div>
-        <div class="auth-status" id="pay-status"></div>
-        <div class="project-side-note hidden" id="pay-summary"></div>
-        <div class="form-actions">
-            <button class="primary-btn" type="button" id="pay-success-btn">Mark as paid</button>
-            <button class="ghost-btn" type="button" id="pay-fail-btn">Mark as failed</button>
+            <div class="auth-status" id="pay-status" role="status"></div>
+            <div class="payment-actions" id="pay-actions" hidden><p data-i18n-key="pay.chooseResult">Выберите, чем закончится тестовый платёж:</p><button class="primary-btn btn-lg" type="button" id="pay-success-btn" disabled data-i18n-key="pay.paidAction">Оплата прошла</button><button class="secondary-btn btn-lg" type="button" id="pay-fail-btn" disabled data-i18n-key="pay.failedAction">Оплата не прошла</button></div>
+            <div class="payment-result" id="pay-result" role="status" hidden><h2 id="pay-result-title"></h2><p id="pay-result-text"></p><div class="payment-result-links"><a class="dark-btn" id="pay-project-link" href="/projects.html" data-i18n-key="pay.backToProject">Вернуться к проекту</a><a class="secondary-btn" href="/sponsor-dashboard.html" data-i18n-key="pay.myDonations">Мои донаты</a></div></div>
         </div>
     </section>
-    <aside class="panel tips-panel">
-        <p class="panel-kicker">Sandbox</p>
-        <h3>How this works</h3>
-        <ul class="tips-list">
-            <li>This page imitates an external payment provider.</li>
-            <li>`Mark as paid` triggers your webhook and updates project funding.</li>
-            <li>After completion you return to the project page.</li>
-        </ul>
-    </aside>
+    <aside class="payment-help" aria-labelledby="pay-help-heading"><h2 id="pay-help-heading" data-i18n-key="pay.sandboxHeading">Как работает песочница</h2><ol><li><span aria-hidden="true">1</span><p data-i18n-key="pay.tip1">Эта страница имитирует внешнего платёжного провайдера.</p></li><li><span aria-hidden="true">2</span><p data-i18n-key="pay.tip2">Кнопка результата вызывает webhook, и сумма сбора обновляется.</p></li><li><span aria-hidden="true">3</span><p data-i18n-key="pay.tip3">После этого вы возвращаетесь на страницу проекта.</p></li></ol></aside>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

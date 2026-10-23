@@ -842,53 +842,8 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: "#moderation-approve-btn", type: "text", key: "admin.approve"},
         {selector: "#moderation-reject-btn", type: "text", key: "admin.reject"}
     ],
-    "/pay.html": [
-        {selector: "title", type: "text", key: "pay.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "pay.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "pay.heading"},
-        {selector: ".panel.form-panel .panel-header .ghost-btn", type: "text", key: "pay.myDonations"},
-        {selector: "#pay-success-btn", type: "text", key: "pay.success"},
-        {selector: "#pay-fail-btn", type: "text", key: "pay.fail"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "pay.sandbox"},
-        {selector: ".tips-panel h3", type: "text", key: "pay.how"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "pay.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "pay.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "pay.tip3"}
-    ],
-    "/project.html": [
-        {selector: "title", type: "text", key: "project.title"},
-        {selector: ".project-page-main .panel-header .ghost-btn", type: "text", key: "project.back"},
-        {selector: ".project-progress-head span:first-child", type: "text", key: "project.fundingStatus"},
-        {selector: ".project-page-main .project-section .panel-kicker", type: "text", key: "project.updates"},
-        {selector: ".project-page-main .project-section h3", type: "text", key: "project.authorUpdates"},
-        {selector: "#update-form label:nth-of-type(1) span", type: "text", key: "project.field.updateTitle"},
-        {selector: "#update-form input[name='title']", type: "placeholder", key: "project.field.updateTitlePlaceholder"},
-        {selector: "#update-form label:nth-of-type(2) span", type: "text", key: "project.field.updateContent"},
-        {selector: "#update-form textarea[name='content']", type: "placeholder", key: "project.field.updateContentPlaceholder"},
-        {selector: "#update-form button[type='submit']", type: "text", key: "project.action.publishUpdate"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(1)", type: "text", key: "project.support"},
-        {selector: ".project-page-side > h3:nth-of-type(1)", type: "text", key: "project.backThis"},
-        {selector: "#donation-form label span", type: "text", key: "project.field.donationAmount"},
-        {selector: "#donation-submit", type: "text", key: "project.action.donate"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(2)", type: "text", key: "project.backers"},
-        {selector: ".project-page-side > h3:nth-of-type(2)", type: "text", key: "project.latestDonations"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(3)", type: "text", key: "project.reviews"},
-        {selector: ".project-page-side > h3:nth-of-type(3)", type: "text", key: "project.feedback"},
-        {selector: "#review-form label:nth-of-type(1) span", type: "text", key: "project.field.rating"},
-        {selector: "#review-form option[value='5']", type: "text", key: "project.rating.5"},
-        {selector: "#review-form option[value='4']", type: "text", key: "project.rating.4"},
-        {selector: "#review-form option[value='3']", type: "text", key: "project.rating.3"},
-        {selector: "#review-form option[value='2']", type: "text", key: "project.rating.2"},
-        {selector: "#review-form option[value='1']", type: "text", key: "project.rating.1"},
-        {selector: "#review-form label:nth-of-type(2) span", type: "text", key: "project.field.review"},
-        {selector: "#review-form textarea[name='reviewText']", type: "placeholder", key: "project.field.reviewPlaceholder"},
-        {selector: "#review-form button[type='submit']", type: "text", key: "project.action.postReview"},
-        {selector: ".project-page-side > .panel-kicker:nth-of-type(4)", type: "text", key: "project.comments"},
-        {selector: ".project-page-side > h3:nth-of-type(4)", type: "text", key: "project.discussion"},
-        {selector: "#comment-form label span", type: "text", key: "project.field.comment"},
-        {selector: "#comment-form textarea[name='content']", type: "placeholder", key: "project.field.commentPlaceholder"},
-        {selector: "#comment-form button[type='submit']", type: "text", key: "project.action.postComment"}
-    ]
+    "/pay.html": [],
+    "/project.html": []
 };
 
 Object.assign(I18N_TRANSLATIONS.en, {
@@ -1620,6 +1575,57 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "public.goalReached": "Цель достигнута",
     "public.progress": "Прогресс сбора",
     "public.of": "из"
+});
+
+Object.assign(I18N_TRANSLATIONS.en, {
+    "project.breadcrumbs": "Breadcrumbs", "project.sectionNavigation": "Page sections",
+    "project.story": "Story", "project.news": "News", "project.about": "About the project",
+    "project.goalFraction": "of the goal", "project.daysLeft": "days left", "project.customAmount": "Or your own amount",
+    "project.raisedOf": "raised of {goal}", "project.startDate": "Campaign start", "project.endDate": "Campaign end", "project.currency": "Currency",
+    "project.authorProjects": "Author’s projects", "project.unknownUser": "Unknown user",
+    "project.relatedCategory": "More in “{category}”", "project.relatedUncategorized": "More uncategorized projects",
+    "project.relatedEmpty": "No other active projects in this category yet.", "project.allInCategory": "All projects",
+    "project.reviewSummary": "{average} out of 5 · {count} ratings", "project.review.authorBlocked": "You cannot review your own project.",
+    "project.comment.removed": "Comment removed by a moderator", "project.comment.cancelReply": "Cancel reply",
+    "project.donation.notActive": "This project is not accepting donations.",
+    "donation.status.SUCCEEDED": "Paid", "donation.status.PENDING": "Awaiting payment", "donation.status.FAILED": "Failed", "donation.status.CANCELED": "Canceled",
+    "pay.title": "Test payment | RiseUp", "pay.heading": "Confirm your donation", "pay.testNotice": "Test payment — no real money will be charged",
+    "pay.supporting": "Supporting a project", "pay.amountDue": "Amount due", "pay.provider": "Payment provider", "pay.number": "Payment number", "pay.statusLabel": "Status",
+    "pay.chooseResult": "Choose the outcome of this test payment:", "pay.paidAction": "Payment succeeded", "pay.failedAction": "Payment failed",
+    "pay.backToProject": "Back to the project", "pay.sandboxHeading": "How the sandbox works", "pay.fakeProvider": "FAKE (sandbox)", "pay.untitled": "Untitled project",
+    "pay.missingId": "Donation id is missing", "pay.loadError": "Could not load the donation", "pay.loading": "Loading payment…", "pay.incomplete": "Payment information is incomplete",
+    "pay.confirming": "Confirming payment…", "pay.markingFailed": "Recording the failed payment…", "pay.completeError": "Could not complete the payment. Please try again.",
+    "pay.doneSuccess": "Payment succeeded", "pay.doneFailed": "Payment failed",
+    "pay.result.success.title": "Thank you!", "pay.result.success.text": "Your donation has been credited and the project total updated.",
+    "pay.result.failed.title": "Payment failed", "pay.result.failed.text": "The donation was not credited. You can return to the project.",
+    "pay.result.canceled.title": "Payment canceled", "pay.result.canceled.text": "This donation has been canceled. You can return to the project.",
+    "pay.tip2": "Choose a test payment result. A successful payment updates the project total."
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "project.breadcrumbs": "Хлебные крошки", "project.sectionNavigation": "Разделы страницы",
+    "project.story": "История", "project.news": "Новости", "project.about": "О проекте",
+    "project.goalFraction": "цели", "project.daysLeft": "дней осталось", "project.customAmount": "Или своя сумма",
+    "project.raisedOf": "собрано из {goal}", "project.startDate": "Старт сбора", "project.endDate": "Финиш", "project.currency": "Валюта",
+    "project.authorProjects": "Проекты автора", "project.unknownUser": "Неизвестный пользователь",
+    "project.relatedCategory": "Ещё в категории «{category}»", "project.relatedUncategorized": "Другие проекты без категории",
+    "project.relatedEmpty": "Других активных проектов в этой категории пока нет.", "project.allInCategory": "Все проекты",
+    "project.reviewSummary": "{average} из 5 · {count} оценок", "project.review.authorBlocked": "Нельзя оставить отзыв на свой собственный проект.",
+    "project.comment.removed": "Комментарий удалён модератором", "project.comment.cancelReply": "Отмена ответа",
+    "project.donation.notActive": "Этот проект больше не принимает донаты.",
+    "project.status.ACTIVE": "Активен", "project.status.FUNDED": "Профинансирован", "project.status.REJECTED": "Отклонён", "project.status.CLOSED": "Закрыт",
+    "donation.status.SUCCEEDED": "Оплачено", "donation.status.PENDING": "Ожидает оплаты", "donation.status.FAILED": "Не прошла", "donation.status.CANCELED": "Отменена",
+    "pay.title": "Тестовая оплата | RiseUp", "pay.heading": "Подтверждение доната", "pay.testNotice": "Тестовая оплата — реальные деньги не списываются",
+    "pay.supporting": "Поддержка проекта", "pay.amountDue": "К оплате", "pay.provider": "Платёжный провайдер", "pay.number": "Номер платежа", "pay.statusLabel": "Статус",
+    "pay.chooseResult": "Выберите, чем закончится тестовый платёж:", "pay.paidAction": "Оплата прошла", "pay.failedAction": "Оплата не прошла",
+    "pay.backToProject": "Вернуться к проекту", "pay.sandboxHeading": "Как работает песочница", "pay.fakeProvider": "FAKE (песочница)", "pay.untitled": "Проект без названия",
+    "pay.missingId": "Не указан id доната", "pay.loadError": "Не удалось загрузить донат", "pay.loading": "Загружаем платёж…", "pay.incomplete": "Данные платежа неполные",
+    "pay.confirming": "Подтверждаем оплату…", "pay.markingFailed": "Фиксируем неуспешную оплату…", "pay.completeError": "Не удалось завершить платёж. Попробуйте ещё раз.",
+    "pay.doneSuccess": "Оплата прошла", "pay.doneFailed": "Оплата не прошла",
+    "pay.result.success.title": "Спасибо!", "pay.result.success.text": "Донат зачислен, сумма сбора обновлена.",
+    "pay.result.failed.title": "Платёж не прошёл", "pay.result.failed.text": "Донат не зачислен. Вы можете вернуться к проекту.",
+    "pay.result.canceled.title": "Платёж отменён", "pay.result.canceled.text": "Этот донат отменён. Вы можете вернуться к проекту.",
+    "pay.tip2": "Выберите результат тестовой оплаты. При успешной оплате сумма сбора обновится."
 });
 
 function i18nDetectLanguage() {

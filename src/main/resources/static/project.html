@@ -2,124 +2,100 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project | CrowdFunding</title>
+    <title data-i18n-key="project.title">Проект | RiseUp</title>
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="project-layout">
 <div id="site-shell"></div>
-<main class="project-page">
-    <section class="panel project-page-main">
-        <div class="panel-header">
-            <div>
-                <p class="panel-kicker" id="project-category">Project</p>
-                <h1 id="project-title">Loading...</h1>
-            </div>
-            <a class="ghost-btn" href="/">Back</a>
+<main class="container project-detail">
+    <header class="project-hero" id="project-hero" aria-busy="true">
+        <div class="project-hero-image" id="project-cover-slot" aria-hidden="true"></div>
+        <div class="project-hero-content">
+            <nav class="project-breadcrumbs" data-i18n-aria-label="project.breadcrumbs" aria-label="Хлебные крошки"><a href="/projects.html" data-i18n-key="shell.projects">Проекты</a><span aria-hidden="true">/</span><a id="project-category-link" href="/projects.html" hidden></a></nav>
+            <span class="category-badge" id="project-category"></span>
+            <h1 id="project-title" data-i18n-key="app.loading">Загрузка…</h1>
+            <p id="project-short-description"></p>
         </div>
-        <div id="project-cover-slot"></div>
-        <p class="modal-copy" id="project-description"></p>
-        <div class="modal-metrics" id="project-metrics"></div>
-        <div class="project-progress">
-            <div class="project-progress-head">
-                <span>Funding status</span>
-                <span id="project-progress-value">0%</span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-value" id="project-progress-bar" style="width:0%"></div>
-            </div>
+    </header>
+    <div class="auth-status" id="project-page-status" role="status"></div>
+
+    <div class="project-detail-grid" id="project-details" hidden>
+        <div class="project-detail-content">
+            <nav class="project-section-nav" data-i18n-aria-label="project.sectionNavigation" aria-label="Разделы страницы">
+                <a href="#story" aria-current="location" data-i18n-key="project.story">История</a>
+                <a href="#news"><span data-i18n-key="project.news">Новости</span><span id="project-news-count"></span></a>
+                <a href="#reviews"><span data-i18n-key="project.reviews">Отзывы</span><span id="project-reviews-count"></span></a>
+                <a href="#comments"><span data-i18n-key="project.comments">Комментарии</span><span id="project-comments-count"></span></a>
+            </nav>
+
+            <section class="project-detail-section" id="story" aria-labelledby="story-heading">
+                <h2 id="story-heading" data-i18n-key="project.about">О проекте</h2>
+                <div class="project-story-text" id="project-description"></div>
+                <dl class="project-story-meta" id="project-dates"></dl>
+            </section>
+
+            <section class="project-detail-section" id="news" aria-labelledby="news-heading">
+                <h2 id="news-heading" data-i18n-key="project.news">Новости</h2>
+                <div class="auth-status" id="update-status" role="status"></div>
+                <form class="project-form project-detail-form hidden" id="update-form">
+                    <div class="field"><div class="field-heading"><label for="update-title" data-i18n-key="project.field.updateTitle">Заголовок новости</label><output class="field-counter" for="update-title" data-character-counter="update-title">0 / 180</output></div><input id="update-title" type="text" name="title" maxlength="180" required data-i18n-placeholder="project.field.updateTitlePlaceholder" aria-describedby="update-status"></div>
+                    <div class="field"><div class="field-heading"><label for="update-content" data-i18n-key="project.field.updateContent">Содержание</label><output class="field-counter" for="update-content" data-character-counter="update-content">0 / 10000</output></div><textarea id="update-content" name="content" rows="5" maxlength="10000" required data-i18n-placeholder="project.field.updateContentPlaceholder" aria-describedby="update-status"></textarea></div>
+                    <button class="primary-btn" type="submit" data-i18n-key="project.action.publishUpdate">Опубликовать новость</button>
+                </form>
+                <p class="project-detail-note" id="update-note"></p>
+                <div class="project-news-list" id="project-updates"></div>
+            </section>
+
+            <section class="project-detail-section" id="reviews" aria-labelledby="reviews-heading">
+                <div class="project-section-heading"><h2 id="reviews-heading" data-i18n-key="project.reviews">Отзывы</h2><span class="project-review-summary" id="project-review-summary" hidden></span></div>
+                <div class="auth-status" id="review-status" role="status"></div>
+                <form class="project-form project-detail-form hidden" id="review-form">
+                    <div class="field"><label for="review-rating" data-i18n-key="project.field.rating">Оценка</label><select id="review-rating" name="rating" required><option value="5" data-i18n-key="project.rating.5">5</option><option value="4" data-i18n-key="project.rating.4">4</option><option value="3" data-i18n-key="project.rating.3">3</option><option value="2" data-i18n-key="project.rating.2">2</option><option value="1" data-i18n-key="project.rating.1">1</option></select></div>
+                    <div class="field"><div class="field-heading"><label for="review-text" data-i18n-key="project.field.review">Ваш отзыв</label><output class="field-counter" for="review-text" data-character-counter="review-text">0 / 10000</output></div><textarea id="review-text" name="reviewText" rows="4" maxlength="10000" required data-i18n-placeholder="project.field.reviewPlaceholder" aria-describedby="review-status review-note"></textarea></div>
+                    <button class="primary-btn" type="submit" data-i18n-key="project.action.postReview">Оставить отзыв</button>
+                </form>
+                <p class="project-detail-note" id="review-note"></p>
+                <div class="project-review-grid" id="project-reviews"></div>
+            </section>
+
+            <section class="project-detail-section" id="comments" aria-labelledby="comments-heading">
+                <h2 id="comments-heading" data-i18n-key="project.comments">Комментарии</h2>
+                <div class="auth-status" id="comment-status" role="status"></div>
+                <form class="project-form project-detail-form hidden" id="comment-form">
+                    <div class="field"><div class="field-heading"><label for="comment-content" data-i18n-key="project.field.comment">Ваш комментарий</label><output class="field-counter" for="comment-content" data-character-counter="comment-content">0 / 5000</output></div><textarea id="comment-content" name="content" rows="3" maxlength="5000" required data-i18n-placeholder="project.field.commentPlaceholder" aria-describedby="comment-status comment-note"></textarea></div>
+                    <div class="project-detail-actions"><button class="secondary-btn" type="submit" data-i18n-key="project.action.postComment">Отправить</button><button class="ghost-btn hidden" type="button" id="comment-reply-cancel" data-i18n-key="project.comment.cancelReply">Отмена ответа</button></div>
+                </form>
+                <p class="project-detail-note" id="comment-note"></p>
+                <div class="project-comment-list" id="project-comments"></div>
+            </section>
         </div>
-        <div class="auth-status" id="project-page-status"></div>
 
-        <section class="project-section">
-            <div class="panel-header">
-                <div>
-                    <p class="panel-kicker">Updates</p>
-                    <h3>Author updates</h3>
-                </div>
-            </div>
-            <div class="auth-status" id="update-status"></div>
-            <form class="project-form hidden" id="update-form">
-                <label>
-                    <span>Update title</span>
-                    <input type="text" name="title" maxlength="180" placeholder="Milestone reached" required>
-                </label>
-                <label>
-                    <span>Content</span>
-                    <textarea name="content" rows="5" maxlength="10000" placeholder="Share progress with your backers" required></textarea>
-                </label>
-                <div class="form-actions">
-                    <button class="primary-btn small-btn" type="submit">Publish update</button>
-                </div>
-            </form>
-            <div class="project-side-note hidden" id="update-note"></div>
-            <div class="timeline-list" id="project-updates"></div>
-        </section>
-    </section>
-    <aside class="panel project-page-side">
-        <p class="panel-kicker">Support</p>
-        <h3>Back this project</h3>
-        <div class="auth-status" id="donation-status"></div>
-        <form class="project-form hidden" id="donation-form">
-            <label>
-                <span>Donation amount</span>
-                <input type="number" id="donation-amount" name="amount" min="1" step="1" placeholder="100" required>
-            </label>
-            <div class="form-actions">
-                <button class="primary-btn auth-submit" type="submit" id="donation-submit">Donate</button>
-            </div>
-        </form>
-        <div class="project-side-note" id="donation-note">Log in as sponsor to support this campaign.</div>
+        <aside class="project-detail-sidebar" data-i18n-aria-label="project.backThis" aria-label="Поддержать проект">
+            <section class="project-funding-card" aria-labelledby="project-raised">
+                <span class="status-badge" id="project-status"></span>
+                <div><h2 id="project-raised">—</h2><p id="project-goal"></p></div>
+                <progress class="progress" id="project-progress-bar" value="0" max="100" data-i18n-aria-label="public.progress" aria-label="Прогресс сбора"></progress>
+                <dl class="project-funding-metrics"><div><dt data-i18n-key="project.goalFraction">цели</dt><dd id="project-progress-value">—</dd></div><div><dt data-i18n-key="project.backers">Спонсоры</dt><dd id="project-donors">—</dd></div><div id="project-days-metric" hidden><dt data-i18n-key="project.daysLeft">дней осталось</dt><dd id="project-days">—</dd></div></dl>
+                <form class="project-donation-form hidden" id="donation-form">
+                    <div class="project-quick-amounts" role="group" data-i18n-aria-label="home.amountLabel" aria-label="Сумма поддержки"><button type="button" data-donation-amount="500" aria-pressed="false"></button><button type="button" data-donation-amount="1000" aria-pressed="true"></button><button type="button" data-donation-amount="3000" aria-pressed="false"></button><button type="button" data-donation-amount="10000" aria-pressed="false"></button></div>
+                    <div class="field"><label for="donation-amount" data-i18n-key="project.customAmount">Или своя сумма</label><input id="donation-amount" name="amount" type="number" inputmode="numeric" min="1" step="1" value="1000" required aria-describedby="donation-status donation-note"></div>
+                    <button class="dark-btn btn-lg" type="submit" id="donation-submit" data-i18n-key="project.action.donate">Поддержать</button>
+                </form>
+                <div class="auth-status" id="donation-status" role="status"></div>
+                <p class="project-detail-note" id="donation-note"></p>
+                <a class="dark-btn" id="project-login-link" href="/auth.html" data-i18n-key="shell.login">Войти</a>
+            </section>
+            <section class="project-author-card" id="project-author-card" data-i18n-aria-label="app.author" aria-label="Автор"></section>
+            <section class="project-donations-card" aria-labelledby="donations-heading"><h2 id="donations-heading" data-i18n-key="project.latestDonations">Последние донаты</h2><div id="project-donations"></div></section>
+        </aside>
+    </div>
 
-        <p class="panel-kicker">Backers</p>
-        <h3>Latest donations</h3>
-        <div class="review-list" id="project-donations"></div>
-
-        <p class="panel-kicker">Reviews</p>
-        <h3>Community feedback</h3>
-        <div class="auth-status" id="review-status"></div>
-        <form class="project-form hidden" id="review-form">
-            <label>
-                <span>Rating</span>
-                <select name="rating" required>
-                    <option value="5">5 - Excellent</option>
-                    <option value="4">4 - Good</option>
-                    <option value="3">3 - Normal</option>
-                    <option value="2">2 - Weak</option>
-                    <option value="1">1 - Poor</option>
-                </select>
-            </label>
-            <label>
-                <span>Your review</span>
-                <textarea name="reviewText" rows="4" maxlength="10000" placeholder="Share your experience with this project" required></textarea>
-            </label>
-            <div class="form-actions">
-                <button class="primary-btn small-btn" type="submit">Post review</button>
-            </div>
-        </form>
-        <div class="project-side-note" id="review-note">Log in to leave a review.</div>
-        <div class="review-list" id="project-reviews"></div>
-
-        <p class="panel-kicker">Comments</p>
-        <h3>Discussion</h3>
-        <div class="auth-status" id="comment-status"></div>
-        <form class="project-form hidden" id="comment-form">
-            <label>
-                <span>Leave a comment</span>
-                <textarea name="content" rows="4" maxlength="5000" placeholder="Ask a question or leave feedback" required></textarea>
-            </label>
-            <div class="form-actions">
-                <button class="primary-btn small-btn" type="submit">Post comment</button>
-                <button class="ghost-btn small-btn hidden" type="button" id="comment-reply-cancel">Cancel reply</button>
-            </div>
-        </form>
-        <div class="project-side-note" id="comment-note">Log in to join the discussion.</div>
-        <div class="review-list" id="project-comments"></div>
-    </aside>
+    <section class="project-related" id="project-related" hidden aria-labelledby="project-related-heading"><div class="project-section-heading"><h2 id="project-related-heading"></h2><a class="secondary-btn" id="project-related-link" href="/projects.html" data-i18n-key="project.allInCategory">Все проекты</a></div><div class="public-project-grid" id="project-related-grid" aria-busy="true"></div></section>
 </main>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>

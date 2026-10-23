@@ -141,11 +141,12 @@ async function mountShell() {
 }
 
 function buildShellMarkup({loggedIn, profileHref, primaryHref}) {
+    const paymentPage = window.location.pathname === "/pay.html";
     const cabinet = /\/(?:author-dashboard|sponsor-dashboard|admin-dashboard|admin-project-review|create-project|edit-project)\.html$/.test(window.location.pathname);
     const navLinks = [shellLink("/projects.html", shellT("shell.projects"))];
     if (!cabinet) navLinks.push(shellLink("/index.html#how", shellT("shell.how")), shellLink("/analytics.html", shellT("shell.analytics")));
     if (loggedIn) navLinks.push(shellLink(profileHref, resolveProfileLabel(profileHref)));
-    const actions = loggedIn
+    const actions = paymentPage ? `<a class="ghost-btn" href="/sponsor-dashboard.html">${shellT("shell.myDonations")}</a>` : loggedIn
         ? `${primaryHref === "/create-project.html" && !cabinet ? `<a class="primary-btn" href="${primaryHref}">${shellT("shell.launch")}</a>` : ""}
            <button class="ghost-btn" type="button" id="shell-logout-btn">${shellT("shell.logout")}</button>`
         : `<a class="ghost-btn" href="/auth.html">${shellT("shell.login")}</a><a class="primary-btn" href="/auth.html">${shellT("shell.launch")}</a>`;
@@ -157,7 +158,7 @@ function buildShellMarkup({loggedIn, profileHref, primaryHref}) {
                 <path d="M8 19l7-8 7 8" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg><span>RISEUP</span>
         </a>
-        <nav class="shell-nav" aria-label="${shellT("shell.navigation")}">${navLinks.join("")}</nav>
+        ${paymentPage ? "" : `<nav class="shell-nav" aria-label="${shellT("shell.navigation")}">${navLinks.join("")}</nav>`}
         <div class="shell-actions">${actions}</div>
         <div class="shell-lang" role="group" aria-label="${shellT("shell.language")}">
             ${["ru", "en"].map((lang) => `<button class="shell-lang-btn ${shellActiveLangClass(lang)}" type="button" data-lang-switch="${lang}" lang="${lang}" aria-label="${shellT(`shell.language.${lang}`)}" aria-pressed="${(SHELL_I18N?.getLang() ?? "en") === lang}">${lang.toUpperCase()}</button>`).join("")}
