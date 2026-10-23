@@ -3757,3 +3757,24 @@ html:not(.using-pointer) :is(.project-funding-card, .project-hero.is-loaded) :is
 .media-crop-dialog .avatar-cropper-stage { background: var(--bg); }
 .media-crop-dialog .avatar-cropper-head h3 { font-family: var(--font-heading); font-size: 22px; font-weight: 700; text-transform: uppercase; overflow-wrap: anywhere; }
 .media-crop-dialog input[type="range"] { accent-color: var(--lime); }
+/* Sponsor workspace shares the profile banner and editor with the author dashboard. */
+.sponsor-donations-section { display: flex; flex-direction: column; gap: 20px; padding-top: 40px; }
+.sponsor-donation-list { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
+.sponsor-donation-row { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 16px 20px 16px 16px; border-radius: 26px; background: var(--surface); }
+.sponsor-donation-cover { flex: 0 0 64px; height: 64px; overflow: hidden; border-radius: var(--radius-md); background: var(--category-color); }
+.sponsor-donation-cover img { width: 100%; height: 100%; object-fit: cover; }
+.sponsor-donation-copy { flex: 1 1 230px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.sponsor-donation-copy a { display: flex; align-items: center; min-height: 44px; color: var(--text); font-size: 18px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.sponsor-donation-copy time { font-size: 14px; color: var(--muted-2); }
+.sponsor-donation-row > .status-badge { flex: 0 0 auto; }
+.sponsor-donation-amount { flex: 0 1 130px; margin-left: auto; text-align: right; font-family: var(--font-heading); font-size: 20px; font-weight: 700; overflow-wrap: anywhere; }
+.sponsor-donation-action { flex: 0 0 180px; display: flex; justify-content: flex-end; }
+.sponsor-donation-action > a { font-size: 14px; }
+.sponsor-donations-section .empty-state { margin: 0; }
+@media (max-width: 600px) {
+    .sponsor-donation-row { gap: 12px; padding: 16px; }
+    .sponsor-donation-copy { flex-basis: calc(100% - 76px); }
+    .sponsor-donation-amount { font-size: 18px; }
+    .sponsor-donation-action { flex-basis: 100%; }
+    .sponsor-donation-action > a { width: 100%; justify-content: center; }
+}

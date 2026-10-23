@@ -82,7 +82,7 @@ function renderAuthorProfile() {
     authorNameNode.textContent = name;
     authorAvatarFallbackNode.textContent = getInitials(name);
     document.getElementById("author-bio").textContent = profile.bio || t("profile.emptyBio");
-    const date = profile.createdAt ? new Intl.DateTimeFormat(resolveAuthorLocale(), {month: "long", year: "numeric"}).format(new Date(profile.createdAt)) : "—";
+    const date = window.AppI18n.formatMembershipDate(profile.createdAt);
     document.getElementById("author-membership").textContent = t("author.membership").replace("{date}", date);
     document.getElementById("profile-name").value = name;
     document.getElementById("profile-email").value = profile.email || "";
@@ -470,7 +470,17 @@ async function openAvatarCropper(options) {
             canvas.toBlob((blob) => close(blob || null), "image/png");
         });
 
-        modal.addEventListener("cancel", (event) => { event.preventDefault(); close(null); });
+        modal.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            event.preventDefault();
+            event.stopPropagation();
+            close(null);
+        });
+        modal.addEventListener("cancel", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            window.setTimeout(() => close(null), 0);
+        });
         document.body.appendChild(modal);
         window.RiseUpUI.openModal(modal);
         document.body.classList.add("avatar-cropper-open");

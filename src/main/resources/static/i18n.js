@@ -711,17 +711,7 @@ const I18N_PAGE_TRANSLATIONS = {
         {selector: ".analytics-leaderboard th:nth-of-type(3)", type: "text", key: "index.table.owner"}
     ],
     "/author-dashboard.html": [],
-    "/sponsor-dashboard.html": [
-        {selector: "title", type: "text", key: "sponsor.title"},
-        {selector: ".panel.form-panel .panel-kicker", type: "text", key: "sponsor.kicker"},
-        {selector: ".panel.form-panel h3", type: "text", key: "sponsor.projects"},
-        {selector: ".panel.form-panel .ghost-btn", type: "text", key: "create.backDashboard"},
-        {selector: ".tips-panel .panel-kicker", type: "text", key: "sponsor.history"},
-        {selector: ".tips-panel h3", type: "text", key: "sponsor.review"},
-        {selector: ".tips-list li:nth-of-type(1)", type: "text", key: "sponsor.tip1"},
-        {selector: ".tips-list li:nth-of-type(2)", type: "text", key: "sponsor.tip2"},
-        {selector: ".tips-list li:nth-of-type(3)", type: "text", key: "sponsor.tip3"}
-    ],
+    "/sponsor-dashboard.html": [],
     "/create-project.html": [],
     "/edit-project.html": [],
     "/admin-dashboard.html": [
@@ -1696,6 +1686,46 @@ Object.assign(I18N_TRANSLATIONS.en, {
     "editor.moderator": "Moderator:", "editor.saving": "Saving changes…", "editor.saved": "Project updated", "editor.saveError": "Could not save project", "editor.loadError": "Could not load project"
 });
 
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "profile.bioPlaceholder": "Пара слов о себе или вашей команде",
+    "author.stats.successRate": "процент успеха",
+    "sponsor.membership": "Спонсор · на RiseUp с {date}",
+    "sponsor.filterLabel": "Фильтр по статусу оплаты",
+    "sponsor.tab.all": "Все", "sponsor.tab.ok": "Оплаченные", "sponsor.tab.pending": "Ожидают оплаты", "sponsor.tab.failed": "Не прошли",
+    "sponsor.metric.amount": "вложено всего",
+    "sponsor.metric.projects.one": "проект поддержан", "sponsor.metric.projects.few": "проекта поддержано", "sponsor.metric.projects.many": "проектов поддержано", "sponsor.metric.projects.other": "проекта поддержано",
+    "sponsor.metric.donations.one": "донат", "sponsor.metric.donations.few": "доната", "sponsor.metric.donations.many": "донатов", "sponsor.metric.donations.other": "доната",
+    "sponsor.metric.paid.one": "успешная оплата", "sponsor.metric.paid.few": "успешные оплаты", "sponsor.metric.paid.many": "успешных оплат", "sponsor.metric.paid.other": "успешной оплаты",
+    "sponsor.finishPayment": "Завершить оплату", "sponsor.toProject": "К проекту", "sponsor.emptyFilter": "Здесь пока пусто.",
+    "sponsor.status.loadError": "Не удалось загрузить кабинет спонсора",
+    "sponsor.status.bioRequired": "Напишите пару слов о себе.", "sponsor.status.bioSaving": "Сохраняем профиль…", "sponsor.status.bioSaved": "Профиль сохранён", "sponsor.status.bioSaveError": "Не удалось сохранить профиль"
+});
+Object.assign(I18N_TRANSLATIONS.en, {
+    "profile.bioPlaceholder": "A few words about you or your team",
+    "author.stats.successRate": "success rate",
+    "sponsor.membership": "Sponsor · on RiseUp since {date}",
+    "sponsor.filterLabel": "Filter by payment status",
+    "sponsor.tab.all": "All", "sponsor.tab.ok": "Paid", "sponsor.tab.pending": "Awaiting payment", "sponsor.tab.failed": "Failed",
+    "sponsor.metric.amount": "invested in total",
+    "sponsor.metric.projects.one": "project supported", "sponsor.metric.projects.other": "projects supported",
+    "sponsor.metric.donations.one": "donation", "sponsor.metric.donations.other": "donations",
+    "sponsor.metric.paid.one": "successful payment", "sponsor.metric.paid.other": "successful payments",
+    "sponsor.finishPayment": "Complete payment", "sponsor.toProject": "View project", "sponsor.emptyFilter": "Nothing here yet.",
+    "sponsor.status.loadError": "Could not load sponsor dashboard",
+    "sponsor.status.bioRequired": "Write a few words about yourself.", "sponsor.status.bioSaving": "Saving profile…", "sponsor.status.bioSaved": "Profile saved", "sponsor.status.bioSaveError": "Could not save profile"
+});
+
+const I18N_RU_GENITIVE_MONTHS = ["января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря"];
+
+function i18nFormatMembershipDate(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "—";
+    return i18nCurrentLanguage === "ru"
+        ? `${I18N_RU_GENITIVE_MONTHS[date.getMonth()]} ${date.getFullYear()}`
+        : new Intl.DateTimeFormat("en-US", {month: "long", year: "numeric"}).format(date);
+}
+
 function i18nPlural(key, count) {
     const form = new Intl.PluralRules(i18nCurrentLanguage).select(Number(count));
     return i18nTranslate(`${key}.${form}`).replaceAll("{count}", new Intl.NumberFormat(i18nCurrentLanguage).format(count));
@@ -1774,6 +1804,9 @@ window.AppI18n = {
     },
     plural(key, count) {
         return i18nPlural(key, count);
+    },
+    formatMembershipDate(value) {
+        return i18nFormatMembershipDate(value);
     },
     apply() {
         i18nApplyPageTranslations();

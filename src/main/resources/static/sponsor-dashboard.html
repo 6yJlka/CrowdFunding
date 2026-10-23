@@ -2,88 +2,43 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sponsor Dashboard | CrowdFunding</title>
+    <title data-i18n-key="sponsor.title">Проект | RiseUp</title>
+    <link rel="icon" type="image/png" href="/assets/riseup-mark-square.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;900&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="sponsor-layout">
 <div id="site-shell"></div>
-<main class="author-dashboard-page sponsor-dashboard-page">
-    <section class="author-dashboard-grid sponsor-dashboard-grid">
-        <aside class="panel author-profile-card sponsor-profile-card">
-            <div class="author-profile-top">
-                <div class="author-avatar-frame">
-                    <img id="sponsor-avatar-preview" class="author-avatar-image hidden" alt="Аватар спонсора">
-                    <div id="sponsor-avatar-fallback" class="author-avatar-fallback">SP</div>
-                    <label id="sponsor-avatar-upload-label" class="author-avatar-upload" for="sponsor-avatar-input" aria-label="Загрузить аватар">
-                        <span>+</span>
-                    </label>
-                    <input id="sponsor-avatar-input" class="hidden" type="file" accept="image/*">
-                </div>
-                <div class="author-profile-copy">
-                    <p id="sponsor-profile-kicker" class="panel-kicker">Профиль спонсора</p>
-                    <h1 id="sponsor-name">Спонсор</h1>
-                    <p id="sponsor-bio" class="author-bio">Поддерживаю проекты, которые делают платформу сильнее.</p>
-                </div>
+<main class="container author-workspace sponsor-workspace">
+    <section class="profile-banner" id="sponsor-profile-banner" aria-labelledby="sponsor-name">
+        <div class="profile-banner-top">
+            <div class="profile-avatar" id="sponsor-avatar"><img id="sponsor-avatar-preview" alt="" hidden><span id="sponsor-avatar-fallback" aria-hidden="true"></span><button class="profile-avatar-add" type="button" id="sponsor-avatar-open" data-i18n-aria-label="profile.uploadAvatar"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 3v12M3 9h12"/></svg></button></div>
+            <div class="profile-banner-copy"><p class="profile-membership" id="sponsor-membership"></p><h1 id="sponsor-name" data-i18n-key="app.loading"></h1><p class="profile-bio" id="sponsor-bio"></p>
+                <div class="profile-actions"><button class="dark-btn" type="button" id="sponsor-bio-edit-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m10 2 4 4-8 8H2v-4z"/></svg><span data-i18n-key="profile.edit"></span></button><a class="primary-btn" href="/projects.html" data-i18n-key="sponsor.action.findProject"></a></div>
             </div>
-            <div class="author-meta-list">
-                <div class="author-meta-item">
-                    <span id="sponsor-registration-label">Дата регистрации</span>
-                    <strong id="sponsor-registration-date">-</strong>
-                </div>
-                <div class="author-meta-item">
-                    <span id="sponsor-email-label">Email</span>
-                    <strong id="sponsor-email">-</strong>
-                </div>
-            </div>
-            <div class="author-profile-actions">
-                <a id="sponsor-home-link" class="ghost-btn" href="/">На главную</a>
-                <a id="sponsor-projects-link" class="primary-btn primary-btn-light" href="/projects.html">Найти проект</a>
-            </div>
-            <div class="auth-status" id="sponsor-status"></div>
-        </aside>
-
-        <div class="author-dashboard-main">
-            <section class="author-stats-grid" id="sponsor-stats"></section>
-
-            <section class="author-info-grid">
-                <article class="panel author-activity-card">
-                    <div class="panel-header">
-                        <div>
-                            <p id="sponsor-activity-kicker" class="panel-kicker">Активность</p>
-                            <h3 id="sponsor-activity-title">Последние пожертвования</h3>
-                        </div>
-                    </div>
-                    <ul class="author-activity-list" id="sponsor-activities"></ul>
-                </article>
-
-                <article class="panel author-guide-card">
-                    <p id="sponsor-guide-kicker" class="panel-kicker">История</p>
-                    <h3 id="sponsor-guide-title">Что отображается в кабинете</h3>
-                    <ul class="tips-list" id="sponsor-guide-list">
-                        <li>Все проекты, которые вы поддержали.</li>
-                        <li>Сумма пожертвования и статус платежа.</li>
-                        <li>Быстрый переход к публичной карточке проекта.</li>
-                    </ul>
-                </article>
-            </section>
-
-            <section class="panel author-projects-panel">
-                <div class="panel-header">
-                    <div>
-                        <p id="sponsor-projects-kicker" class="panel-kicker">Поддержка</p>
-                        <h3 id="sponsor-projects-title">Ваши пожертвования</h3>
-                    </div>
-                </div>
-                <div class="author-projects" id="sponsor-projects"></div>
-            </section>
         </div>
+        <dl class="profile-metrics" id="sponsor-stats"></dl>
+    </section>
+    <section class="sponsor-donations-section" aria-labelledby="sponsor-donations-title">
+        <div class="author-section-heading"><h2 id="sponsor-donations-title" data-i18n-key="shell.myDonations"></h2><div class="auth-status" id="sponsor-status" role="status"></div></div>
+        <div class="author-status-tabs" id="sponsor-status-tabs" role="tablist" data-i18n-aria-label="sponsor.filterLabel"></div>
+        <div id="sponsor-donations-panel" role="tabpanel" aria-live="polite" aria-busy="true"><ul class="sponsor-donation-list" id="sponsor-donations"></ul><p class="empty-state" id="sponsor-empty" hidden data-i18n-key="sponsor.emptyFilter"></p></div>
     </section>
 </main>
+<dialog class="modal-dialog profile-dialog" id="sponsor-profile-dialog" aria-labelledby="profile-dialog-title">
+    <div class="modal-dialog-header"><h2 id="profile-dialog-title" data-i18n-key="profile.dialogTitle"></h2><button class="modal-close" type="button" data-modal-close data-i18n-aria-label="aria.closeModal"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 5 10 10M15 5 5 15"/></svg></button></div>
+    <form class="profile-edit-form" id="sponsor-bio-form">
+        <div class="profile-upload-row"><div class="profile-modal-avatar" id="profile-modal-avatar" aria-hidden="true"></div><div><button class="secondary-btn light-btn" type="button" id="sponsor-avatar-upload" data-i18n-key="profile.uploadAvatar"></button><input type="file" id="sponsor-avatar-input" accept="image/*" hidden><p class="field-hint" data-i18n-key="profile.avatarHint"></p></div></div>
+        <div class="field"><label for="profile-name" data-i18n-key="auth.displayName"></label><input id="profile-name" type="text" disabled aria-describedby="profile-locked"></div>
+        <div class="field"><label for="profile-email" data-i18n-key="auth.email"></label><input id="profile-email" type="email" disabled aria-describedby="profile-locked"><small id="profile-locked" data-i18n-key="profile.locked"></small></div>
+        <div class="field"><div class="field-heading"><label for="sponsor-bio-input" data-i18n-key="profile.bio"></label><output class="field-counter" id="sponsor-bio-counter" for="sponsor-bio-input">0 / 280</output></div><textarea id="sponsor-bio-input" name="bio" rows="4" maxlength="280" required data-i18n-placeholder="profile.bioPlaceholder" aria-describedby="profile-status"></textarea></div>
+        <div class="auth-status" id="profile-status" role="status"></div>
+        <div class="modal-dialog-actions"><button class="primary-btn" id="sponsor-bio-save-btn" type="submit" data-i18n-key="profile.save"></button><button class="secondary-btn" type="button" data-modal-close data-i18n-key="profile.cancel"></button></div>
+    </form>
+</dialog>
 <script src="/i18n.js"></script>
 <script src="/shell.js"></script>
 <script src="/sponsor-dashboard-app.js"></script>
