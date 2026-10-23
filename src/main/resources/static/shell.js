@@ -3,20 +3,27 @@ const SHELL_I18N = window.AppI18n;
 let shellMountVersion = 0;
 
 const RISEUP_PALETTE = Object.freeze(["#C6F24E", "#FF6A3D", "#FFD23F", "#7C8CFF", "#5FD4C4", "#F2B8E0"]);
+const RISEUP_CATEGORY_FALLBACK_PALETTE = Object.freeze(["#F2B8E0", "#B9A3FF", "#FFB38A", "#9BE7FF"]);
 const RISEUP_CATEGORY_COLORS = Object.freeze({
     art: RISEUP_PALETTE[0], tech: RISEUP_PALETTE[4], education: RISEUP_PALETTE[2],
     charity: RISEUP_PALETTE[1], social: RISEUP_PALETTE[3]
 });
 
-function resolveProfileColor(id) {
+function hashRiseUpValue(value) {
     let hash = 0;
-    for (const symbol of String(id ?? "")) hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
-    return RISEUP_PALETTE[hash % RISEUP_PALETTE.length];
+    for (const symbol of String(value ?? "")) hash = ((hash * 31) + symbol.charCodeAt(0)) >>> 0;
+    return hash;
+}
+
+function resolveProfileColor(id) {
+    return RISEUP_PALETTE[hashRiseUpValue(id) % RISEUP_PALETTE.length];
 }
 
 function resolveCategoryColor(slug) {
     const key = String(slug ?? "").trim().toLowerCase();
-    return Object.hasOwn(RISEUP_CATEGORY_COLORS, key) ? RISEUP_CATEGORY_COLORS[key] : resolveProfileColor(key);
+    return Object.hasOwn(RISEUP_CATEGORY_COLORS, key)
+        ? RISEUP_CATEGORY_COLORS[key]
+        : RISEUP_CATEGORY_FALLBACK_PALETTE[hashRiseUpValue(key) % RISEUP_CATEGORY_FALLBACK_PALETTE.length];
 }
 
 window.RiseUpUI = Object.freeze({
@@ -33,6 +40,14 @@ window.RiseUpUI = Object.freeze({
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Browsers may match :focus-visible for text fields even after a pointer click.
+    // Track input modality so the shared keyboard ring remains keyboard-only there too.
+    document.addEventListener("pointerdown", () => document.documentElement.classList.add("using-pointer"), true);
+    document.addEventListener("keydown", (event) => {
+        if (!event.metaKey && !event.ctrlKey && !event.altKey && !["Shift", "Control", "Alt", "Meta"].includes(event.key)) {
+            document.documentElement.classList.remove("using-pointer");
+        }
+    }, true);
     mountShell();
     document.addEventListener("app:lang-changed", () => {
         mountShell();
@@ -291,13 +306,15 @@ window.RiseUpProjects = (() => {
     }
 
     function categoryTitle(project, categories) {
+        if (project.categoryId == null) return t("category.uncategorized");
         const item = category(project, categories);
         const key = `category.${item?.slug}`;
         const translated = t(key);
-        return translated !== key ? translated : (item?.title || project.categoryTitle || t("category.general"));
+        return translated !== key ? translated : (item?.title || project.categoryTitle || t("category.unknown"));
     }
 
     function categoryColor(project, categories) {
+        if (project.categoryId == null) return "#3A3A40";
         return window.RiseUpUI.resolveCategoryColor(category(project, categories)?.slug ?? "");
     }
 

@@ -9,6 +9,8 @@ const catalogGridNode = document.getElementById("catalog-page-grid");
 const catalogStatusNode = document.getElementById("catalog-page-status");
 const catalogSearchNode = document.getElementById("catalog-page-search");
 const catalogSortNode = document.getElementById("catalog-sort-filter");
+const catalogSortMenu = document.getElementById("catalog-sort-listbox");
+const catalogSortOptions = [...catalogSortMenu.querySelectorAll("[data-sort-value]")];
 const catalogChipRowNode = document.getElementById("catalog-chip-row");
 const catalogPrevNode = document.getElementById("catalog-prev-btn");
 const catalogNextNode = document.getElementById("catalog-next-btn");
@@ -19,6 +21,7 @@ let catalogLoaded = false;
 let catalogErrorKey = "";
 let catalogCategoriesError = false;
 let catalogSearchTimeout;
+let catalogSortActiveIndex = 0;
 
 hydrateCatalogStateFromUrl();
 wireCatalogPageEvents();
@@ -32,6 +35,7 @@ loadCatalogCategories().catch(() => {
 loadCatalogPageProjects();
 
 document.addEventListener("app:lang-changed", () => {
+    syncCatalogSort();
     renderCatalogChips();
     syncCatalogTabs();
     renderCatalogPageProjects();
@@ -40,6 +44,7 @@ document.addEventListener("app:lang-changed", () => {
     setCatalogPageStatus(catalogErrorKey || (catalogCategoriesError ? "catalog.error.categories" : catalogLoaded ? "" : "catalog.loading"), Boolean(catalogErrorKey || catalogCategoriesError));
 });
 window.addEventListener("popstate", () => {
+    closeCatalogSort();
     window.clearTimeout(catalogSearchTimeout);
     hydrateCatalogStateFromUrl();
     syncCatalogTabs();
@@ -53,12 +58,12 @@ function hydrateCatalogStateFromUrl() {
     catalogPageState.categoryId = params.get("uncategorized") === "true" ? UNCATEGORIZED_CATEGORY_TOKEN : (params.get("categoryId") ?? "");
     catalogPageState.authorId = params.get("authorId") ?? "";
     const sort = params.get("sort") ?? "createdAt,desc";
-    catalogPageState.sort = [...catalogSortNode.options].some((option) => option.value === sort) ? sort : "createdAt,desc";
+    catalogPageState.sort = catalogSortOptions.some((option) => option.dataset.sortValue === sort) ? sort : "createdAt,desc";
     const page = Number(params.get("page") ?? 0);
     catalogPageState.page = Number.isSafeInteger(page) && page > 0 ? page : 0;
     catalogPageState.status = params.get("status") === "FUNDED" ? "FUNDED" : "ACTIVE";
     catalogSearchNode.value = catalogPageState.query;
-    catalogSortNode.value = catalogPageState.sort;
+    syncCatalogSort();
 }
 
 function wireCatalogPageEvents() {
@@ -70,11 +75,7 @@ function wireCatalogPageEvents() {
         window.clearTimeout(catalogSearchTimeout);
         catalogSearchTimeout = window.setTimeout(submitCatalogSearch, 250);
     });
-    catalogSortNode.addEventListener("change", () => {
-        catalogPageState.sort = catalogSortNode.value;
-        catalogPageState.page = 0;
-        loadCatalogPageProjects();
-    });
+    wireCatalogSort();
     catalogChipRowNode.addEventListener("click", (event) => {
         const chip = event.target.closest("[data-category-id]");
         if (!chip) return;
@@ -101,6 +102,92 @@ function wireCatalogPageEvents() {
     catalogNextNode.addEventListener("click", () => {
         if (catalogPageState.page < catalogPageState.totalPages - 1) { catalogPageState.page += 1; loadCatalogPageProjects(); }
     });
+}
+
+function wireCatalogSort() {
+    catalogSortNode.addEventListener("click", () => {
+        if (catalogSortMenu.hidden) openCatalogSort();
+        else closeCatalogSort(true);
+    });
+    catalogSortNode.addEventListener("keydown", (event) => {
+        if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+            event.preventDefault();
+            openCatalogSort();
+        }
+    });
+    catalogSortMenu.addEventListener("keydown", (event) => {
+        if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+            event.preventDefault();
+            const count = catalogSortOptions.length;
+            catalogSortActiveIndex = event.key === "Home" ? 0 : event.key === "End" ? count - 1
+                : (catalogSortActiveIndex + (event.key === "ArrowDown" ? 1 : -1) + count) % count;
+            highlightCatalogSort();
+        } else if (["Enter", " "].includes(event.key)) {
+            event.preventDefault();
+            selectCatalogSort(catalogSortOptions[catalogSortActiveIndex]);
+        } else if (event.key === "Escape") {
+            event.preventDefault();
+            closeCatalogSort(true);
+        } else if (event.key === "Tab") {
+            // Return to the trigger before the browser performs its usual Tab navigation.
+            closeCatalogSort(true);
+        }
+    });
+    catalogSortMenu.addEventListener("click", (event) => {
+        const option = event.target.closest("[data-sort-value]");
+        if (option) selectCatalogSort(option);
+    });
+    const host = catalogSortNode.closest(".public-catalog-sort");
+    document.addEventListener("pointerdown", (event) => {
+        if (!host.contains(event.target)) closeCatalogSort();
+    });
+    host.addEventListener("focusout", (event) => {
+        if (!host.contains(event.relatedTarget)) closeCatalogSort();
+    });
+}
+
+function syncCatalogSort() {
+    catalogSortOptions.forEach((option) => {
+        const selected = option.dataset.sortValue === catalogPageState.sort;
+        option.setAttribute("aria-selected", String(selected));
+        if (selected) {
+            const key = option.querySelector("[data-i18n-key]").dataset.i18nKey;
+            document.getElementById("catalog-sort-value").textContent = catalogI18n.t(key);
+        }
+    });
+}
+
+function openCatalogSort() {
+    catalogSortActiveIndex = catalogSortOptions.findIndex((option) => option.dataset.sortValue === catalogPageState.sort);
+    catalogSortMenu.hidden = false;
+    catalogSortNode.setAttribute("aria-expanded", "true");
+    highlightCatalogSort();
+    catalogSortMenu.focus({preventScroll: true});
+}
+
+function closeCatalogSort(restoreFocus = false) {
+    if (catalogSortMenu.hidden) return;
+    catalogSortMenu.hidden = true;
+    catalogSortNode.setAttribute("aria-expanded", "false");
+    if (restoreFocus) catalogSortNode.focus({preventScroll: true});
+}
+
+function highlightCatalogSort() {
+    catalogSortOptions.forEach((option, index) => option.classList.toggle("is-highlighted", index === catalogSortActiveIndex));
+    const active = catalogSortOptions[catalogSortActiveIndex];
+    catalogSortMenu.setAttribute("aria-activedescendant", active.id);
+    active.scrollIntoView({block: "nearest"});
+}
+
+function selectCatalogSort(option) {
+    const changed = catalogPageState.sort !== option.dataset.sortValue;
+    catalogPageState.sort = option.dataset.sortValue;
+    syncCatalogSort();
+    closeCatalogSort(true);
+    if (changed) {
+        catalogPageState.page = 0;
+        loadCatalogPageProjects();
+    }
 }
 
 function submitCatalogSearch() {
@@ -188,12 +275,18 @@ function renderCatalogPageProjects() {
 }
 
 function renderCatalogChips() {
+    const focusedCategory = catalogChipRowNode.contains(document.activeElement)
+        ? document.activeElement.dataset.categoryId : null;
     const categories = [{id: "", title: catalogI18n.t("projects.allCategories")},
-        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogI18n.t("category.general")}, ...catalogCategories];
+        {id: UNCATEGORIZED_CATEGORY_TOKEN, title: catalogI18n.t("category.uncategorized")}, ...catalogCategories];
     catalogChipRowNode.innerHTML = categories.map((category) => {
         const title = category.slug ? catalogPresentation.categoryTitle({categoryId: category.id}, catalogCategories) : category.title;
         return `<button class="chip" type="button" data-category-id="${catalogPresentation.escapeHtml(category.id)}" aria-pressed="${String(category.id) === catalogPageState.categoryId}">${catalogPresentation.escapeHtml(title)}</button>`;
     }).join("");
+    if (focusedCategory != null) {
+        [...catalogChipRowNode.querySelectorAll("[data-category-id]")]
+            .find((button) => button.dataset.categoryId === focusedCategory)?.focus({preventScroll: true});
+    }
 }
 
 function updateCatalogPagination() {

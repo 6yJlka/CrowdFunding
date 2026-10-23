@@ -22,14 +22,17 @@
                 <button class="primary-btn" type="submit" id="catalog-page-search-btn" data-i18n-key="projects.search">Поиск</button>
             </form>
             <div class="public-catalog-sort">
-                <label class="sr-only" for="catalog-sort-filter" data-i18n-key="catalog.sortLabel">Сортировка</label>
-                <select id="catalog-sort-filter">
-                    <option value="createdAt,desc" data-i18n-key="projects.sort.newest">Сначала новые</option>
-                    <option value="collectedAmount,desc" data-i18n-key="projects.sort.funded">Больше собрано</option>
-                    <option value="goalAmount,desc" data-i18n-key="projects.sort.goal">Самая высокая цель</option>
-                    <option value="title,asc" data-i18n-key="projects.sort.az">Название А–Я</option>
-                </select>
-                <span class="public-catalog-sort-arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                <span class="sr-only" id="catalog-sort-label" data-i18n-key="catalog.sortLabel">Сортировка</span>
+                <button class="public-catalog-sort-trigger" id="catalog-sort-filter" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="catalog-sort-listbox" aria-labelledby="catalog-sort-label catalog-sort-value">
+                    <span id="catalog-sort-value">Сначала новые</span>
+                    <span class="public-catalog-sort-arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 5l4 4 4-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                </button>
+                <ul class="public-catalog-sort-menu" id="catalog-sort-listbox" role="listbox" tabindex="-1" aria-labelledby="catalog-sort-label" hidden>
+                    <li class="public-catalog-sort-option" id="catalog-sort-newest" role="option" aria-selected="true" data-sort-value="createdAt,desc"><span data-i18n-key="projects.sort.newest">Сначала новые</span><svg class="public-catalog-sort-check" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 4 4 8-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+                    <li class="public-catalog-sort-option" id="catalog-sort-funded" role="option" aria-selected="false" data-sort-value="collectedAmount,desc"><span data-i18n-key="projects.sort.funded">Больше собрано</span><svg class="public-catalog-sort-check" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 4 4 8-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+                    <li class="public-catalog-sort-option" id="catalog-sort-goal" role="option" aria-selected="false" data-sort-value="goalAmount,desc"><span data-i18n-key="projects.sort.goal">Самая высокая цель</span><svg class="public-catalog-sort-check" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 4 4 8-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+                    <li class="public-catalog-sort-option" id="catalog-sort-title" role="option" aria-selected="false" data-sort-value="title,asc"><span data-i18n-key="projects.sort.az">Название А–Я</span><svg class="public-catalog-sort-check" width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m3 9 4 4 8-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></li>
+                </ul>
             </div>
         </div>
         <div class="segments" id="catalog-status-tabs" role="tablist" data-i18n-aria-label="catalog.statusLabel" aria-label="Статус сбора">

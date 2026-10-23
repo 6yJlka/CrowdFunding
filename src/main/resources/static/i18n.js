@@ -430,7 +430,7 @@ const I18N_TRANSLATIONS = {
         "projects.sort.goal": "Самая высокая цель",
         "projects.sort.az": "Название А-Я",
         "projects.prev": "Назад",
-        "projects.next": "Вперед",
+        "projects.next": "Вперёд",
         "projects.search": "Поиск",
         "projects.modal.select": "Выберите кампанию",
         "projects.modal.details": "Здесь появятся детали проекта.",
@@ -1158,7 +1158,7 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "projects.sort.goal": "Самая высокая цель",
     "projects.sort.az": "Название А-Я",
     "projects.prev": "Назад",
-    "projects.next": "Вперед",
+    "projects.next": "Вперёд",
     "projects.search": "Поиск",
     "projects.modal.select": "Выберите кампанию",
     "projects.modal.details": "Здесь появятся детали проекта.",
@@ -1372,6 +1372,8 @@ Object.assign(I18N_TRANSLATIONS.ru, {
 
 Object.assign(I18N_TRANSLATIONS.en, {
     "category.general": "General",
+    "category.uncategorized": "Uncategorized",
+    "category.unknown": "Unknown category",
     "category.tech": "Technology",
     "category.art": "Art",
     "category.social": "Social projects",
@@ -1381,6 +1383,8 @@ Object.assign(I18N_TRANSLATIONS.en, {
 
 Object.assign(I18N_TRANSLATIONS.ru, {
     "category.general": "Общее",
+    "category.uncategorized": "Без категории",
+    "category.unknown": "Неизвестная категория",
     "category.tech": "Технологии",
     "category.art": "Творчество",
     "category.social": "Социальные проекты",
