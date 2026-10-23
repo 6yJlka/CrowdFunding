@@ -1484,18 +1484,6 @@ Object.assign(I18N_TRANSLATIONS.ru, {
 });
 
 Object.assign(I18N_TRANSLATIONS.en, {
-    "shell.theme.label": "Theme",
-    "shell.theme.light": "Light",
-    "shell.theme.dark": "Dark"
-});
-
-Object.assign(I18N_TRANSLATIONS.ru, {
-    "shell.theme.label": "Тема",
-    "shell.theme.light": "Светлая",
-    "shell.theme.dark": "Темная"
-});
-
-Object.assign(I18N_TRANSLATIONS.en, {
     "create.field.image": "Project image",
     "create.image.choose": "Choose image",
     "create.image.none": "No file selected",
@@ -1605,6 +1593,36 @@ Object.assign(I18N_TRANSLATIONS.ru, {
     "project.comment.replyingTo": "\u041e\u0442\u0432\u0435\u0442 \u0434\u043b\u044f {name}"
 });
 
+Object.assign(I18N_TRANSLATIONS.en, {
+    "shell.projects": "Projects",
+    "shell.how": "How it works",
+    "shell.analytics": "Analytics",
+    "shell.launch": "Launch",
+    "shell.myDonations": "My donations",
+    "shell.home": "RiseUp — home",
+    "shell.navigation": "Main navigation",
+    "shell.footerNavigation": "Footer navigation",
+    "shell.language": "Language",
+    "shell.source": "Source code on GitHub",
+    "shell.language.ru": "Русский",
+    "shell.language.en": "English"
+});
+
+Object.assign(I18N_TRANSLATIONS.ru, {
+    "shell.projects": "Проекты",
+    "shell.how": "Как это работает",
+    "shell.analytics": "Аналитика",
+    "shell.launch": "Запустить",
+    "shell.myDonations": "Мои донаты",
+    "shell.home": "RiseUp — главная",
+    "shell.navigation": "Основная навигация",
+    "shell.footerNavigation": "Навигация в подвале",
+    "shell.language": "Язык",
+    "shell.source": "Исходный код на GitHub",
+    "shell.language.ru": "Русский",
+    "shell.language.en": "English"
+});
+
 function i18nDetectLanguage() {
     const saved = localStorage.getItem(I18N_STORAGE_KEY);
     if (saved && I18N_SUPPORTED_LANGS.has(saved)) {
@@ -1669,6 +1687,15 @@ function i18nApplyPageTranslations() {
 
     const rules = I18N_PAGE_TRANSLATIONS[page] || [];
     rules.forEach(i18nApplyRule);
+    document.querySelectorAll("[data-i18n-key]").forEach((node) => {
+        node.textContent = i18nTranslate(node.dataset.i18nKey);
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+        node.setAttribute("placeholder", i18nTranslate(node.dataset.i18nPlaceholder));
+    });
+    document.querySelectorAll("[data-i18n-aria-label]").forEach((node) => {
+        node.setAttribute("aria-label", i18nTranslate(node.dataset.i18nAriaLabel));
+    });
 }
 
 function i18nSetLanguage(lang) {
